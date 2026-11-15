@@ -22,7 +22,21 @@ type Need struct {
 	// New: a port the change adds, which nothing listens on yet.
 	New bool
 	Why string // "listener 0.0.0.0:22", "new port", "kept port"
+	// The rest make a need of some connections alone (carry.go), judged by
+	// verdictFrom: those from From (zero: any source) to To (zero: any
+	// address of the host) arriving on Iface ("": any interface, or for a
+	// Session one not read). Like, not 0, is the port whose rule the need
+	// was copied from: the need holds where Port lets those connections in
+	// as Like does. Session: the applying session's own address, which no
+	// deny may match first.
+	From, To netip.Prefix
+	Iface    string
+	Like     uint16
+	Session  bool
 }
+
+// sourced: a need of some connections alone.
+func (n Need) sourced() bool { return n.Like != 0 || n.Session }
 
 // Needs lists what must be let through: every listener of ls, sshd's and
 // ssh.socket's (a socket's [::] is dual-stack, systemd's default, so it
@@ -229,6 +243,8 @@ func verdict(rules []Rule, fw Firewall, n Need) (Verdict, string) {
 		return Allowed, "loopback: ufw's before.rules accepts lo first"
 	case n.Family == IPv6 && !fw.IPv6:
 		return Blocked, "IPV6 is not yes in " + DefaultsFile + " or " + ConfFile + ": once started, ufw drops all IPv6"
+	case n.sourced():
+		return verdictFrom(rules, fw, n)
 	}
 	var allowSome, denySome string // the first restricted rules of each kind
 	for _, r := range rules {
@@ -299,7 +315,10 @@ const (
 	FindingAtStart
 	// FindingWidened: the plan lets a new port through from anywhere while
 	// a listener of the same IP version is Restricted or Excepted now
-	// (proposal P-33).
+	// (proposal P-33); or, where the current port's source rules are
+	// copied to it (carry.go), the new port lets in more than they do: a
+	// rule already there for it that is none of theirs, or a deny naming
+	// the current port that is not copied.
 	FindingWidened
 )
 

@@ -142,7 +142,8 @@ var refusals = []struct{ item, host, words string }{
 	{"2", "password-session", "You logged in with a password. Turning passwords off would close the way you came in. Log in with a key first."},
 	{"1", "pve9-password", "You logged in as root with a password. Making root key-only would close the way you came in. Log in as root with a key first."},
 	{"3", "pve9", "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."},
-	{"3", "ufw-restricted", "ufw lets port 22 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first."},
+	{"3", "ufw-source-port", "hardn can't copy this ufw rule to a new port: 22/tcp from 198.51.100.0/24 port 1024. Replace it with a rule by address, then try again."},
+	{"3", "ufw-session-out", "No ufw rule for port 22 covers 192.0.2.10, where you're logged in from. You couldn't reach the new port. Add a rule for it first."},
 	{"1", "legacy-v032", "hardn's old SSH files are still here (manage.conf, listen.conf). Move them into 00-hardn.conf first: item 4."},
 	{"3", "legacy-v032", "hardn's old SSH files are still here (manage.conf, listen.conf). Move them into 00-hardn.conf first: item 4."},
 	{"4", "legacy-v032", "hardn v0.3.x's listen.conf (port 2230 for ssh.socket) never took effect: ssh.socket listens on 22. Moving it now couldn't be undone. " +
@@ -323,6 +324,41 @@ func TestPortReadAgain(t *testing.T) {
 	if p.err != nil || !shows(got, "Now 22") || shows(got, "Default: 2230") || !shows(got, wordsPortRange) || !shows(got, "sshd listens on 2230 already.") ||
 		shows(got, planned) || ty.Unread() != 0 {
 		t.Errorf("sshd moved after the draw: Run = %v:\n%s", p.err, got)
+	}
+}
+
+// TestPortSources: where ufw lets 22 in from some sources alone, item 3 is
+// not refused: under plan only the review holds each source's rule for the
+// new port, under its title, before 00-hardn.conf's; with both there by
+// hand ufw has no step, and the change is still planned.
+func TestPortSources(t *testing.T) {
+	const title, a, b = "ufw: allow 2230/tcp from 22's sources", "ufw allow from 192.0.2.0/24 to any port 2230 proto tcp", "ufw allow from 198.51.100.0/24 to any port 2230 proto" // the review wraps it before tcp
+	for _, tt := range []struct {
+		host string
+		want []string
+		not  []string
+	}{
+		{"ufw-two-sources", []string{title, a, b}, nil},
+		{"ufw-restricted", []string{title, a}, []string{b}},
+		{"ufw-sources-there", nil, []string{title, "ufw allow"}},
+	} {
+		h := ready(t, tt.host)
+		n := len(h.Calls())
+		p := play(h, true, "3", "2230", "0")
+		if p.err != nil || p.unread != 0 || !shows(p.out, planned) || !shows(p.out, "Port 2230") || shows(p.out, "open to anyone") || len(writes(h, n)) > 0 {
+			t.Errorf("%s: Run = %v, wrote %v:\n%s", tt.host, p.err, writes(h, n), p.out)
+		}
+		for _, w := range tt.want {
+			if !shows(p.out, w) || strings.Index(flat(p.out), w) > strings.Index(flat(p.out), "Add SSH port 2230") {
+				t.Errorf("%s: %q not shown before the write:\n%s", tt.host, w, p.out)
+			}
+		}
+		for _, w := range tt.not {
+			if shows(p.out, w) {
+				t.Errorf("%s: shows %q:\n%s", tt.host, w, p.out)
+			}
+		}
+		checkHost(t, tt.host, h)
 	}
 }
 

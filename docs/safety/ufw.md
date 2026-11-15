@@ -27,6 +27,8 @@ origin/main's firewall step sets the defaults, runs `ufw disable`, then `ufw res
 9. **Refused when the plan would block a listener (`*BlockError`, `ErrBlocks`).** After the steps, every need is evaluated again under the saved rules: one that is not OK then, while it is now (ufw inactive, or let through by the saved rules ufw shows as loaded), or a new port, refuses the whole plan with the needs, their verdicts and the deciding rule. So a saved deny, a saved restricted allow, a saved blocklist (`Excepted`), a rule the allow would change (§2.8), or `IPV6=no` with sshd on `[::]:22`, all of which take effect only when ufw starts, are refused before anything runs (tested). A listener that is already not let through and stays so is a pre-existing state, not caused by the plan: it is a `Finding`, and the plan goes ahead (tested). With ufw inactive and staying so, each need its saved rules would not let through once ufw starts is a `FindingAtStart` (`ssh-not-allowed-at-start`), not a refusal, since nothing the plan runs blocks it (tested: a new port under a saved deny). A new port the plan lets through from anywhere while a listener of the same IP version is `Restricted` or `Excepted` is a `FindingWidened` (`ssh-new-port-wider`): moving SSH there widens who can reach it; whether to mirror the restriction or refuse is [P-33](../refactor/proposals.md#p-33) (tested). **ENABLED and the chains disagree: refused (`ErrEnabledMismatch`).** Enabled but stopped (on Alpine after a reboot without a runlevel, §6, or after a failed start), each `ufw allow` saves its rule and then fails ("Could not update running firewall"), and the next boot loads the saved rules; loaded but not enabled, an allow is saved and shown but not loaded (§3). Tested both.
 10. **Idempotent.** With the rules, policies and state the plan leads to, the second plan is empty (`TestExecute2230`). Other `Desired` errors: a policy ufw does not have, a port 0 (`fs.ErrInvalid`); `ErrNotInstalled`; `ErrStateUnknown` for a line not read; `ErrEnabledMismatch`.
 
+*Since 2026-11-15, a port's sources carried* ([design-ssh-port-sources.md](../engine/design-ssh-port-sources.md), `carry.go`). Where ufw is active and, in an IP version it writes, source rules alone let the current SSH ports in, a port in `Add` gets each of those rules for itself (`ufw allow from <source> to any port <port> proto tcp`, the action, interface, "to" address, log type and comment kept), not `ufw allow <port>/tcp`. Each IP version is planned alone; a rule there already (ufw's own tuple match) is never repeated or changed; the plan is judged on one need per carried rule and, for a remote session, on its own address (`Input.Session`). Refused: a rule with a source port or source application (`*CopyError`), the session's address not let in or not read (`*SessionError`), a deny of the new port for a carried source (`*BlockError`). The old port's rules are never touched, and each added rule is undone by its own delete, only where ufw answered that it added it. Written, not run on a host: that page's §11.
+
 ### Executing (`Execute`, `Rollback`)
 
 11. **Steps in order, stop at the first failure.** A command's error is returned with its argv (`*host.ExitError` for ufw's exit 1 and `ERROR:` on stderr). The `Report` holds every step up to the failed one with its `host.Result`, and `Report.Undo`, the inverse commands of the steps that ran, last first (`ufw disable`, `ufw default <old> <dir>`, `ufw delete allow <port>/tcp`): the input to `Rollback` and to `p2-revert`'s journal. **A default or an enable is undone even when it failed:** ufw writes `DEFAULT_<CHAIN>_POLICY` before it restarts the firewall, and writes `ENABLED=yes` before it starts it, putting `ENABLED=no` back on a failed start without stopping what the start loaded (§3), so a failed step may have taken effect. Its undo puts back the state before it and is harmless when the step did nothing (`ufw disable` always runs ufw's stop). Tested with the model: a policy saved, then exit 1; an enable that exits 1 with the chains loaded; each rolled back. A failed allow is not undone (§2.12). `Plan.PreUndo()` are the plan's default and enable undos, last first, safe to journal before `Execute` runs (§6).
@@ -124,7 +126,7 @@ func Applies(pve detect.Proxmox) error // nil, ErrNotApplicable, or ErrProxmoxUn
 
 type Policy string // PolicyAllow, PolicyDeny, PolicyReject, PolicyDisabled; "" not established
 type Family uint8  // IPv4 = 4, IPv6 = 6
-type Rule struct { Action, Dir, Proto, Dst, DPort, Src, Iface, App string; Family Family; Line string }
+type Rule struct { Action, Dir, Proto, Dst, DPort, Src, Iface, App string; Family Family; Line string; Log, Comment string } // Log, Comment: ParseTuples' alone
 
 type Status struct { Known, Active bool; Logging string; Incoming, Outgoing, Routed Policy; NewProfiles string; Rules []Rule; Bad []string }
 type State struct { Installed bool; Status Status; Enabled, IPv6, NoKernelIPv6 bool; Incoming, Outgoing Policy; Rules []Rule; Bad []string } // Known() bool
@@ -136,7 +138,7 @@ func BootMasked(state string) bool
 func ParseStatus(out []byte) Status
 func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string)
 
-type Need struct { Port uint16; Family Family; Addr netip.Addr; New bool; Why string }
+type Need struct { Port uint16; Family Family; Addr netip.Addr; New bool; Why string; From, To netip.Prefix; Iface string; Like uint16; Session bool } // the last five: a carried rule's need, or the session's
 func Needs(ls sshd.Listeners, add, keep []uint16) []Need
 type Verdict uint8 // VerdictUnknown (zero), Allowed, Limited, Restricted, Blocked, Denied, Excepted, Unreachable; OK() bool
 type Coverage struct { Need Need; Verdict Verdict; By string }
@@ -148,10 +150,16 @@ type Finding struct { Kind FindingKind; Coverage Coverage; Incoming Policy }
 func Check(st State, needs []Need) ([]Coverage, []Finding)
 func OnlyFrom(st State, port uint16) []string // slice 6 (b): active ufw lets port/tcp in from these sources alone (rules' Src, in order; an interface rule as "<src> on <iface>", "anywhere on <iface>"); nil from anywhere on any interface, no rule, or inactive
 
+// Since 2026-11-15 (docs/engine/design-ssh-port-sources.md, carry.go): where source rules alone let the current ports in, PlanFor copies each to a port in Add.
+func Carries(st State, ports []uint16) bool                 // active, and an IP version ufw writes lets ports in by source rules alone
+func CheckSession(st State, from []uint16, s Session) error // before a port is named: *CopyError (ErrCantCopy), *SessionError (ErrSessionSource), nil
+func RouteDev(ctx context.Context, sys host.System, addr netip.Addr) string // "ip route get <addr>"'s dev; "" not read
+type Session struct { Remote bool; Client, Server netip.Addr; Dev string }
+
 type Desired struct { Enable bool; Incoming, Outgoing Policy; NoSaveWhileInactive bool }
-type Input struct { Proxmox detect.Proxmox; Listeners sshd.Listeners; Add, Keep []uint16; State State; Desired Desired; NoSSH bool }
-type StepKind uint8 // StepAllow, StepDefault, StepEnable, StepDisable, StepAllowApp
-type Step struct { Kind StepKind; Argv, Undo []string; Port uint16; Why string }
+type Input struct { Proxmox detect.Proxmox; Listeners sshd.Listeners; Add, Keep []uint16; State State; Session Session; Desired Desired; NoSSH bool }
+type StepKind uint8 // StepAllow, StepDefault, StepEnable, StepDisable, StepAllowApp, StepAllowFrom
+type Step struct { Kind StepKind; Argv, Undo []string; Port, From uint16; Why string }
 type Plan struct { NotApplicable bool; Steps []Step; Needs []Need; Before, After []Coverage; Active bool; Incoming, Outgoing Policy; IPv6, NoKernelIPv6 bool; Findings []Finding }
 func (p Plan) Empty() bool
 func (p Plan) PreUndo() [][]string // the default, enable and disable undos, last first: journal before Execute

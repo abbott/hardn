@@ -36,7 +36,11 @@ type Input struct {
 	// the configuration does not show, such as the current session's.
 	Add, Keep []uint16
 	State     State // Read's
-	Desired   Desired
+	// Session is the applying session's connection, for a plan that
+	// copies the current ports' source rules to Add (carry.go): the zero
+	// value is a console session, which has no check.
+	Session Session
+	Desired Desired
 	// NoSSH: the host is established to have no SSH server
 	// (sshd.NoServer), so there is no SSH listener to let through:
 	// Listeners is then the zero value, not read, and a plan with no
@@ -56,9 +60,10 @@ const (
 	StepAllowApp                       // ufw allow from any to any app <name> (PlanApps)
 	StepAllowIface                     // ufw allow in on <interface> (PlanInterfaces)
 	StepLimit                          // ufw limit <port>/tcp, over the plain allow of it (PlanLimit)
+	StepAllowFrom                      // ufw allow|limit ... from <source> to any port <port> proto tcp (carry.go)
 )
 
-var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app", "allow-interface", "limit"}
+var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app", "allow-interface", "limit", "allow-from"}
 
 func (k StepKind) String() string {
 	if int(k) >= len(stepNames) {
@@ -68,14 +73,20 @@ func (k StepKind) String() string {
 }
 
 // allows: the step adds a rule, so its undo depends on ufw's answer.
-func (k StepKind) allows() bool { return k == StepAllow || k == StepAllowApp || k == StepAllowIface }
+func (k StepKind) allows() bool {
+	return k == StepAllow || k == StepAllowApp || k == StepAllowIface || k == StepAllowFrom
+}
 
 // Step is one command of a Plan, with the command that undoes it.
 type Step struct {
 	Kind StepKind
 	Argv []string
 	Undo []string
-	Port uint16 // StepAllow's and StepLimit's
+	Port uint16 // StepAllow's, StepLimit's and StepAllowFrom's
+	// From is, for a StepAllowFrom, the port sshd listens on whose rule
+	// the step copies; 0 for the rule that lets Port in from anywhere in
+	// one IP version.
+	From uint16
 	Why  string
 }
 
@@ -94,7 +105,8 @@ type Plan struct {
 	// plan does not cause and does not hide; with ufw staying inactive,
 	// those its saved rules would not let through once it starts
 	// (FindingAtStart); and a new port opened wider than a listener now
-	// (FindingWidened).
+	// (FindingWidened). A plan that copies the current ports' source rules
+	// leaves out the listeners those rules restrict.
 	Findings []Finding
 }
 
@@ -205,6 +217,40 @@ func PlanFor(in Input) (Plan, error) {
 		ports = nil
 	}
 	rules := slices.Clone(st.Rules)
+	var carried []carryPlan
+	if from := in.Listeners.Ports(); active && len(in.Add) > 0 && Carries(st, from) {
+		// The current ports' source rules are copied to each port added
+		// (carry.go): "ufw allow <port>/tcp" writes every IP version, so
+		// it is not planned for them, and in a version that copies, or
+		// that has no rule for the current ports, the need "from anywhere"
+		// is not judged.
+		cp0, err := carry(st, started, from, 0)
+		if err == nil {
+			err = checkSession(st, started, cp0, from, in.Session)
+		}
+		if err != nil {
+			return Plan{}, err
+		}
+		class := cp0.class
+		needs = slices.DeleteFunc(needs, func(n Need) bool {
+			return n.New && class[n.Family] != famOpen && slices.Contains(writes(st), n.Family)
+		})
+		for _, port := range in.Add {
+			cp, err := carry(st, started, from, port)
+			if err != nil {
+				return Plan{}, err
+			}
+			carried = append(carried, cp)
+			needs = append(needs, cp.needs...)
+			if n, ok := sessionNeed(in.Session, port); ok {
+				needs = append(needs, n)
+			}
+			delete(handsOff, port)
+		}
+		ports = slices.DeleteFunc(ports, func(p uint16) bool { return slices.Contains(in.Add, p) })
+		p.Needs = needs
+		p.Before = Evaluate(st.Rules, Firewall{Active: active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Incoming}, needs)
+	}
 	for _, port := range ports {
 		spec := strconv.Itoa(int(port)) + "/tcp"
 		for _, f := range writes(st) {
@@ -212,6 +258,10 @@ func PlanFor(in Input) (Plan, error) {
 		}
 		p.Steps = append(p.Steps, Step{Kind: StepAllow, Port: port, Argv: []string{"ufw", "allow", spec},
 			Undo: []string{"ufw", "delete", "allow", spec}, Why: "let SSH port " + spec + " through"})
+	}
+	for _, cp := range carried {
+		rules = append(rules, cp.rules...)
+		p.Steps = append(p.Steps, cp.steps...)
 	}
 	p.After = note(Evaluate(rules, p.firewall(), needs), handsOff)
 	var blocked []Coverage
@@ -225,10 +275,24 @@ func PlanFor(in Input) (Plan, error) {
 	}
 	later := note(Evaluate(rules, started, needs), handsOff)
 	p.Findings = findings(p.After, p.Active, p.Incoming)
+	if len(carried) > 0 {
+		// A listener let in from some sources alone is what is carried,
+		// and one of an IP version with no rule is not judged: neither is
+		// a finding of this plan. The Firewall check still reports them.
+		class := carried[0].class
+		p.Findings = slices.DeleteFunc(p.Findings, func(f Finding) bool {
+			n := f.Coverage.Need
+			return !n.New && class[n.Family] != famOpen && slices.Contains(writes(st), n.Family) &&
+				(f.Kind == FindingRestricted || f.Kind == FindingNotAllowed)
+		})
+	}
 	if !p.Active {
 		p.Findings = append(p.Findings, atStart(later, p.Incoming)...)
 	}
 	p.Findings = append(p.Findings, widened(later, ports, p.Incoming)...)
+	for _, cp := range carried {
+		p.Findings = append(p.Findings, cp.findings...)
+	}
 	for _, d := range []struct {
 		want, have Policy
 		dir        string

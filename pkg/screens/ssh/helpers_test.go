@@ -132,7 +132,7 @@ func readOnlyRun(argv []string) bool {
 	cmd := strings.Join(argv, " ")
 	switch {
 	case path.Base(argv[0]) == "sshd" && (slices.Contains(argv, "-T") || slices.Contains(argv, "-t")), argv[0] == "journalctl", argv[0] == "ss",
-		cmd == "ufw status verbose", cmd == "visudo -c", strings.HasPrefix(cmd, "doas -C "),
+		cmd == "ufw status verbose", cmd == "visudo -c", strings.HasPrefix(cmd, "doas -C "), strings.HasPrefix(cmd, "ip route get "),
 		strings.HasPrefix(cmd, "systemctl is-"), strings.HasPrefix(cmd, "systemctl show "), strings.HasPrefix(cmd, "systemd-analyze verify "):
 		return true
 	}

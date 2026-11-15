@@ -32,8 +32,9 @@ import (
 // simRule is one saved rule of ufwSim: action on port/tcp, from anywhere
 // in both IP versions, or from src in src's alone; app names the
 // application profile it came from; iface the interface it is limited to,
-// with no port everything arriving on it ("ufw allow in on <iface>").
-type simRule struct{ action, port, src, app, proto, iface string }
+// with no port everything arriving on it ("ufw allow in on <iface>"); sport
+// the source port it is limited to.
+type simRule struct{ action, port, src, app, proto, iface, sport string }
 
 // protocol is the rule's, tcp unless it says.
 func (r simRule) protocol() string {
@@ -150,6 +151,9 @@ func (s *ufwSim) status() string {
 				from = "Anywhere (v6)"
 			}
 		}
+		if r.sport != "" {
+			from += " " + r.sport + "/" + r.protocol()
+		}
 		fmt.Fprintf(&b, "%-26s %-12s%s\n", to, strings.ToUpper(r.action)+" IN", from)
 	}
 	for _, r := range s.rules {
@@ -205,6 +209,8 @@ func (s *ufwSim) save() {
 				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s - %s\n", r.action, r.protocol(), r.port, list.any, src, r.app, dir)
 			case r.port == "":
 				fmt.Fprintf(&b, "\n### tuple ### %s any any %s any %s %s\n", r.action, list.any, src, dir)
+			case r.sport != "":
+				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s %s %s %s\n", r.action, r.protocol(), r.port, list.any, r.sport, src, dir)
 			default:
 				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s\n", r.action, r.protocol(), r.port, list.any, src, dir)
 			}
@@ -262,6 +268,20 @@ func (s *ufwSim) run(argv []string, in []byte) hostfake.Response {
 	return s.h.run(argv, in)
 }
 
+// simFromRule reads "ufw [delete] allow|limit from <src> to any port <port>
+// proto tcp", the command that gives a new SSH port one of the current
+// port's sources, and its undo.
+func simFromRule(argv []string) (r simRule, del, ok bool) {
+	w := argv[1:]
+	if len(w) > 0 && w[0] == "delete" {
+		del, w = true, w[1:]
+	}
+	if len(w) != 9 || w[0] != "allow" && w[0] != "limit" || w[1] != "from" || !slices.Equal(w[3:6], []string{"to", "any", "port"}) || !slices.Equal(w[7:], []string{"proto", "tcp"}) {
+		return r, false, false
+	}
+	return simRule{action: w[0], port: w[6], src: w[2]}, del, true
+}
+
 // install is ufw as its package leaves it: inactive, ENABLED=no, no rule,
 // deny incoming (ufw.md §3; Ubuntu's stock state, vmtest.md §4.9, taken for
 // Debian's and Alpine's, [I]: neither installed here), and on OpenRC its
@@ -300,6 +320,26 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		s.active, s.enabled = false, false
 		s.save()
 		return hostfake.Response{Stdout: "Firewall stopped and disabled on system startup\n"}, true
+	}
+	if r, del, ok := simFromRule(argv); ok {
+		// A rule for one port over TCP from a source (design-ssh-port-sources.md
+		// §3), in one IP version, and its delete: ufw 0.36.2's answers as its
+		// sources read, one line for the one rule. Not run on a host.
+		same := func(o simRule) bool { return o == r }
+		one := strings.SplitAfter(both, "\n")[0]
+		switch {
+		case del && !slices.ContainsFunc(s.rules, same):
+			return hostfake.Response{Stdout: "Could not delete non-existent rule\n"}, true
+		case del:
+			s.rules = slices.DeleteFunc(s.rules, same)
+			s.save()
+			return hostfake.Response{Stdout: strings.SplitAfter(gone, "\n")[0]}, true
+		case slices.ContainsFunc(s.rules, same):
+			return hostfake.Response{Stdout: "Skipping adding existing rule\n"}, true
+		}
+		s.rules = append(s.rules, r)
+		s.save()
+		return hostfake.Response{Stdout: one}, true
 	}
 	switch {
 	case len(argv) == 4 && argv[1] == "default" && argv[3] == "incoming":

@@ -672,6 +672,10 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		if r, ok := h.ufw(argv); ok {
 			return r
 		}
+	case "ip": // the route back to the session's client (ufw.RouteDev), in iproute2's form, not run on a host
+		if len(argv) == 4 && argv[1] == "route" && argv[2] == "get" {
+			return hostfake.Response{Stdout: argv[3] + " via 192.0.2.1 dev eth0 src 192.0.2.20 uid 0 \n    cache \n"}
+		}
 	case "resolvectl":
 		if r, ok := h.resolvedCommand(argv); ok {
 			return r

@@ -39,6 +39,9 @@ func TestTitles(t *testing.T) {
 			setTitle([]migrate.Directive{d("AllowUsers", "alice", "bob", "carol", "dave", "erin", "frank")}, []string{"AllowUsers"}), "Set AllowUsers"},
 		{"ufw: allows and an enable", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(22), allow(2230), {Kind: ufw.StepEnable}}}), "ufw: allow 22/tcp, 2230/tcp; enable"},
 		{"ufw: one allow", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(2230)}}), "ufw: allow 2230/tcp"},
+		{"ufw: a port given 22's sources, two rules", ufwTitle(ufw.Plan{Steps: []ufw.Step{{Kind: ufw.StepAllowFrom, Port: 2230, From: 22}, {Kind: ufw.StepAllowFrom, Port: 2230, From: 22}}}), "ufw: allow 2230/tcp from 22's sources"},
+		{"ufw: from anywhere in one IP version, sources in the other", ufwTitle(ufw.Plan{Steps: []ufw.Step{{Kind: ufw.StepAllowFrom, Port: 2230}, {Kind: ufw.StepAllowFrom, Port: 2230, From: 22}}}), "ufw: allow 2230/tcp from 22's sources"},
+		{"ufw: from anywhere in one IP version alone", ufwTitle(ufw.Plan{Steps: []ufw.Step{{Kind: ufw.StepAllowFrom, Port: 2230}}}), "ufw: allow 2230/tcp"},
 		{"ufw: too many ports for one line", ufwTitle(ufw.Plan{Steps: []ufw.Step{allow(2201), allow(2202), allow(2203), allow(2204), allow(2205), allow(2206)}}), "ufw: 6 steps"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

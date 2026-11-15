@@ -49,7 +49,7 @@ The key-path defect (V5, D7, R8): the migration keeps every key file sshd read (
 | `match-allows` | A Match block lets root and passwords in from 192.0.2.0/24: rows Partial; Disallow root login refuses |
 | `allow-users` | `AllowUsers george`: alice, with a key, shown unable; george enough |
 | `pve9` | A stock node, root allowed: item 1 "Root key-only" plans prohibit-password; the port refuses |
-| `ufw-restricted` | ufw allows 22 from 192.0.2.0/24: Change SSH port refuses |
+| `ufw-restricted` | ufw allows 22 from 192.0.2.0/24, the session's network: Change SSH port gives 2230 the same rule (since 2026-11-15; it refused before) |
 | `confirm-window` | 22 and 2230 held, `hardn confirm` pending: the engine refuses another change |
 | `not-read` | No `/run/sshd`: rows and items Can't read, every change refuses |
 | `nopam-locked` | george `!`, the only admin, no PAM, so root on the console: Disallow root login refuses |
@@ -104,6 +104,7 @@ Drawn: every recommendation below but 7 (built in `pve.PlanSSH`, no host shows i
 
 - The scope of (1): root login both ways, never "yes"; password login off and back on; the port; Move old settings; allowed users shown, not changed; no View SSH Settings ([P-28](../refactor/proposals.md#p-28) (a) for SSH Login).
 - The proof of (2) (a), before asking, then the typed hostname and confirm-or-revert from a new connection, for every SSH change ([P-10](../refactor/proposals.md#p-10) decided for SSH). Unit (b) builds it into `pkg/engine/controls/ssh`, with the SSH Auth check reading `AuthenticationMethods`.
+- *2026-11-15:* the port's P-33 (2) (a), refuse, is superseded where ufw restricts 22 by source: the sources are carried ([design-ssh-port-sources.md](design-ssh-port-sources.md), adopted). Variants `ufw-two-sources`, `ufw-sources-part`, `ufw-sources-there`, `ufw-port-wider`, `ufw-deny-22`, `ufw-source-port` and `ufw-session-out` play it; goldens `play/ssh-port-sources`, `-sources-one`, `-sources-part`, `-sources-there`, `ssh-port-wider`, `ssh-port-deny`, `ssh-port-source-port`, `ssh-port-session-out`.
 - Root login (3 (a)), password login (4 (a)), the port (5: [P-33](../refactor/proposals.md#p-33) (2) (a), refuse), old files and the Include (6 (a); [P-38](../refactor/proposals.md#p-38) (a)), [P-36](../refactor/proposals.md#p-36) (a) (7).
 - `-d` on the new control and `-c -d` back (8 (a)), in unit (d); hardn.yml's SSH keys as 9 (a).
 - [P-12](../refactor/proposals.md#p-12) and the 02-SSH frames of [P-31](../refactor/proposals.md#p-31): §6's words are decided (10).

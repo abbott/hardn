@@ -62,6 +62,9 @@ func (st sshState) planUFW(ctx context.Context, sys host.System, listeners sshd.
 		return nil, fmt.Errorf("ufw: %w", ufw.ErrNotInstalled)
 	}
 	in := ufw.Input{Proxmox: st.in.Facts.Proxmox, Listeners: listeners, Add: add, State: state, NoSSH: st.noSSH}
+	if len(add) > 0 {
+		in.Session = UFWSession(ctx, sys, st.in.Session, state, listeners.Ports())
+	}
 	c, cerr := revert.ParseConn(st.in.Session.Conn)
 	switch {
 	case cerr == nil:
@@ -81,13 +84,45 @@ func (st sshState) planUFW(ctx context.Context, sys host.System, listeners sshd.
 	return &p, nil
 }
 
+// UFWSession is sess as ufw's planner weighs it where a port added beside
+// ports, the ports sshd listens on now, would be given their source rules
+// (ufw.Carries): its two addresses (revert.ParseConn; the zero ones where
+// the connection is not read) and the interface of the route back to its
+// client, read only there and for a client that is not loopback. The zero
+// Session, a console's, where nothing is carried: there is no check then.
+func UFWSession(ctx context.Context, sys host.System, sess revert.Session, state ufw.State, ports []uint16) ufw.Session {
+	if !ufw.Carries(state, ports) {
+		return ufw.Session{}
+	}
+	s := ufw.Session{Remote: sess.Remote}
+	if c, err := revert.ParseConn(sess.Conn); err == nil {
+		s.Remote, s.Client, s.Server = true, c.Client.Addr(), c.Server.Addr()
+		if !s.Client.IsLoopback() {
+			s.Dev = ufw.RouteDev(ctx, sys, s.Client)
+		}
+	}
+	return s
+}
+
 // ufwTitle is ufw's plan's Title: the ports it allows, then whether it
 // sets a default policy and enables ufw ("ufw: allow 22/tcp, 2230/tcp;
-// enable"), or how many steps when that is too long (engine.TitleMax).
+// enable"), or how many steps when that is too long (engine.TitleMax). A
+// port given the current port's source rules is said so: "ufw: allow
+// 2230/tcp from 22's sources" (design-ssh-port-sources.md §9 (8)).
 func ufwTitle(p ufw.Plan) string {
 	var ports, rest []string
 	for _, s := range p.Steps {
 		switch s.Kind {
+		case ufw.StepAllowFrom:
+			spec := fmt.Sprintf("%d/tcp", s.Port)
+			if s.From != 0 {
+				spec = fmt.Sprintf("%d/tcp from %d's sources", s.Port, s.From)
+			}
+			if i := slices.IndexFunc(ports, func(o string) bool { return strings.HasPrefix(o, fmt.Sprintf("%d/tcp", s.Port)) }); i < 0 {
+				ports = append(ports, spec)
+			} else if s.From != 0 && !strings.Contains(ports[i], " from ") {
+				ports[i] = spec
+			}
 		case ufw.StepAllow:
 			ports = append(ports, fmt.Sprintf("%d/tcp", s.Port))
 		case ufw.StepDefault:
