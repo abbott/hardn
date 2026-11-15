@@ -297,6 +297,11 @@ var rootCmd = &cobra.Command{
 		// If no specific flags provided, show the interactive menu
 		if mainMenuRun() {
 
+			// The question that turns the release check on, where due
+			// (releaseask.go), inside the output frame as the first-run
+			// question is.
+			releaseAsk(context.Background(), cfg)
+
 			// The main menu; its screens' items and its status: hooks.go.
 			// It keeps its own rows: no output frame around it (frame.go).
 			outFrame.disarm()

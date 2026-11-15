@@ -11,7 +11,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m         ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
@@ -31,7 +31,7 @@ $
 $
 # Configuration ################################################$
 $
-   1) hardn.yml            View the file hardn reads$
+   1) hardn.yml            View or edit the file hardn reads$
    2) DNS Settings         Configure nameservers$
    3) NTP Settings         Keep the clock in sync$
    4) Syslog Settings      Send logs to a syslog server$
@@ -53,7 +53,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
-      ␛[38;2;129;134;156mView the file hardn reads␛[m$
+      ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m$
       ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m$
@@ -76,7 +76,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m################################################␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m         ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$

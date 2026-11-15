@@ -12,7 +12,7 @@ import "github.com/abbott/hardn/pkg/ui/component"
 //
 //	# Configuration ################################################
 //
-//	   1) hardn.yml            View the file hardn reads
+//	   1) hardn.yml            View or edit the file hardn reads
 //	   2) DNS Settings         Configure nameservers
 //	   3) NTP Settings         Keep the clock in sync
 //	   4) Syslog Settings      Send logs to a syslog server
@@ -36,7 +36,7 @@ const (
 // what the main menu's said.
 const (
 	configFileLabel       = "hardn.yml"
-	configFileDesc        = "View the file hardn reads"
+	configFileDesc        = "View or edit the file hardn reads"
 	configLogForwardLabel = logFwdTitle
 	configLogForwardDesc  = "Send logs to a syslog server"
 	configTimeSyncLabel   = timeTitle

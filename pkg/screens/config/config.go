@@ -1,14 +1,14 @@
 // Package configscreen runs hardn's Configuration screen (docs/roadmap.md,
-// "Configuration"; unit (b), next/config-screen): hardn.yml, item 1 of main menu 8's
-// group (RunGroup, group.go), as the maintainer
-// adopted the mock on 2026-11-12 (docs/engine/gallery-config.md §3, all (a), with
-// §4's words). It shows which hardn.yml hardn read and each key's value, drawn by
-// pkg/ui/screen (screen.Config). It only shows: no engine, no host, nothing written,
-// under plan only too (docs/engine/screen-config.md).
+// "Configuration"): hardn.yml, item 1 of main menu 8's group (RunGroup, group.go),
+// as the maintainer adopted the mock on 2026-11-12 (docs/engine/gallery-config.md
+// §3, all (a), with §4's words). It shows which hardn.yml hardn read and each
+// key's value, drawn by pkg/ui/screen (screen.Config), and, since 2026-11-15,
+// edits the keys no other screen saves, one a save (edit.go;
+// docs/engine/design-config-edit.md, docs/engine/screen-config.md).
 //
 // The package reads no hardn.yml and looks for none: its caller gives the
 // configuration as loaded and how the file was found (Options), and it renders only
-// through pkg/ui.
+// through pkg/ui. A save goes through the engine (steps.PlanSave).
 package configscreen
 
 import (
@@ -18,10 +18,16 @@ import (
 	"io/fs"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/logview"
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -45,25 +51,50 @@ type Options struct {
 	// with its Ctx.
 	Prompter nav.Prompter
 	// Config is hardn.yml as hardn loaded it, or the defaults where it loaded none.
+	// A save edits it as saved.
 	Config *config.Config
 	// Found is how the file was looked for when hardn loaded Config
 	// (config.FindConfigFile, then): its path, by -f, HARDN_CONFIG or the search
 	// path, and whether a file was there.
 	Found config.Found
+	// System is the host: hardn.yml is saved there, and its logger read for a
+	// syslogServers it can't use. Facts are detect's.
+	System host.System
+	Facts  detect.Facts
+	// NewEngine returns the engine one save plans and applies with, progress
+	// as its Options.Progress.
+	NewEngine func(progress func(engine.Event)) *engine.Engine
+	// ApplyContext, when set, returns the context a save runs under and its
+	// stop (screenkit.Planning.ApplyContext).
+	ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc)
+	// DryRun stops each save at its plan: nothing is written.
+	DryRun bool
+	// LogPath is the log a failure's report names; "" names none.
+	LogPath string
+	// Now is the clock; nil is time.Now.
+	Now func() time.Time
+	// Ran, when set, is given what each save did.
+	Ran func(output.Run)
 }
 
 // Run shows the Configuration screen until 0 (nil) or q (nav.ErrQuit); the end of
-// the input and Ctrl-C abort (prompt.ErrAborted). It reads and writes nothing: the
-// screen is View of what Options holds, the same on every draw, and under plan only,
-// as Options has no mode. Run returns an error wrapping fs.ErrInvalid, writing
-// nothing, without a Prompter's In and Out or a Config.
-func Run(_ context.Context, o Options) error {
-	if o.Prompter.In == nil || o.Prompter.Out == nil || o.Config == nil {
-		return fmt.Errorf("configuration screen: %w: it needs a Prompter with In and Out, and a Config", fs.ErrInvalid)
+// the input and Ctrl-C abort (prompt.ErrAborted). The screen is View of the
+// configuration as it is now, drawn again after each action; where a file was
+// read, its item edits one key and saves it (edit.go). The host is read only for
+// a syslogServers with a TCP or TLS server, for its logger. Run returns an error
+// wrapping fs.ErrInvalid, writing nothing, without a Prompter's In and Out, a
+// Config, a System or NewEngine.
+func Run(ctx context.Context, o Options) error {
+	if o.Prompter.In == nil || o.Prompter.Out == nil || o.Config == nil || o.System == nil || o.NewEngine == nil {
+		return fmt.Errorf("configuration screen: %w: it needs a Prompter with In and Out, a Config, a System and NewEngine", fs.ErrInvalid)
 	}
-	sub := View(o.Config, o.Found).SubMenu()
-	menu := nav.Menu{Exit: sub.Menu.Exit}
-	return o.Prompter.Run(func() nav.Screen { return sub.Screen(o.Prompter.Ctx, menu) })
+	if o.Now == nil {
+		o.Now = time.Now
+	}
+	r := &runner{o: o}
+	r.s = screenkit.Session{Name: "configuration screen", Prompter: o.Prompter, System: o.System, Config: o.Config,
+		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: r.ran}
+	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
 }
 
 // PrintOptions is what Print writes with: hardn config's.

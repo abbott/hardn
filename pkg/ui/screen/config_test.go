@@ -20,28 +20,32 @@ func configValues() map[string]ConfigValue {
 }
 
 // TestConfigFile: the File section by how the file was looked for: found, none
-// anywhere, and one that -f or HARDN_CONFIG names and is not there.
+// anywhere, and one that -f or HARDN_CONFIG names and is not there; "Edit a
+// setting" where a file was read, else how to create one.
 func TestConfigFile(t *testing.T) {
 	defaults := component.KeyValue{Key: "hardn is using its defaults.", State: component.ValueNone}
+	create := component.KeyValue{Key: "Start hardn again to create one.", State: component.ValueNone}
+	edit := []component.MenuItem{{Key: "1", Label: "Edit a setting", Description: "Change a key in hardn.yml"}}
 	for _, tt := range []struct {
-		name string
-		c    Config
-		rows []component.KeyValue
+		name  string
+		c     Config
+		rows  []component.KeyValue
+		items []component.MenuItem
 	}{
 		{"search", Config{Path: "/etc/hardn/hardn.yml", By: ConfigBySearch},
-			[]component.KeyValue{{Key: "Path", Value: "/etc/hardn/hardn.yml"}, {Key: "From", Value: "Search path"}}},
+			[]component.KeyValue{{Key: "Path", Value: "/etc/hardn/hardn.yml"}, {Key: "From", Value: "Search path"}}, edit},
 		{"flag", Config{Path: "/root/site.yml", By: ConfigByFlag},
-			[]component.KeyValue{{Key: "Path", Value: "/root/site.yml"}, {Key: "From", Value: "-f"}}},
+			[]component.KeyValue{{Key: "Path", Value: "/root/site.yml"}, {Key: "From", Value: "-f"}}, edit},
 		{"none", Config{},
-			[]component.KeyValue{{Key: "Path", Value: "None found"}, defaults}},
+			[]component.KeyValue{{Key: "Path", Value: "None found"}, defaults, create}, nil},
 		{"missing", Config{Path: "/home/george/hardn.yml", By: ConfigByEnv, Missing: true},
-			[]component.KeyValue{{Key: "Path", Value: "/home/george/hardn.yml", State: component.ValueBad, Note: "not found", KeepNote: true}, {Key: "From", Value: "HARDN_CONFIG"}, defaults}},
+			[]component.KeyValue{{Key: "Path", Value: "/home/george/hardn.yml", State: component.ValueBad, Note: "not found", KeepNote: true}, {Key: "From", Value: "HARDN_CONFIG"}, defaults, create}, nil},
 	} {
 		sub := tt.c.SubMenu()
 		if got := sub.Sections[0]; got.Header.Title != "File" || !slices.Equal(got.Rows.Items, tt.rows) {
 			t.Errorf("%s: %q, rows %+v", tt.name, got.Header.Title, got.Rows.Items)
 		}
-		if sub.Title.Title != "Configuration" || len(sub.Menu.Items) != 0 || sub.Menu.Exit.Label != "Return" || sub.Prompt != "Option" {
+		if sub.Title.Title != "Configuration" || !slices.Equal(sub.Menu.Items, tt.items) || (sub.Heading != "") != (tt.items != nil) || sub.Menu.Exit.Label != "Return" || sub.Prompt != "Option" {
 			t.Errorf("%s: %+v", tt.name, sub)
 		}
 	}

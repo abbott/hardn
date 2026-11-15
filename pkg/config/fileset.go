@@ -37,8 +37,12 @@ func (c *Config) FileWord(key string) string { return c.loaded.set[key] }
 
 // FileUsername is username as the file gave it, as the loader read it (a
 // 0755 is "0755", where FileWord's is the number); "" for none. Username is
-// the session's, which -u sets too. Save does not write the key.
+// the session's, which -u sets too. A Save that names the key (the
+// Configuration screen's) makes it the name saved.
 func (c *Config) FileUsername() string { return c.loaded.username }
+
+// usernameKey is username as the file writes it.
+const usernameKey = "username"
 
 // OnSearchPath reports whether path, absolute, is one of the places hardn
 // looks for hardn.yml when neither -f nor HARDN_CONFIG names it.

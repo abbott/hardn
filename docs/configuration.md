@@ -23,6 +23,10 @@ You can create a configuration file in several ways:
 
 On first run, `hardn` will offer to create a default configuration file interactively if no existing config is found.
 
+Say yes and it asks seven things: a username, the SSH port, automatic updates, an SSH key, an NTP server, a syslog server, and last "Check for new hardn releases, once a day? [y/N]:". The file it writes holds `checkReleases` either way.
+
+The NTP and syslog questions take one server each, and Enter skips them. The syslog server is `host` or `host:port`: TCP, port 514 unless given. An answer hardn can't set, such as an IPv6 address, is refused and asked again. The answers only fill [`ntpServers`](#ntp) and [`syslogServers`](#syslog): Run All sets them, or Set servers on each screen. On Alpine's default logger a TCP server is refused when it is set: use `protocol: udp`. At the main menu, say no and it asks that one question next, when it is due: see [`checkReleases`](#checkreleases-new-releases).
+
 ### 2. Manual Creation
 
 Copy the example configuration and customize it:
@@ -43,6 +47,18 @@ nano ~/.config/hardn/hardn.yml
 
 If you decline, hardn goes on with its defaults and writes no hardn.yml. A live run still writes `/etc/hardn/hardn.yml.example`.
 <!-- show/link default values -->
+
+## Editing from the menu
+
+`8) Configuration`, then `1) hardn.yml`, then `1) Edit a setting` changes one key at a time. hardn checks what you type and asks again if it can't be used, shows the lines that would change, and asks before saving. The rest of the file and its comments stay, and the file is backed up first.
+
+- **It edits** `username`, `sshKeys`, `sshPort`, `disableRootSSH`, `enableUfwSshPolicy`, `configureDns`, `syslogServers`, `ntpServers`, `kernel`, `confirmTimeout`, `checkReleases` and `enableUnattendedUpgrades`.
+- **Lists take one entry a save:** Add or Remove. An SSH key is shown by type, comment and fingerprint. A syslog server asks its address, protocol, port and, for TLS, its CA file.
+- **It only saves.** A line after the save says where the key acts: Run All, NTP Settings or Syslog Settings. Saving `sshPort` never changes sshd: change the port under `2) SSH`.
+- **Other keys keep their own screen:** `nameservers` (DNS Settings), the firewall's lists (Firewall), `enableBackups` and `backupPath` (Backup). `dryRun`, `adminNoPassword` and `sshConfigFile` are edited by hand.
+- **`-u` and `-n` are never saved.** In a dry run the lines are shown and nothing is written.
+- **With no hardn.yml there is nothing to edit:** start hardn again to create one.
+- **On Alpine,** where the logger is busybox syslogd, a TCP or TLS syslog server gets a line saying it is UDP only.
 
 ## Environment Variable
 
@@ -238,6 +254,15 @@ Off, the default, hardn makes no network request. On, the main menu says when a 
 - **hardn doesn't update itself.** Install the release with [install.sh](install.md).
 - The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
+**hardn asks.** Before the main menu, on a terminal, as root: "Check for new hardn releases, once a day? [y/N]:". Enter is no. A flag, a subcommand and `hardn check` don't ask, nor does `-n`. The one exception: a flag run that creates hardn.yml asks it with the other first-run questions.
+
+- **Creating hardn.yml:** it is the last question, and the file holds your answer.
+- **A hardn.yml without the key**, such as one from an older install: hardn asks, then writes your answer to the file, yes or no. The rest of the file and its comments stay. If the file can't be edited in place, hardn says so and writes nothing: set the key by hand.
+- **No hardn.yml:** your answer is kept in `/var/lib/hardn/release-ask.json`, root's alone. A yes turns the check on until a hardn.yml exists; then the file decides. To take a yes back, delete that file or set `checkReleases: false` in a hardn.yml.
+- **A key that is set is never asked about again**, nor is a yes. After a no with no hardn.yml, or no answer, hardn asks again after 30 days or 15 opens of the main menu, whichever comes first.
+- **`dryRun: true` in hardn.yml doesn't stop the question**, and the answer is still written to the file.
+- **If `/var/lib/hardn` can't be written, hardn doesn't ask.** It couldn't keep the answer.
+
 ### Syslog
 
 ```yaml
@@ -257,7 +282,7 @@ The syslog servers Syslog Settings (main menu `8) Configuration`, then 4) and Ru
 - **`tls`** needs the server's name, as its certificate has it, and **`caFile`**: the CA's certificate, a file already on the host, each TLS server's own. hardn checks the server's certificate against it and sends no client certificate.
 - **A list hardn doesn't accept is refused whole**, saying which entry ("server 2: port is not between 1 and 65535"), and nothing is written. That is more than four servers, a block with no `server`, the same address and port twice (whatever the protocol), or a value that is not plain: only letters, digits, dots and hyphens in `server`, and letters, digits and `._+-/` in `caFile`. One TCP or TLS server on Alpine, or one missing CA file, refuses the list too: hardn never sets part of it.
 - **Each server has its own queue**, in memory, so that one that is away does not hold up the others or the host's own log files: rsyslog keeps retrying it, and drops that server's messages once the queue is full.
-- No screen saves this key. Stop forwarding leaves it: remove the list too, or the next Run All sets it again.
+- Edit the list under `8) Configuration`, hardn.yml, [Edit a setting](#editing-from-the-menu). Stop forwarding leaves it: remove the servers too, or the next Run All sets them again.
 
 What changes on each distribution: [platforms.md](platforms.md#syslog).
 
@@ -273,7 +298,7 @@ The time servers NTP Settings (main menu `8) Configuration`, then 3) and Run All
 
 - **One to four servers**, each an IPv4 address or a host name, in the order the service is given them. An IPv6 address isn't set yet. A name needs DNS before the clock is set.
 - **A value hardn doesn't accept is refused**, and nothing is written: the names go into the service's settings, so only letters, digits, dots and hyphens. No options (`prefer`, `nts`): hardn writes plain NTP servers.
-- No screen saves this key. Remove servers leaves it: take the servers out too, or the next Run All sets them again.
+- Edit the list under `8) Configuration`, hardn.yml, [Edit a setting](#editing-from-the-menu). Remove servers leaves it: take the servers out too, or the next Run All sets them again.
 
 What changes on each distribution: [platforms.md](platforms.md#ntp).
 
@@ -285,7 +310,7 @@ kernel: true
 
 `true` puts Kernel Settings (main menu `4) Kernel`) in Run All. Off by default: hardn then sets no kernel setting unless you choose Apply settings on the screen, which works either way.
 
-- No screen saves this key. Remove settings leaves it: set it to `false` too, or the next Run All applies the settings again.
+- Change it under `8) Configuration`, hardn.yml, [Edit a setting](#editing-from-the-menu). Remove settings leaves it: set it to `false` too, or the next Run All applies the settings again.
 - There is no list of settings to skip. To keep one of your own, set it in a file read after hardn's, such as `/etc/sysctl.d/99-sysctl.conf`: hardn shows it and leaves it.
 
 What differs by distribution: [platforms.md](platforms.md#kernel).
@@ -312,7 +337,7 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`syslogServers`:** sends the host's logs to them, as Syslog Settings' Set servers. With none the row is not listed. Run All never stops forwarding.
 - **`ntpServers`:** sets them on the host's time service, as NTP Settings' Set servers. With none the row is not listed. Run All never removes them.
 - **`kernel: true`:** sets the kernel settings below hardn's baseline, as Kernel Settings' Apply settings. When false the row is not listed, and in a container never. Run All never removes them.
-- **`sshPort`:** compared with the port sshd listens on; never changed.
+- **`sshPort`:** compared with the port sshd listens on; never changed. Saving it from the menu doesn't change sshd either.
 - **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.
 

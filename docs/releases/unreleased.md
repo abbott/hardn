@@ -1,0 +1,17 @@
+# hardn (next release)
+
+> **Draft: every line is proposed until the maintainer approves the words.** At the release candidate this file becomes `docs/releases/v<x.y.z>.md`, the release's whole body, and this note is cut.
+
+## Added
+
+- **hardn asks whether to check for new releases.** Before the main menu, on a terminal, as root: "Check for new hardn releases, once a day? [y/N]:". Enter is no, and hardn still makes no network request unless you say yes or set `checkReleases: true`.
+- **A hardn.yml without `checkReleases` gets the key.** hardn asks once and writes your answer to the file, yes or no; the rest of the file and its comments stay.
+- **With no hardn.yml, a yes is kept** in `/var/lib/hardn/release-ask.json` and turns the check on until a hardn.yml exists. After a no, hardn asks again after 30 days or 15 opens of the main menu, whichever comes first.
+- **Creating hardn.yml asks for an NTP server and a syslog server.** One each, Enter skips. The syslog server is `host` or `host:port`, TCP, port 514 unless given. An answer hardn can't set is refused and asked again. Run All sets them.
+- **Edit hardn.yml from the menu.** `8) Configuration`, hardn.yml, Edit a setting changes one key at a time: the user, SSH keys, the SSH port, the yes/no settings, the confirm timeout, and the NTP and syslog servers. Each answer is checked, the lines that change are shown, and hardn asks before saving. Comments stay and the file is backed up.
+- **A syslog server Alpine's logger can't use is said.** Where the logger is busybox syslogd, a TCP or TLS server in hardn.yml gets a line on the hardn.yml screen: it is UDP only.
+
+## Changed
+
+- **Saving `sshPort` from the menu doesn't change sshd.** Change the port under `2) SSH`.
+- **Creating hardn.yml asks about the release check**, its last question, and the file written holds `checkReleases` either way.

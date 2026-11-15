@@ -15,10 +15,6 @@ Features hardn doesn't have yet. None has a release or a date.
   - **Firewall.** The default zone is `FedoraServer`, which lets in ssh, dhcpv6-client and cockpit, and Cockpit listens on 9090 from the start. The Firewall screen would say so.
   - **DNS.** systemd-resolved manages it, as on Ubuntu, where EL has NetworkManager.
 
-## Configuration
-
-- **Edit hardn.yml from the menu.** `8) Configuration` shows which hardn.yml hardn read and each key's value, but changes nothing. Firewall, DNS, Auto Updates and Backup already save their own keys: only those lines change, comments stay, and a file changed since it was read is refused. Configuration would edit the keys no other screen saves through the same save: the edited lines shown first, then asked.
-
 ## Firewall
 
 - **Granular ufw rules.** The Firewall screen opens other ports only through Application Profiles, or a whole interface through Trusted Interfaces, and Enable's review keeps a port open with a rule for everyone (`ufw allow 8000/tcp`). A Rules item would add and remove rules limited by source, port and protocol, such as `ufw allow proto tcp from <caddy-address> to any port 8000` for an app only a reverse proxy should reach. Each would be shown first and asked, like any change, and Enable's review could offer one for each port it lists. hardn already reads such rules (`Restricted`) and leaves them be. This revisits the decision that other ports open from Application Profiles ([gallery-firewall.md](engine/gallery-firewall.md) §5). On Rocky, Alma and RHEL it would take firewalld's rich rules, which hardn doesn't read yet.

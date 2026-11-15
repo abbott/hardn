@@ -23,7 +23,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 | Option | Displays | Configures |
 |---|---|---|
-| 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
+| 1) hardn.yml | which `hardn.yml` hardn read and each key's value | `hardn.yml` alone: Edit a setting saves one key, after showing the lines that change. [More](configuration.md#editing-from-the-menu) |
 | 2) DNS Settings | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 3) NTP Settings | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#ntp-settings) |
 | 4) Syslog Settings | the host's logger, the syslog servers it sends logs to, by whose file, and the servers `hardn.yml` names | sends every log to `hardn.yml`'s servers over UDP, TCP or TLS; stops only what hardn set. [More](#syslog-settings) |
@@ -56,7 +56,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 ### Syslog Settings
 
-Syslog Settings sends every message the host logs to each syslog server `hardn.yml` names ([`syslogServers`](configuration.md#syslog), one to four). The screen has no form: the servers are typed in the file.
+Syslog Settings sends every message the host logs to each syslog server `hardn.yml` names ([`syslogServers`](configuration.md#syslog), one to four). The screen has no form: add the servers under `8) Configuration`, hardn.yml, Edit a setting, or type them in the file.
 
 - **Set servers** makes hardn's own file, `/etc/rsyslog.d/60-hardn-forward.conf`, hold exactly `hardn.yml`'s list, has rsyslogd check it (`rsyslogd -N1`), restarts rsyslog, then logs one line, `log forwarding set`, for you to find on each server. Adding or removing a server is the same one change. A failed check or restart puts everything back. On a host with journald alone it installs rsyslog first (not on Proxmox, where hardn installs no package); for TLS, `rsyslog-gnutls`. On Alpine it adds one `-R <server>:<port>` for each server, and `-L`, to busybox syslogd's options.
 - **A list hardn can't set whole is refused**, before anything is asked: an entry that is not valid, a CA file that is not there, a TCP or TLS server on Alpine.
@@ -69,7 +69,7 @@ Syslog Settings sends every message the host logs to each syslog server `hardn.y
 
 ### NTP Settings
 
-NTP Settings shows which service keeps the host's time (chrony, systemd-timesyncd, or busybox ntpd on Alpine), whether it runs, whether the clock is in sync and to which server. It sets the servers `hardn.yml` names ([`ntpServers`](configuration.md#ntp)) on that service. The screen has no form: the servers are typed in the file.
+NTP Settings shows which service keeps the host's time (chrony, systemd-timesyncd, or busybox ntpd on Alpine), whether it runs, whether the clock is in sync and to which server. It sets the servers `hardn.yml` names ([`ntpServers`](configuration.md#ntp)) on that service. The screen has no form: add the servers under `8) Configuration`, hardn.yml, Edit a setting, or type them in the file.
 
 - **Set servers** makes the service use your servers in place of its own. Servers handed out by DHCP stay. What is written differs by service: [platforms.md](platforms.md#ntp).
 - **Remove servers** undoes only what hardn set: the host's own servers are used again, each file as it was.

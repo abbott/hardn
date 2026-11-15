@@ -16,7 +16,7 @@ func TestConfigGroup(t *testing.T) {
 	}
 	const want = `# Configuration ################################################
 
-   1) hardn.yml            View the file hardn reads
+   1) hardn.yml            View or edit the file hardn reads
    2) DNS Settings         Configure nameservers
    3) NTP Settings         Keep the clock in sync
    4) Syslog Settings      Send logs to a syslog server

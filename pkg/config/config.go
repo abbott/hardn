@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -50,8 +51,10 @@ type Config struct {
 	// then asks GitHub for the latest release's tag, at most once a day,
 	// and says so in one line when a newer one is out (pkg/version's
 	// Checker; docs/engine/screen-release-check.md). False, the default,
-	// hardn makes no network request. Not written when false.
-	CheckReleases bool `yaml:"checkReleases,omitempty"`
+	// hardn makes no network request. Written either way, so that a
+	// hardn.yml hardn creates holds the key
+	// (docs/engine/design-release-ask.md).
+	CheckReleases bool `yaml:"checkReleases"`
 
 	// Network Configuration
 	Nameservers []string `yaml:"nameservers"`
@@ -471,6 +474,23 @@ func CreateDefaultConfig(path string, config *Config) error {
 		if sshKey != "" {
 			config.SshKeys = []string{sshKey}
 		}
+
+		// Ask for one NTP server and one syslog server, each checked
+		// and asked again when refused (design-config-edit.md, decisions
+		// 9 to 11). They only fill hardn.yml.
+		if server := askServer("Enter NTP server (optional, press Enter to skip): ", checkNTPAnswer); server != "" {
+			config.NTPServers = NTPServers{server}
+		}
+		if answer := askServer("Enter syslog server (optional, press Enter to skip): ", checkSyslogAnswer); answer != "" {
+			server, _ := parseSyslogAnswer(answer)
+			config.SyslogServers = SyslogServers{server}
+		}
+
+		// Ask for the release check, last: its default a yes hardn's
+		// state already holds (CheckReleasesDefault).
+		def := CheckReleasesDefault != nil && CheckReleasesDefault()
+		fmt.Fprintf(stdout(), "%s ", ReleaseQuestion(def))
+		config.CheckReleases = releaseAnswer(readAnswer(), def)
 	}
 
 	// Save config
@@ -485,7 +505,137 @@ func CreateDefaultConfig(path string, config *Config) error {
 		fmt.Fprintf(stdout(), "A complete example configuration with all options is available at %s\n", ExampleConfigPath)
 	}
 
+	// Say where the servers given are set: only those given.
+	switch ntp, syslog := len(config.NTPServers) > 0, len(config.SyslogServers) > 0; {
+	case !isInteractive():
+	case ntp && syslog:
+		fmt.Fprintln(stdout(), "Run All sets the NTP and syslog servers.")
+	case ntp:
+		fmt.Fprintln(stdout(), "Run All sets the NTP server.")
+	case syslog:
+		fmt.Fprintln(stdout(), "Run All sets the syslog server.")
+	}
+
 	return nil
+}
+
+// The lines that refuse a first-run server answer.
+const (
+	refusedIPv6 = "An IPv6 address, which hardn does not set yet."
+	refusedHost = "Not an IPv4 address or a host name."
+	refusedPort = "Not a port between 1 and 65535."
+)
+
+// askServer asks question until check refuses nothing, and returns the
+// answer, trimmed; "" for Enter alone, which skips. A refused answer gets
+// check's one line and the question again. The end of the input skips
+// too, so it is never asked without end.
+func askServer(question string, check func(string) string) string {
+	for {
+		fmt.Fprint(stdout(), question)
+		line, ended := readLine()
+		answer := strings.TrimSpace(line)
+		if answer == "" {
+			return ""
+		}
+		why := check(answer)
+		if why == "" {
+			return answer
+		}
+		fmt.Fprintln(stdout(), why)
+		if ended {
+			return ""
+		}
+	}
+}
+
+// refusedAddress is the line for a server hardn does not set.
+func refusedAddress(server string) string {
+	if _, _, err := ResolveHost(server); errors.Is(err, ErrHostIPv6) {
+		return refusedIPv6
+	}
+	return refusedHost
+}
+
+// checkNTPAnswer checks one NTP server as ntpServers is checked
+// (NTPServers.Resolve); "" is valid.
+func checkNTPAnswer(answer string) string {
+	if _, err := (NTPServers{answer}).Resolve(); err != nil {
+		return refusedAddress(answer)
+	}
+	return ""
+}
+
+// checkSyslogAnswer checks one syslog server, host or host:port, as
+// syslogServers is checked (SyslogServers.Resolve); "" is valid.
+func checkSyslogAnswer(answer string) string {
+	_, why := parseSyslogAnswer(answer)
+	return why
+}
+
+// parseSyslogAnswer reads a first-run syslog answer, host or host:port,
+// into a block of syslogServers: tcp, and port 514 unless one is given
+// (both the block's defaults, so neither is written). The whole answer is
+// tried as an address first, so that an IPv6 address gets its own
+// refusal; then the last colon is the port's. why is the refusal, "" for
+// none.
+func parseSyslogAnswer(answer string) (server SyslogServer, why string) {
+	server.Server = answer
+	_, _, err := ResolveHost(answer)
+	if i := strings.LastIndex(answer, ":"); err != nil && !errors.Is(err, ErrHostIPv6) && i >= 0 {
+		port, perr := strconv.Atoi(answer[i+1:])
+		if perr != nil || port < 1 || port > 65535 {
+			return SyslogServer{}, refusedPort
+		}
+		server.Server, server.Port = answer[:i], port
+	}
+	if _, err := (SyslogServers{server}).Resolve(); err != nil {
+		return SyslogServer{}, refusedAddress(server.Server)
+	}
+	return server, ""
+}
+
+// ReleaseQuestion is the question that turns the release check on, with
+// its default, def: no ([y/N]) unless hardn's state already holds a yes
+// (docs/engine/design-release-ask.md, decisions 4, 5 and 8).
+func ReleaseQuestion(def bool) string {
+	if def {
+		return "Check for new hardn releases, once a day? [Y/n]:"
+	}
+	return "Check for new hardn releases, once a day? [y/N]:"
+}
+
+// CheckReleasesDefault, where set, reports whether hardn's state holds a
+// yes to the release question, CreateDefaultConfig's default for it then.
+// cmd/hardn sets it; nil is no.
+var CheckReleasesDefault func() bool
+
+// releaseAnswer reads an answer to ReleaseQuestion: Enter is def, y or yes
+// is yes, and anything else no.
+func releaseAnswer(answer string, def bool) bool {
+	switch strings.TrimSpace(strings.ToLower(answer)) {
+	case "":
+		return def
+	case "y", "yes":
+		return true
+	}
+	return false
+}
+
+// AskCheckReleases asks ReleaseQuestion alone, on the prompt kit as the
+// first-run question is asked, and returns the answer; answered is false
+// at the end of the input or a failed read or write, where nothing is
+// decided. Ctrl-C ends hardn, as at every prompt. The caller asks only
+// where stdin and stdout are terminals.
+func AskCheckReleases(def bool) (yes, answered bool) {
+	response, err := input().Ask(stdout(), ReleaseQuestion(def))
+	if errors.Is(err, prompt.ErrInterrupted) {
+		interrupted()
+	}
+	if err != nil {
+		return false, false
+	}
+	return releaseAnswer(response, def), true
 }
 
 // SaveConfig saves configuration to the specified file: the whole
@@ -587,9 +737,16 @@ func interrupted() {
 // in a loop or a script stops, and reports status 130 for it (brief
 // Phase 3). If SIGINT cannot end it, it exits with 130.
 func readAnswer() string {
+	line, _ := readLine()
+	return line
+}
+
+// readLine is readAnswer, also reporting whether the input ended or
+// failed, after which no question is asked again.
+func readLine() (line string, ended bool) {
 	line, err := input().ReadLine()
 	if errors.Is(err, prompt.ErrInterrupted) {
 		interrupted()
 	}
-	return line
+	return line, err != nil
 }

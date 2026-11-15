@@ -39,6 +39,7 @@ func TestConfigMocks(t *testing.T) {
 		{mock: "none"},
 		{mock: "minimal", set: []string{"username", "nameservers"}},
 		{mock: "syslog", set: append(slices.Clone(typical), "syslogServers")},
+		{mock: "alpine-tcp", set: append(slices.Clone(typical), "syslogServers")},
 		{mock: "unused", set: typical, unused: []string{"logFile /srv/log/hardn.log", "permitRootLogin yes", "sshListenAddress 192.0.2.10", "enableLynis true", "sudoNoPassword false"}},
 		{mock: "missing"},
 	}
@@ -124,7 +125,7 @@ func TestConfigViewReadsAsTheLoader(t *testing.T) {
 }
 
 // TestPlayConfigGolden plays hardn's Configuration screen end to end and pins each
-// transcript: from the main menu's 8, the Configuration group, and its 1, on the
+// transcript (the editing's last): from the main menu's 8, the Configuration group, and its 1, on the
 // typical file, leaving; the same under plan only, which draws the same screens; the
 // group alone, left by q; the keys nothing reads; a named file that is not there; and
 // the mocks' menu.
@@ -140,6 +141,12 @@ func TestPlayConfigGolden(t *testing.T) {
 		{"config-unused", []string{"config/unused"}, []string{"q"}},
 		{"config-missing", []string{"config/missing"}, []string{"1", "0"}},
 		{"config-mocks", []string{"config"}, []string{"4", "0", "0"}},
+		// Edit a setting: a port refused then saved, a yes/no key, an NTP server added and removed; the screen redrawn from the saved file.
+		{"config-edit", []string{"config/etc"}, []string{"1", "3", "99999", "2022", "y", "9", "y", "8", "1", "192.0.2.10", "y", "2", "1", "y", "0", "0", "0"}},
+		// The same under plan only: each save stops at its plan.
+		{"config-edit-plan-only", []string{"-sequence", "dry-run", "config/etc"}, []string{"1", "3", "2022", "9", "0", "0"}},
+		// On Alpine a TCP server saved: the logger's note after the save and on both screens.
+		{"config-edit-alpine", []string{"config/alpine-tcp"}, []string{"1", "7", "1", "192.0.2.51", "", "", "y", "0", "0", "0"}},
 	} {
 		uitest.Golden(t, "play/"+tt.name, uitest.Core(), func(env term.Env) string {
 			args := append(lookArgs(t, env), tt.args...)
@@ -147,7 +154,10 @@ func TestPlayConfigGolden(t *testing.T) {
 			if code != exitOK || errs != "" || unread != 0 {
 				t.Errorf("%s, %v: exit %d, stderr %q, %d lines unread", tt.name, args, code, errs, unread)
 			}
-			return out
+			if !strings.Contains(tt.name, "edit") {
+				return out
+			}
+			return sameIDs(t, out)
 		})
 	}
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	configscreen "github.com/abbott/hardn/pkg/screens/config"
@@ -68,6 +69,9 @@ func play(cfg *config.Config, f config.Found, lines ...string) played {
 	err := configscreen.Run(context.Background(), configscreen.Options{
 		Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)},
 		Config:   cfg, Found: f,
+		System: hostfake.New(host.Options{}), NewEngine: func(progress func(engine.Event)) *engine.Engine {
+			return newEngine(hostfake.New(host.Options{}), progress)
+		},
 	})
 	return played{out.String(), err, ty.Unread()}
 }
@@ -100,8 +104,8 @@ func TestFrom(t *testing.T) {
 		}
 		has(t, tt.from, p.out, "# Configuration ###", "  File ---", "   -  Path                 "+tt.path+"\n", "   -  From                 "+tt.from+"\n",
 			"  Users ---", "  SSH ---", "  Firewall ---", "  DNS ---", "  Auto Updates ---", "  Backup ---", "  General ---",
-			"   0) Return", "[0 or q]:")
-		for _, w := range []string{"not found", "hardn is using its defaults.", "Not used", "None found", "1)"} {
+			"  Select an option", "   1) Edit a setting       Change a key in hardn.yml", "   0) Return", "[0-1 or q]:")
+		for _, w := range []string{"not found", "hardn is using its defaults.", "Not used", "None found", "2)", "Start hardn again"} {
 			if strings.Contains(p.out, w) {
 				t.Errorf("%s: %q in:\n%s", tt.from, w, p.out)
 			}
@@ -110,8 +114,8 @@ func TestFrom(t *testing.T) {
 }
 
 // TestNoFile: with no file anywhere, and with one that -f or HARDN_CONFIG names and
-// is not there, the screen says so and that the defaults are in use, every row a
-// default. A configuration loaded from no file reads so whatever found says is there.
+// is not there, the screen says so, that the defaults are in use and how to create
+// one, with no item to edit, every row a default. A configuration loaded from no file reads so whatever found says is there.
 func TestNoFile(t *testing.T) {
 	for _, tt := range []struct {
 		name string
@@ -131,14 +135,14 @@ func TestNoFile(t *testing.T) {
 		if p.err != nil {
 			t.Errorf("%s: Run = %v", tt.name, p.err)
 		}
-		has(t, tt.name, p.out, append(tt.want, "   -  hardn is using its defaults.\n", "   -  username             Not set (default)\n",
+		has(t, tt.name, p.out, append(tt.want, "   -  hardn is using its defaults.\n   -  Start hardn again to create one.\n", "[0 or q]:", "   -  username             Not set (default)\n",
 			"   -  sshPort              22 (default)\n", "   -  sshKeys              None (default)\n", "   -  confirmTimeout       3m (default)\n")...)
-		if strings.Contains(p.out, tt.not) {
+		if strings.Contains(p.out, tt.not) || strings.Contains(p.out, "Edit a setting") {
 			t.Errorf("%s: %q in:\n%s", tt.name, tt.not, p.out)
 		}
 		for _, l := range strings.Split(p.out, "\n") {
 			if rest, ok := strings.CutPrefix(l, "   -  "); ok && !strings.HasSuffix(l, "(default)") &&
-				!slices.ContainsFunc([]string{"Path", "From", "hardn is using", "sshConfigFile", "enableUnattendedUpgrades"}, func(k string) bool { return strings.HasPrefix(rest, k) }) {
+				!slices.ContainsFunc([]string{"Path", "From", "hardn is using", "Start hardn again", "sshConfigFile", "enableUnattendedUpgrades"}, func(k string) bool { return strings.HasPrefix(rest, k) }) {
 				t.Errorf("%s: a row that is no default: %q", tt.name, l)
 			}
 		}
@@ -322,7 +326,7 @@ func TestMergedKeys(t *testing.T) {
 }
 
 // TestKeys: 0 goes back (nil) and q quits (nav.ErrQuit); any other line is refused
-// and asked again, the screen has no item; the end of the input aborts.
+// and asked again, the screen has one item; the end of the input aborts.
 func TestKeys(t *testing.T) {
 	cfg, f := read(t, etc, typical), found(etc, config.FoundSearch)
 	if p := play(cfg, f, "0"); p.err != nil || p.unread != 0 {
@@ -331,7 +335,7 @@ func TestKeys(t *testing.T) {
 	if p := play(cfg, f, "q", "0"); !errors.Is(p.err, nav.ErrQuit) || p.unread != 1 {
 		t.Errorf("q: Run = %v, %d unread", p.err, p.unread)
 	}
-	p := play(cfg, f, "1", "x", "0")
+	p := play(cfg, f, "2", "x", "0")
 	if p.err != nil || strings.Count(p.out, "Invalid option. Please try again.") != 2 || strings.Count(p.out, "# Configuration ###") != 1 {
 		t.Errorf("1, x, 0: Run = %v:\n%s", p.err, p.out)
 	}

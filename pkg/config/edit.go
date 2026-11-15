@@ -93,6 +93,23 @@ var bom = []byte("\xef\xbb\xbf")
 // fs.ErrInvalid. A UTF-8 byte order mark, a leading --- and a directive
 // are kept.
 func Edit(original []byte, to *Config, settings ...string) ([]byte, error) {
+	return edit(original, to, false, settings)
+}
+
+// EditKeys is Edit of the settings named, at least one (fs.ErrInvalid for
+// none), which also writes a named setting the file gives no value (left
+// out, or null), its default too: Edit never writes a default, and the
+// question that turns the release check on writes its answer either way
+// (docs/engine/design-release-ask.md, decision 7).
+func EditKeys(original []byte, to *Config, settings ...string) ([]byte, error) {
+	if len(settings) == 0 {
+		return nil, fmt.Errorf("config: edit: no setting named: %w", fs.ErrInvalid)
+	}
+	return edit(original, to, true, settings)
+}
+
+// edit is Edit; with write, EditKeys.
+func edit(original []byte, to *Config, write bool, settings []string) ([]byte, error) {
 	if to == nil {
 		return nil, fmt.Errorf("config: edit: no configuration: %w", ErrNotLoaded)
 	}
@@ -111,6 +128,19 @@ func Edit(original []byte, to *Config, settings ...string) ([]byte, error) {
 	if len(settings) > 0 {
 		if want, err = only(was, want, settings); err != nil {
 			return nil, err
+		}
+	}
+	if write {
+		// A named setting the file gives no value has no value before
+		// the edit, so that it differs from any, its default too.
+		set := setOf(original)
+		was = &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: slices.Clone(was.Content)}
+		for i := 0; i+1 < len(was.Content); {
+			if _, ok := set[was.Content[i].Value]; !ok && slices.Contains(settings, was.Content[i].Value) {
+				was.Content = slices.Delete(was.Content, i, i+2)
+				continue
+			}
+			i += 2
 		}
 	}
 	var keys []string

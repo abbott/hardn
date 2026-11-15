@@ -1,7 +1,8 @@
 package main
 
 // The release check (proposal P-15; docs/engine/screen-release-check.md):
-// off unless hardn.yml's checkReleases turns it on, and then at the main
+// off unless hardn.yml's checkReleases turns it on, or, with no hardn.yml,
+// a yes to the question that asks (releaseask.go), and then at the main
 // menu alone, never for a flag or a subcommand. A dry run changes nothing
 // about it, as adopted (docs/engine/gallery-release-check.md §6).
 // --version says what its cache holds (newerRelease) and asks nothing (docs/engine/gallery-release-notice.md).
@@ -38,13 +39,18 @@ var releaseConfig = config.LoadExistingQuick
 // newerRelease is the newer release's tag the release check's cache holds,
 // such as "v0.4.1", for --version; "" where there is none to
 // say. It makes no request (Latest is nil) and writes nothing. It says
-// nothing of why: hardn.yml missing, not valid, not a regular file or
+// nothing of why: hardn.yml missing with no yes to the question, not valid, not a regular file or
 // larger than 1 MiB (-f, HARDN_CONFIG, then the search path), checkReleases off, a development build, a cache that
 // is missing, fails a check or cannot be read (a user other than root:
 // /var/lib/hardn is root's alone), a failed check, or no newer release.
 func newerRelease(ctx context.Context) string {
 	c, err := releaseConfig(configFile)
-	if err != nil || c == nil || !c.CheckReleases {
+	if err != nil || c == nil {
+		return ""
+	}
+	// Off in hardn.yml, or no hardn.yml and no yes to the question in
+	// hardn's state (releaseask.go), which only root reads.
+	if !c.CheckReleases && (c.Path() != "" || !releaseAskYes()) {
 		return ""
 	}
 	check := &version.Checker{On: true, Version: Version, System: releaseHost(), Now: releaseNow}

@@ -649,8 +649,10 @@ func TestPlayTouchesNothing(t *testing.T) {
 	// hardn.yml calls (steps.PlanSave, next/s2-control; Edit since
 	// next/s2-config-edit), and the defaults a status host with no
 	// hardn.yml is checked against (statusConfig, next/s2-menu-live):
-	// play may name them.
-	for _, name := range []string{"Read", "Save", "Edit", "DefaultConfig"} {
+	// play may name them; and ResolveHost, which checks a server's name
+	// and reads nothing, for the Configuration screen's fields
+	// (pkg/screens/config/edit.go).
+	for _, name := range []string{"Read", "Save", "Edit", "DefaultConfig", "ResolveHost"} {
 		if !unreached[module+"pkg/config"][name] {
 			t.Fatalf("pkg/config has no function %s", name)
 		}

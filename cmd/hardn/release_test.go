@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"net/http"
@@ -100,7 +101,7 @@ func TestReleaseCheckDefaultOff(t *testing.T) {
 	if config.DefaultConfig().CheckReleases {
 		t.Error("checkReleases is on by default")
 	}
-	if _, ok := releaseHost().(*host.Real); !ok || releaseTransport != nil {
+	if _, ok := prodReleaseHost().(*host.Real); !ok || releaseTransport != nil {
 		t.Error("the release check's seams are not production's")
 	}
 	// The notice's hardn.yml is read by the load that writes nothing, offers
@@ -110,9 +111,12 @@ func TestReleaseCheckDefaultOff(t *testing.T) {
 	}
 }
 
-// prodReleaseConfig is production's releaseConfig: set before init, below,
-// replaces it.
-var prodReleaseConfig = releaseConfig
+// prodReleaseConfig and prodReleaseHost are production's releaseConfig and
+// releaseHost: set before init, below, replaces them.
+var (
+	prodReleaseConfig = releaseConfig
+	prodReleaseHost   = releaseHost
+)
 
 // TestReleaseNoticeHostileConfig: --version neither waits on nor grows
 // with a hardn.yml that is a FIFO, a device or too large: nothing is said,
@@ -169,13 +173,17 @@ func TestReleaseNoticeHostileConfig(t *testing.T) {
 
 // No test reads this machine's hardn.yml for the release notice: the tests
 // that want one say so (useReleaseConfig).
+// Nor this machine's /var/lib/hardn for the question's state, which a run
+// with no hardn.yml reads (releaseask.go): an empty host, unless the test
+// gives one (useReleaseHost).
 func init() {
 	releaseConfig = func(string) (*config.Config, error) { return config.DefaultConfig(), nil }
+	releaseHost = func() host.System { return hostfake.New(host.Options{}) }
 }
 
-// useReleaseConfig makes the notice's hardn.yml one with checkReleases on,
-// or err, until the test ends, and returns where the path it was asked for
-// (-f) is kept.
+// useReleaseConfig makes the notice's hardn.yml one that sets
+// checkReleases, on or off, or err, until the test ends, and returns where
+// the path it was asked for (-f) is kept.
 func useReleaseConfig(t *testing.T, on bool, err error) *string {
 	t.Helper()
 	was := releaseConfig
@@ -186,9 +194,11 @@ func useReleaseConfig(t *testing.T, on bool, err error) *string {
 		if err != nil {
 			return nil, err
 		}
-		c := config.DefaultConfig()
-		c.CheckReleases = on
-		return c, nil
+		yml := filepath.Join(t.TempDir(), "hardn.yml")
+		if err := os.WriteFile(yml, fmt.Appendf(nil, "checkReleases: %t\n", on), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return config.LoadExisting(yml)
 	}
 	return asked
 }

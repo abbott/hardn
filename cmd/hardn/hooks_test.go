@@ -83,6 +83,19 @@ func TestMenuOptions(t *testing.T) {
 		logForward.ApplyContext == nil || logForward.Prompter.In == nil || logForward.LogPath != output.LegacyLogPath || logForward.DryRun != c.DryRun {
 		t.Errorf("the Syslog Settings screen's options: %+v", logForward)
 	}
+	// The hardn.yml screen (the group's 1), the same: its saves go through
+	// the engine too.
+	configWas := configRun
+	t.Cleanup(func() { configRun = configWas })
+	var file configscreen.Options
+	configRun = func(_ context.Context, o configscreen.Options) error { file = o; return nil }
+	if err := group.File(); err != nil {
+		t.Fatal(err)
+	}
+	if file.Config != c || file.System == nil || file.NewEngine == nil || file.Ran == nil ||
+		file.ApplyContext == nil || file.Prompter.In == nil || file.LogPath != output.LegacyLogPath || file.DryRun != c.DryRun {
+		t.Errorf("the hardn.yml screen's options: %+v", file)
+	}
 	// The NTP Settings screen (the group's 3), the same.
 	if err := group.TimeSync(); err != nil {
 		t.Fatal(err)
