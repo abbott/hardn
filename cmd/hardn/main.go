@@ -177,7 +177,7 @@ func sayFound(f config.Found) {
 var rootCmd = &cobra.Command{
 	Use:   "hardn",
 	Short: "Linux hardening tool",
-	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma, RHEL, CentOS Stream and Oracle.`,
+	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma, RHEL, CentOS Stream and Oracle Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// -r runs alone: with -c, -d, -w or -g a usage error before
 		// anything runs (runall.go; slice 9's defect 10).
