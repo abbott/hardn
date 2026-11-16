@@ -46,6 +46,11 @@ type asked struct {
 	// not counted.
 	Asked time.Time `json:"asked"`
 	Opens int       `json:"opens"`
+	// WroteFalse is the hardn.yml the question wrote checkReleases: false
+	// to, asked again by the count; "" is none, and is not written. A
+	// hardn older than this reads a state that has it as not valid, so
+	// never asked: there it is asked only with no hardn.yml.
+	WroteFalse string `json:"wroteFalse,omitempty"`
 }
 
 // decodeAsked reads data strictly: one JSON object with no unknown field
@@ -155,7 +160,36 @@ func (a *Asker) Due(ctx context.Context) bool {
 	return false
 }
 
-// Record keeps answer as asked now, with no open since.
+// Record keeps answer as asked now, with no open since and no hardn.yml
+// written false.
 func (a *Asker) Record(ctx context.Context, answer AskAnswer) error {
-	return a.write(ctx, asked{Answer: answer, Asked: a.now(), Opens: 0})
+	return a.RecordIn(ctx, answer, "")
+}
+
+// RecordIn is Record, the question's false kept in the hardn.yml at path
+// (WroteFalse): that false is asked about again by the count.
+func (a *Asker) RecordIn(ctx context.Context, answer AskAnswer, path string) error {
+	return a.write(ctx, asked{Answer: answer, Asked: a.now(), Opens: 0, WroteFalse: path})
+}
+
+// WroteFalse is the hardn.yml the question wrote checkReleases: false to;
+// "" where there is none or the state file can't be read. It writes
+// nothing.
+func (a *Asker) WroteFalse(ctx context.Context) string {
+	s, err := a.read(ctx)
+	if err != nil {
+		return ""
+	}
+	return s.WroteFalse
+}
+
+// Forget drops WroteFalse: the false in that hardn.yml is the person's
+// from now on, never asked about. It writes only where there is one.
+func (a *Asker) Forget(ctx context.Context) error {
+	s, err := a.read(ctx)
+	if err != nil || s.WroteFalse == "" {
+		return nil
+	}
+	s.WroteFalse = ""
+	return a.write(ctx, s)
 }

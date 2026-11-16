@@ -31,6 +31,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
+	"github.com/abbott/hardn/pkg/version"
 )
 
 var now = time.Date(2026, 11, 15, 12, 0, 0, 0, time.UTC)
@@ -509,5 +510,40 @@ func TestEditClears(t *testing.T) {
 	}
 	if !strings.Contains(parts[1], "sshPort") || strings.Count(parts[1], "Option [") != 2 {
 		t.Errorf("Edit a setting: want its question under it, then it again, no clear:\n%s", parts[1])
+	}
+}
+
+// TestEditForgetsReleaseMark: a save of checkReleases, either value,
+// drops hardn's mark that the release question wrote its false
+// (version.Asker.WroteFalse), so that false is not asked about again. A
+// save of another key, or one declined or under plan only, keeps it.
+func TestEditForgetsReleaseMark(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		name  string
+		yml   string
+		lines []string
+		dry   bool
+		kept  bool
+	}{
+		{"to true", "false", []string{"11", "y"}, false, false},
+		{"to true, then false", "false", []string{"11", "y", "11", "y"}, false, false},
+		{"to false", "true", []string{"11", "y"}, false, false},
+		{"another key", "false", []string{"9", "y"}, false, true},
+		{"declined", "false", []string{"11", "n"}, false, true},
+		{"plan only", "false", []string{"11", "y"}, true, true},
+	} {
+		h, cfg := site(t, "checkReleases: "+tt.yml+"\n")
+		a := &version.Asker{System: h, Now: func() time.Time { return now }}
+		if err := a.RecordIn(ctx, version.AskNo, etc); err != nil {
+			t.Fatal(err)
+		}
+		p := edit(h, cfg, func(o *configscreen.Options) { o.DryRun = tt.dry }, append(append([]string{"1"}, tt.lines...), "q")...)
+		if !errors.Is(p.err, nav.ErrQuit) || p.unread != 0 {
+			t.Errorf("%s: Run = %v, %d unread\n%s", tt.name, p.err, p.unread, p.out)
+		}
+		if kept := a.WroteFalse(ctx) == etc; kept != tt.kept {
+			t.Errorf("%s: mark kept %t, want %t", tt.name, kept, tt.kept)
+		}
 	}
 }

@@ -259,8 +259,9 @@ Off, the default where no one answered, hardn makes no network request. On, the 
 
 - **Creating hardn.yml:** it is the last question, and the file holds your answer.
 - **A hardn.yml without the key**, such as one from an older install: hardn asks, then writes your answer to the file, yes or no. The rest of the file and its comments stay. If the file can't be edited in place, hardn says so and writes nothing: set the key by hand.
+- **A no hardn wrote there is asked again** after 30 days or 15 opens. A yes then writes `true`; a no keeps `false`. A `false` you set, by hand or with Edit a setting, is never asked about. Nor is one hardn v0.10.3 or older wrote.
 - **No hardn.yml:** your answer is kept in `/var/lib/hardn/release-ask.json`, root's alone. A yes turns the check on until a hardn.yml exists; then the file decides. To take a yes back, delete that file or set `checkReleases: false` in a hardn.yml.
-- **A key that is set is never asked about again**, nor is a yes. After a no with no hardn.yml, or no answer, hardn asks again after 30 days or 15 opens of the main menu, whichever comes first.
+- **Otherwise a key that is set is never asked about again**, nor is a yes. After a no with no hardn.yml, or no answer, hardn asks again after 30 days or 15 opens of the main menu, whichever comes first.
 - **`dryRun: true` in hardn.yml doesn't stop the question**, and the answer is still written to the file.
 - **If `/var/lib/hardn` can't be written, hardn doesn't ask.** It couldn't keep the answer.
 
