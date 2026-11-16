@@ -483,7 +483,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 		}
 		if answer := askServer("Enter syslog server (optional, press Enter to skip): ", checkSyslogAnswer); answer != "" {
 			server, _ := parseSyslogAnswer(answer)
-			config.SyslogServers = SyslogServers{server}
+			config.SyslogServers = SyslogServers{askSyslogProtocol(server)}
 		}
 
 		// Ask for the release check, last: Enter is yes, the end of the
@@ -594,6 +594,73 @@ func parseSyslogAnswer(answer string) (server SyslogServer, why string) {
 		return SyslogServer{}, refusedAddress(server.Server)
 	}
 	return server, ""
+}
+
+// The first-run syslog protocol question and its refusals.
+const (
+	askProtocol  = "Syslog protocol (udp, tcp, tls) [tcp]: "
+	askCAFile    = "Enter CA file: "
+	refusedProto = "Not udp, tcp or tls."
+	refusedNoCA  = "TLS needs a CA file."
+)
+
+// askSyslogProtocol asks the accepted server's protocol: Enter is tcp, the
+// block's default, so tcp is not written; tls asks the CA file. A refused
+// answer, or tls the block refuses (no CA file, an address, a CA file
+// hardn does not write), gets one line and the protocol again. The end of
+// the input keeps tcp, so it is never asked without end. A port the
+// address carried is kept.
+func askSyslogProtocol(server SyslogServer) SyslogServer {
+	for {
+		fmt.Fprint(stdout(), askProtocol)
+		line, ended := readLine()
+		proto := strings.ToLower(strings.TrimSpace(line))
+		why := ""
+		b := server
+		switch proto {
+		case "", LogTCP:
+			return server
+		case LogUDP:
+			b.Protocol = LogUDP
+			return b
+		case LogTLS:
+			b.Protocol = LogTLS
+			if !ended {
+				fmt.Fprint(stdout(), askCAFile)
+				var ca string
+				ca, ended = readLine()
+				b.CAFile = strings.TrimSpace(ca)
+			}
+			why = tlsRefusal(b)
+			if why == "" {
+				return b
+			}
+		default:
+			why = refusedProto
+		}
+		fmt.Fprintln(stdout(), why)
+		if ended {
+			return server
+		}
+	}
+}
+
+// tlsRefusal is the line refusing a tls block, "" for none: SyslogServers.
+// Resolve's words for what is not valid.
+func tlsRefusal(b SyslogServer) string {
+	if b.CAFile == "" {
+		return refusedNoCA
+	}
+	_, why := b.resolve()
+	if why == "" {
+		return ""
+	}
+	if strings.HasPrefix(why, "tls ") {
+		why = "TLS " + strings.TrimPrefix(why, "tls ")
+	} else {
+		why = strings.ToUpper(why[:1]) + why[1:]
+	}
+	return why + "."
 }
 
 // ReleaseQuestion is the question that turns the release check on, its

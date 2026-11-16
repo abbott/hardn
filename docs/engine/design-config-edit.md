@@ -268,6 +268,12 @@ Editing (1 to 7), then first run (8 to 12). Gates come first in each part.
 17. **`users.CheckNameForm`** is new, the form check `CheckName` began with, so the editor never asks whether the user exists.
 18. **The gallery's play guard** (`TestPlayTouchesNothing`) now lets play name `config.ResolveHost`, which reads nothing.
 
+**2026-11-16, `next/syslog-protocol`** (bug "The syslog server is TCP, with no easy way to UDP"):
+
+- **Change protocol**, a third item under `syslogServers`, only with a server: the server by number, "Enter protocol [<current>]", the port ("Enter port [514]", 6514 for tls) only where the protocol changed and the port was the old default or unset, and for tls the CA file. An explicit other port is kept. The whole list is checked by `SyslogServers.Resolve`; the block is changed in place through `PlanSave`, never removed and added. `config.Edit` now edits a list item whose fields alone change in place, so the server's comments stay; a removed field's line goes with its comment. The same protocol: "Nothing needs changing."
+- **Choice 14's line** is now "busybox syslogd is UDP only. Change protocol under Edit a setting."
+- **First run** asks "Syslog protocol (udp, tcp, tls) [tcp]: " after an accepted syslog server. Enter is tcp, not written. tls asks "Enter CA file: "; tls without one, or that `Resolve` refuses, gets one line and the protocol again. A bad answer: "Not udp, tcp or tls." The end of the input keeps tcp.
+
 **First run:** see the release's notes and `docs/configuration.md`; its choices are in the unit's report (three fixed refusal lines, the closing line for one server, `host:0` refused, the answer written as typed).
 
 ## 8. Not verified

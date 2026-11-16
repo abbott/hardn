@@ -36,7 +36,8 @@ func TestConfigEdit(t *testing.T) {
 }
 
 // TestConfigList: a list key's screen: a row for each entry, None with
-// none; Remove only where there is an entry; the note a warning row under
+// none; Remove only where there is an entry, Change protocol only for
+// syslogServers with one; the note a warning row under
 // the entries; a key's flow under the key's title.
 func TestConfigList(t *testing.T) {
 	sub := ConfigList{Key: "ntpServers"}.SubMenu()
@@ -48,11 +49,15 @@ func TestConfigList(t *testing.T) {
 	if len(rows) != 3 || rows[1].Value != "192.0.2.51:514 UDP" || rows[2] != (component.KeyValue{Key: "busybox syslogd is UDP only.", State: component.ValueWarn, Finding: true}) {
 		t.Errorf("rows: %+v", rows)
 	}
-	if len(sub.Menu.Items) != 2 || sub.Menu.Items[1] != (component.MenuItem{Key: ConfigListRemove, Label: "Remove server"}) || sub.Title.Title != "syslogServers" {
+	if len(sub.Menu.Items) != 3 || sub.Menu.Items[1] != (component.MenuItem{Key: ConfigListRemove, Label: "Remove server"}) ||
+		sub.Menu.Items[2] != (component.MenuItem{Key: ConfigListChange, Label: "Change protocol"}) || sub.Title.Title != "syslogServers" {
 		t.Errorf("items: %+v", sub)
 	}
 	if keys := (ConfigList{Key: "sshKeys", Entries: []string{"ssh-ed25519 george@laptop-1 SHA256:abc"}}).SubMenu(); keys.Sections[0].Header.Title != "Keys" || keys.Menu.Items[0].Label != "Add key" {
 		t.Errorf("sshKeys: %+v", keys)
+	}
+	if n := len((ConfigList{Key: "ntpServers", Entries: []string{"time.example.net"}}).SubMenu().Menu.Items); n != 2 {
+		t.Errorf("ntpServers has %d items, want Add and Remove alone", n)
 	}
 	if step := ConfigStep("sshPort"); step.Title.Title != "sshPort" || len(step.Title.Parents) != 2 {
 		t.Errorf("the step: %+v", step)

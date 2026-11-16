@@ -266,6 +266,9 @@ func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 		inner := e.listStyle(it)
 		style.inner = &inner
 	}
+	if e.inPlace(seq, was, want, dashes) {
+		return nil
+	}
 	var parts []string
 	for _, o := range script(was.Content, want.Content) {
 		if o.from >= 0 {
@@ -280,6 +283,85 @@ func (e *editor) items(key, seq, was, want *yaml.Node, k int) error {
 	}
 	e.splices = append(e.splices, splice{e.start[dashes[0]], e.end[last], strings.Join(parts, e.nl)})
 	return nil
+}
+
+// inPlace edits seq's items in place where want keeps every item's place
+// and changes only fields of block mappings: each changed item's keys are
+// edited, added or removed as mapping edits them, so that the comments
+// above and beside it, and on the keys that stay, stay. A key removed goes
+// with its line, which must hold its value alone and not be the item's
+// dash line. False, with nothing edited, where that cannot be done, for
+// items to replace the items instead.
+func (e *editor) inPlace(seq, was, want *yaml.Node, dashes []int) bool {
+	if len(want.Content) != len(seq.Content) {
+		return false
+	}
+	mark := len(e.splices)
+	undo := func() bool { e.splices = e.splices[:mark]; return false }
+	for i, it := range seq.Content {
+		w, v := was.Content[i], want.Content[i]
+		if same(w, v) {
+			continue
+		}
+		if it.Kind != yaml.MappingNode || !block(it) || v.Kind != yaml.MappingNode || anchored(it) {
+			return undo()
+		}
+		if !sameIdentity(it, w, v) { // a moved, swapped or replaced item: its comments are not the new one's
+			return undo()
+		}
+		for j := 0; j+1 < len(it.Content); j += 2 {
+			k, val := it.Content[j], it.Content[j+1]
+			if valueOf(v, k.Value) != nil {
+				continue
+			}
+			l := k.Line - 1
+			if l == dashes[i] || val.Kind != yaml.ScalarNode || val.Line != k.Line || block(val) || l < 1 || e.continues(l, k.Column-1) {
+				return undo()
+			}
+			e.splices = append(e.splices, splice{e.end[l-1], e.end[l], ""}) // with the line break before it
+		}
+		if err := e.mapping(it, w, v); err != nil {
+			return undo()
+		}
+	}
+	for i := mark + 1; i < len(e.splices); i++ { // overlapping edits: replace the items
+		for j := mark; j < i; j++ {
+			a, b := e.splices[i], e.splices[j]
+			if a.from < b.to && b.from < a.to || a.from == b.from && (a.to > a.from || b.to > b.from) {
+				return undo()
+			}
+		}
+	}
+	return true
+}
+
+// sameIdentity reports whether item, read as w, is the same item in want
+// as v: its first key, the one that names it (a syslog server's server),
+// holds the same value in both. An item whose first key's value changed was
+// moved, swapped or replaced, so the comments at its place are not its own.
+func sameIdentity(item, w, v *yaml.Node) bool {
+	if len(item.Content) < 2 {
+		return false
+	}
+	name := item.Content[0].Value
+	a, b := valueOf(w, name), valueOf(v, name)
+	return a != nil && b != nil && same(a, b)
+}
+
+// continues reports whether line l's value goes on to the next lines: the
+// first line after l that is not blank is indented more than indent, the
+// column of l's key, and is not a comment line. A value over several lines
+// can't be removed with its key's line alone.
+func (e *editor) continues(l, indent int) bool {
+	for n := l + 1; n < len(e.start); n++ {
+		text := string(e.src[e.start[n]:e.end[n]])
+		trimmed := strings.TrimLeft(text, " \t")
+		if trimmed == "" || strings.TrimSpace(trimmed) == "" {
+			continue
+		}
+		return len(text)-len(trimmed) > indent && !strings.HasPrefix(trimmed, "#")
+	}
+	return false
 }
 
 // collapse replaces val, a block collection, with want written inline

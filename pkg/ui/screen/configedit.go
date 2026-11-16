@@ -30,11 +30,16 @@ import (
 // ConfigEditItem is the Configuration screen's item, by key.
 const ConfigEditItem = "1"
 
-// The list screen's items, by key: Remove only where the list has an entry.
+// The list screen's items, by key: Remove only where the list has an entry,
+// and Change protocol only for syslogServers with one.
 const (
 	ConfigListAdd    = "1"
 	ConfigListRemove = "2"
+	ConfigListChange = "3"
 )
+
+// configChangeProto is syslogServers' change of a server's protocol.
+const configChangeProto = "Change protocol"
 
 // The editing words (design-config-edit.md §3).
 const (
@@ -112,7 +117,8 @@ type ConfigList struct {
 }
 
 // SubMenu returns the screen: the title bar; a row for each entry, None with
-// none; the note; Add, and Remove where there is an entry; Return; "Option".
+// none; the note; Add, and Remove (and syslogServers' Change protocol) where
+// there is an entry; Return; "Option".
 func (v ConfigList) SubMenu() SubMenu {
 	w := configListWords[v.Key]
 	var rows []component.KeyValue
@@ -128,6 +134,9 @@ func (v ConfigList) SubMenu() SubMenu {
 	items := []component.MenuItem{{Key: ConfigListAdd, Label: w.add}}
 	if len(v.Entries) > 0 {
 		items = append(items, component.MenuItem{Key: ConfigListRemove, Label: w.remove})
+		if v.Key == "syslogServers" {
+			items = append(items, component.MenuItem{Key: ConfigListChange, Label: configChangeProto})
+		}
 	}
 	return SubMenu{
 		Title:    trail(configTitle, configEditLabel, v.Key),

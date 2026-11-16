@@ -49,8 +49,8 @@ $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msyslogServers␛[m        ␛[38;2;129;134;156m192.0.2.50␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Under Edit a setting, remove␛[m$
-      ␛[38;2;219;184;83mthe server and add it with udp.␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Change protocol under Edit a␛[m$
+      ␛[38;2;219;184;83msetting.␛[m$
 $
   ␛[1;38;2;129;134;156mNTP␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -128,8 +128,8 @@ $
   Syslog -------------------------------------------------------$
 $
    -  syslogServers        192.0.2.50$
-  [ ] busybox syslogd is UDP only. Under Edit a setting, remove$
-      the server and add it with udp.$
+  [ ] busybox syslogd is UDP only. Change protocol under Edit a$
+      setting.$
 $
   NTP ----------------------------------------------------------$
 $
@@ -221,8 +221,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msyslogServers␛[m$
       ␛[38;2;129;134;156m192.0.2.50␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Under Edit a setting,␛[m$
-      ␛[38;2;219;184;83mremove the server and add it with udp.␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Change protocol under␛[m$
+      ␛[38;2;219;184;83mEdit a setting.␛[m$
 $
   ␛[1;38;2;129;134;156mNTP␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -308,8 +308,8 @@ $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m-------------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msyslogServers␛[m        ␛[38;2;129;134;156m192.0.2.50␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Under Edit a setting, remove␛[m$
-      ␛[38;2;219;184;83mthe server and add it with udp.␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mbusybox syslogd is UDP only. Change protocol under Edit a␛[m$
+      ␛[38;2;219;184;83msetting.␛[m$
 $
   ␛[1;38;2;129;134;156mNTP␛[m ␛[38;2;22;24;29m----------------------------------------------------------␛[m$
 $

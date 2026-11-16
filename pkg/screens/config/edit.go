@@ -49,6 +49,8 @@ const (
 	askCAFile   = "Enter CA file"
 	pickKey     = "Select a key to remove"
 	pickServer  = "Select a server to remove"
+	pickChange  = "Select a server"
+	askNewProto = "Enter protocol [%s]"
 	// The questions.
 	askSave      = "Save %s?"
 	askSaveValue = "Save %s: %t?"
@@ -68,9 +70,8 @@ const (
 	actsStart  = "From the next start."
 	// udpOnly is decision 13's line: Syslog Settings' words for busybox
 	// syslogd's refusal of a TCP or TLS server, then where and how to change
-	// it: the editor has no change of a server's protocol, and refuses the
-	// same address and port twice, so the server is removed first.
-	udpOnly = "busybox syslogd is UDP only. Under Edit a setting, remove the server and add it with udp."
+	// it: Change protocol, under Edit a setting (2026-11-16).
+	udpOnly = "busybox syslogd is UDP only. Change protocol under Edit a setting."
 )
 
 // acts is the line after a key's save; a key with none says nothing:
@@ -293,8 +294,11 @@ func (r *runner) list(ctx context.Context, key string) error {
 		menu := nav.Menu{Exit: sub.Menu.Exit}
 		for _, it := range sub.Menu.Items {
 			action := func() error { return r.add(ctx, key) }
-			if it.Key == screen.ConfigListRemove {
+			switch it.Key {
+			case screen.ConfigListRemove:
 				action = func() error { return r.remove(ctx, key, v.Entries) }
+			case screen.ConfigListChange:
+				action = func() error { return r.changeSyslog(ctx, v.Entries) }
 			}
 			menu.Options = append(menu.Options, nav.Option{Item: it, Action: action})
 		}
@@ -466,6 +470,118 @@ func (r *runner) addSyslog(ctx context.Context) error {
 			ca = ""
 		}
 		c.SyslogServers = append(slices.Clone(c.SyslogServers), block())
+	})
+}
+
+// changeSyslog is syslogServers' Change protocol: the server picked by
+// number, as Remove picks it; its protocol [the current]; the port
+// [the new protocol's default] only where the protocol changed and the
+// server's port was the old protocol's default or unset, an explicit other
+// port kept as it is; for tls, the CA file. The whole list, the server's
+// block changed in place, is checked by SyslogServers.Resolve at the last
+// field asked. Only that block changes; the same protocol changes nothing.
+func (r *runner) changeSyslog(ctx context.Context, shown []string) error {
+	cfg := r.o.Config
+	opts := make([]form.Option[int], len(shown))
+	for i, e := range shown {
+		opts[i] = form.Option[int]{Label: e, Value: i}
+	}
+	var at int
+	var proto, port, ca string
+	old := func() config.SyslogServer { return cfg.SyslogServers[at] }
+	oldProto := func() string {
+		if p := old().Protocol; p != "" {
+			return p
+		}
+		return config.LogTCP
+	}
+	cur := func() string { // Enter keeps the protocol
+		if proto == "" {
+			return oldProto()
+		}
+		return proto
+	}
+	changed := func() bool { return cur() != oldProto() }
+	followsDefault := func() bool { p := old().Port; return p == 0 || p == defaultPort(oldProto()) }
+	tls := func() bool { return cur() == config.LogTLS }
+	block := func() config.SyslogServer {
+		b := old()
+		if !changed() {
+			return b
+		}
+		b.Protocol, b.CAFile = "", ""
+		if cur() != config.LogTCP {
+			b.Protocol = cur()
+		}
+		if tls() {
+			b.CAFile = ca
+		}
+		if followsDefault() {
+			b.Port = 0
+			if n, _ := strconv.Atoi(port); port != "" && n != defaultPort(cur()) {
+				b.Port = n
+			}
+		}
+		return b
+	}
+	whole := func() error {
+		l := slices.Clone(cfg.SyslogServers)
+		l[at] = block()
+		_, err := l.Resolve()
+		return words(err, config.ErrSyslogServers, at+1)
+	}
+	f := form.Form{Fields: []form.Field{
+		&form.Select[int]{Title: pickChange, Options: opts, Value: &at},
+		&form.Text{TitleFunc: func() string { return fmt.Sprintf(askNewProto, oldProto()) }, Value: &proto, Validate: func(s string) error {
+			if s == "" {
+				s = oldProto()
+			}
+			switch s {
+			case config.LogUDP, config.LogTCP, config.LogTLS:
+			default:
+				return errors.New(badProto)
+			}
+			was := proto
+			proto = s
+			defer func() { proto = was }()
+			if s == config.LogTLS && changed() {
+				if _, isAddr, _ := config.ResolveHost(old().Server); isAddr {
+					return errors.New("TLS needs the server's name, as its certificate has it")
+				}
+				return nil // the port or the CA file is asked next
+			}
+			if changed() && followsDefault() {
+				return nil // the port is asked next
+			}
+			return whole()
+		}},
+		&form.Text{TitleFunc: func() string { return fmt.Sprintf(askLogPort, defaultPort(cur())) }, Value: &port,
+			Skip: func() bool { return !changed() || !followsDefault() }, Validate: func(s string) error {
+				if s == "" {
+					s = strconv.Itoa(defaultPort(cur()))
+				}
+				if !isPort(s) {
+					return errors.New(badPort)
+				}
+				if tls() {
+					return nil // the CA file is asked next, and the list checked there
+				}
+				was := port
+				port = s
+				defer func() { port = was }()
+				return whole()
+			}},
+		&form.Text{Title: askCAFile, Value: &ca, Skip: func() bool { return !tls() || !changed() }, Validate: func(s string) error {
+			was := ca
+			ca = s
+			defer func() { ca = was }()
+			return whole()
+		}},
+	}}
+	return r.save(ctx, "syslogServers", f, fmt.Sprintf(askSave, "syslogServers"), func(c *config.Config) {
+		l := slices.Clone(c.SyslogServers)
+		l[at] = block()
+		c.SyslogServers = l
 	})
 }
 

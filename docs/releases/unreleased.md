@@ -6,6 +6,8 @@
 
 - **NTP Settings and Syslog Settings have Refresh**, as System Details has: it reads the host again and redraws the screen.
 - **install.sh names doas on a doas host.** Its last line says "doas hardn", and run as a user it says "doas sh". With neither sudo nor doas it says "Run hardn --help, or hardn as root".
+- **A syslog server's protocol can be changed.** hardn.yml's editor has Change protocol under `syslogServers`; a default port follows the new protocol. busybox's UDP-only line points to it.
+- **The first run asks the syslog server's protocol:** "Syslog protocol (udp, tcp, tls) [tcp]:". tls asks a CA file.
 - **The main menu's User item names doas on a doas host**: "Create, manage (doas, SSH keys)". It said sudo on every host.
 
 ## Changed
