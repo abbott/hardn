@@ -19,8 +19,14 @@ import (
 // Format is the version of the baseline's document. A change to what a
 // fact means, to an id, or to how an item is written is a new one: a
 // baseline of another format is never compared (ErrFormat), since every
-// difference it showed would be the format's.
+// difference it showed would be the format's. A fact added at the end of
+// Specs is not a new format: a baseline saved before lacks it (MinFacts).
 const Format = 1
+
+// MinFacts is how many facts the first baseline of Format 1 holds, v0.10.0's:
+// Load reads one with Specs' first MinFacts or more, in order, and the facts
+// it lacks are not compared (NotInBaseline). Save writes every fact.
+const MinFacts = 17
 
 // BaselineName is the baseline's file in hardn's state directory
 // (revert.DefaultDir): /var/lib/hardn/baseline.json.
@@ -63,7 +69,7 @@ type Baseline struct {
 // nothing else.
 func Save(ctx context.Context, sys host.System, opts revert.Options, b Baseline) error {
 	b.Format = Format
-	if err := b.check(); err != nil {
+	if err := b.check(len(Specs)); err != nil {
 		return err
 	}
 	data, err := json.MarshalIndent(b, "", "  ")
@@ -80,8 +86,8 @@ func Save(ctx context.Context, sys host.System, opts revert.Options, b Baseline)
 // (revert.ReadStateFile: the directories root's and writable by no one
 // else, the file a regular file, not a symlink, root's and writable by no
 // one else, at most MaxBaseline), then decodes it strictly: one JSON
-// value, no field it does not know, every fact of Specs once and in
-// order, each in its form. No file is ErrNoBaseline; an unsafe one
+// value, no field it does not know, the facts of Specs once and in
+// order, at least the first MinFacts, each in its form. No file is ErrNoBaseline; an unsafe one
 // ErrUnsafe; another format's ErrFormat, told before anything else of it
 // is read; any other content ErrInvalid. It writes nothing.
 func Load(ctx context.Context, sys host.System, opts revert.Options) (Baseline, error) {
@@ -114,30 +120,34 @@ func Load(ctx context.Context, sys host.System, opts revert.Options) (Baseline, 
 	if _, err := dec.Token(); err != io.EOF {
 		return Baseline{}, fmt.Errorf("drift: %w: more than one JSON value", ErrInvalid)
 	}
-	if err := b.check(); err != nil {
+	if err := b.check(MinFacts); err != nil {
 		return Baseline{}, err
 	}
 	return b, nil
 }
 
-// check is b's form: its format, a time, and the facts of Specs, each
-// once and in order, a value with no items, a set's items sorted and
-// each once (each once alone for a set with an Order), a fact not
-// established with neither.
-func (b Baseline) check() error {
+// check is b's form: its format, a time, and Specs' first facts, at
+// least least of them, each once and in order, a value with no items, a set's
+// items sorted and each once (each once alone for a set with an Order), a
+// fact not established with neither.
+func (b Baseline) check(least int) error {
 	bad := func(format string, args ...any) error {
 		return fmt.Errorf("drift: %w: %s", ErrInvalid, fmt.Sprintf(format, args...))
+	}
+	want := fmt.Sprint(len(Specs))
+	if least < len(Specs) {
+		want = fmt.Sprintf("%d to %d", least, len(Specs))
 	}
 	switch {
 	case b.Format != Format:
 		return bad("format %d", b.Format)
 	case b.Saved.IsZero():
 		return bad("no time saved")
-	case len(b.Facts) != len(Specs):
-		return bad("%d facts, not %d", len(b.Facts), len(Specs))
+	case len(b.Facts) < least || len(b.Facts) > len(Specs):
+		return bad("%d facts, not %s", len(b.Facts), want)
 	}
-	for i, sp := range Specs {
-		f := b.Facts[i]
+	for i, f := range b.Facts {
+		sp := Specs[i]
 		switch {
 		case f.ID != sp.ID:
 			return bad("fact %d is not %s", i+1, sp.ID)

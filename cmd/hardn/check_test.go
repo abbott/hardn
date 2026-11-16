@@ -239,6 +239,51 @@ func TestCheckNotCompared(t *testing.T) {
 	}
 }
 
+// TestCheckOlderBaseline: a baseline saved before the NTP servers were
+// read is compared in the facts it has, and exits as if they matched; the
+// report and the document say the NTP servers are not in it yet, and
+// --accept saves every fact.
+func TestCheckOlderBaseline(t *testing.T) {
+	s := newCheckSeams()
+	if r := s.run(t, "check", "--accept"); r.ended {
+		t.Fatal(r.stderr)
+	}
+	e, _ := s.h.Entry(drift.Path)
+	var b drift.Baseline
+	if err := json.Unmarshal(e.Data, &b); err != nil {
+		t.Fatal(err)
+	}
+	b.Facts = b.Facts[:drift.MinFacts]
+	s.h.AddFile(drift.Path, mustJSON(t, b), 0o600, 0, 0)
+	s.facts[len(s.facts)-1].Items = []string{"192.0.2.10 by hardn"}
+
+	r := s.run(t, "check")
+	if r.ended || !strings.Contains(r.stdout, "No difference") || !strings.Contains(flat(r.stdout), "NTP servers: not in the baseline yet; `sudo hardn check --accept` adds it.") {
+		t.Errorf("code %d, stdout:\n%s", r.code, r.stdout)
+	}
+	r = s.run(t, "check", "--output", "json")
+	var d output.Document
+	if err := json.Unmarshal([]byte(r.stdout), &d); err != nil || r.code != 0 || d.Result.Outcome != output.OutcomeNothingToDo || len(d.Check.Differences) != 0 ||
+		len(d.Findings) != 1 || d.Findings[0].Code != output.CodeNotCompared || d.Findings[0].Source != drift.TimeServers || d.Findings[0].Detail != drift.NotInBaseline {
+		t.Errorf("%v: code %d: %s", err, r.code, r.stdout)
+	}
+	s.facts[5].Value = "yes" // ssh.passwordLogin
+	if r = s.run(t, "check"); r.code != output.ExitChanges || !strings.Contains(flat(r.stdout), "1 difference") {
+		t.Errorf("a difference: code %d, stdout:\n%s", r.code, r.stdout)
+	}
+
+	if r = s.run(t, "check", "--accept", "--output", "json"); r.ended || strings.Contains(r.stdout, drift.TimeServers) {
+		t.Fatalf("accepted: code %d: %s", r.code, r.stdout)
+	}
+	e, _ = s.h.Entry(drift.Path)
+	if err := json.Unmarshal(e.Data, &b); err != nil || len(b.Facts) != len(drift.Specs) || b.Facts[len(b.Facts)-1].ID != drift.TimeServers {
+		t.Errorf("--accept saved %d facts: %v", len(b.Facts), err)
+	}
+	if r = s.run(t, "check"); r.ended || strings.Contains(r.stdout, "not in the baseline") {
+		t.Errorf("after --accept: code %d, stdout:\n%s", r.code, r.stdout)
+	}
+}
+
 // TestCheckNotRoot: a user other than root is refused, exit status 1,
 // before the host or the baseline is looked at (decision 9), for --accept
 // too, which then writes no record.

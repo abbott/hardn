@@ -1,6 +1,6 @@
 # `hardn check`: design
 
-Status: **adopted 2026-11-13**, and built (§6). The maintainer adopted every recommended answer of §4, in these words: "Adopt all". So each decision's (a) stands, and §4 is kept as the record. Since 2026-11-14 there is one more fact, `logs.servers`, the syslog servers the host forwards to ([design-syslog-servers.md](design-syslog-servers.md) §2.7, §6). Three baselines were worked through against the code (2026-11-13); this page compares them.
+Status: **adopted 2026-11-13**, and built (§6). The maintainer adopted every recommended answer of §4, in these words: "Adopt all". So each decision's (a) stands, and §4 is kept as the record. Since 2026-11-14 there is one more fact, `logs.servers`, the syslog servers the host forwards to ([design-syslog-servers.md](design-syslog-servers.md) §2.7, §6). Since 2026-11-16 there is another, `time.servers`, the NTP servers (§6, "Facts added later"). Three baselines were worked through against the code (2026-11-13); this page compares them.
 
 ## 1. The command
 
@@ -33,6 +33,7 @@ A and C both miss the feature's own example, a port opened. A also has nothing t
   - **Firewall:** on or off, the incoming policy, at boot, and every rule (ufw's, or firewalld's zones and what each lets in).
   - **DNS:** the nameservers in use.
   - **Auto updates:** on or off, as its screen reads it.
+  - **Syslog servers** (2026-11-14) and **NTP servers** (2026-11-16): each server, as its screen reads it.
 - Not read: AppArmor, sysctl, packages, rules written straight into nftables, a cloud provider's firewall.
 - Exit statuses are the existing ones: 0 no difference; 3 a difference (`changes-needed`); 1 an error, not root, or no baseline; 2 a usage error; 130 interrupted.
 - It never calls the planner, takes no lock and opens no log, so "changes nothing" holds: `check` writes no file at all, and `--accept` writes the baseline alone.
@@ -70,7 +71,7 @@ Adopted 2026-11-13, each as recommended: "Adopt all".
 | The document, the text report, the codes, the reminder | `pkg/output/check.go`, `codes.go`, `human.go` (`baselineBlock`) |
 | The command | `cmd/hardn/check.go` |
 
-**The baseline.** `/var/lib/hardn/baseline.json`: `format` (1), `hardnVersion`, `saved` (UTC), `user` (who ran `--accept`) and `facts`, the sixteen facts in a fixed order. It is written and read through the journal's own state-file functions (`revert.WriteStateFile`, `revert.ReadStateFile`): the directory and every one above it root's and writable by no one else; the file a regular file, not a symlink, root's, 0600, at most 4 MiB; written to a temporary file and renamed. Then it is decoded strictly: one JSON value, no unknown field, every fact once and in order, each in its form. A baseline that fails a check is not compared: `BASELINE_UNSAFE`, `BASELINE_INVALID`. One of another `format` is `BASELINE_OTHER_FORMAT`, told before anything else in it is read. None is `BASELINE_MISSING`. Each is exit status 1.
+**The baseline.** `/var/lib/hardn/baseline.json`: `format` (1), `hardnVersion`, `saved` (UTC), `user` (who ran `--accept`) and `facts`, the eighteen facts in a fixed order. It is written and read through the journal's own state-file functions (`revert.WriteStateFile`, `revert.ReadStateFile`): the directory and every one above it root's and writable by no one else; the file a regular file, not a symlink, root's, 0600, at most 4 MiB; written to a temporary file and renamed. Then it is decoded strictly: one JSON value, no unknown field, every fact once and in order, each in its form; a baseline saved before a fact was added lacks it (below). A baseline that fails a check is not compared: `BASELINE_UNSAFE`, `BASELINE_INVALID`. One of another `format` is `BASELINE_OTHER_FORMAT`, told before anything else in it is read. None is `BASELINE_MISSING`. Each is exit status 1.
 
 **The facts, and the reader each comes from.** No parser was added.
 
@@ -84,6 +85,8 @@ Adopted 2026-11-13, each as recommended: "Adopt all".
 | `firewall.ports` | `firewall.ReadPorts`, the Firewall screen's Ports section |
 | `dns.nameservers` | `dns.Read`, and the DNS check's "in use" (`InUse`, newly exported) |
 | `updates.auto` | the Auto Updates check (`updates.Auto.Check`) |
+| `logs.servers` | Syslog Settings' `logfwd.Read`, each server in its words (`logforward.ServerWords`) |
+| `time.servers` | NTP Settings' `timesync.Read`, each server as its Server row words it: the name, then where it is set but for the service's own files (`192.0.2.10 by hardn`, `192.0.2.1 from DHCP`, `ntp.ubuntu.com built in`, `192.0.2.20 in site.sources`) |
 
 The Firewall screen's own `firewall.Read` is not called: it plans item 1. The facts are composed from the readers under it. No reader takes the session.
 
@@ -91,7 +94,11 @@ The Firewall screen's own `firewall.Read` is not called: it plans item 1. The fa
 
 **Listening ports** (decision 5). An item is a port that listens off loopback and that the firewall lets in, from anywhere or from some sources, or does not filter. A port on loopback alone, a blocked one, and a rule with nothing listening are never items. Without `ss` the fact is marked not compared, on either side, and the result says so (`CHECK_NOT_COMPARED`), with why: the host has no `ss`, or the baseline was saved without it. Where `ss` failed or printed lines hardn can't read, the fact is not established.
 
-**The comparison** is pure: the same two readings give the same list, whatever order their facts or a set's items are in. Sets (admins, uid-0 accounts, keys, empty passwords, firewall rules, listening ports) are compared item by item; the rest are one value. Nameservers keep their order, which resolvers use. So do ufw's rules, since ufw applies the first that matches: the baseline keeps them in ufw's order, and the same rules in another order are one difference, "Firewall rule order".
+**Facts added later** (the maintainer, 2026-11-16). `time.servers` is the eighteenth fact, last in `Specs`. A fact added at the end is not a new format; a changed meaning or id is. So a baseline of v0.10.0 to v0.10.3, format 1 with the first seventeen facts, is still read and compared: `Load` takes a baseline whose facts are `Specs`' first N, in order, N at least `MinFacts` (17). One with fewer, more, or out of order is `BASELINE_INVALID`. A fact the baseline lacks is not compared and is no difference: it is a `CHECK_NOT_COMPARED` finding, detail `not in the baseline yet; hardn check --accept adds it`, and the report's line is "NTP servers: not in the baseline yet; \`sudo hardn check --accept\` adds it." It changes no exit status. `--accept` saves every fact.
+
+**NTP servers.** A host with no time service, or in a container, uses none: an empty set, as journald alone forwards to no syslog server. One whose service or settings hardn can't read is not established, with why. Whether the clock is in sync is not compared: it comes and goes (gallery-timesync.md, decision 16 (a)).
+
+**The comparison** is pure: the same two readings give the same list, whatever order their facts or a set's items are in. Sets (admins, uid-0 accounts, keys, empty passwords, firewall rules, listening ports, syslog and NTP servers) are compared item by item; the rest are one value. Nameservers keep their order, which resolvers use. So do ufw's rules, since ufw applies the first that matches: the baseline keeps them in ufw's order, and the same rules in another order are one difference, "Firewall rule order".
 
 **Writes.** `hardn check` writes nothing: no file, no lock, no log, no audit record, and it shows no revert notice, since acknowledging one writes. `--accept` writes the baseline and one audit record, whatever its outcome. Neither loads hardn.yml nor builds the engine.
 

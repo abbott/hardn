@@ -637,7 +637,7 @@ var findingCodes = []Entry{
 	finding(users.CodePasswordNotSet, "admin rights that ask a password are planned for a user who has none, so the user cannot use them until one is set"),
 	// The System Details form's own (slice 1, next/s1-readers).
 	finding(CodeDetailsUnreadable, "a section of the System Details report, or a fact of it, was not read: source says what; the rest was read"),
-	finding(CodeNotCompared, "hardn check left a fact out of its comparison: source names the fact, detail says why (the listening ports, on a host with no ss)"),
+	finding(CodeNotCompared, "hardn check left a fact out of its comparison: source names the fact, detail says why (the listening ports, on a host with no ss; a fact the baseline does not have yet)"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

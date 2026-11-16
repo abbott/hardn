@@ -3,6 +3,7 @@ package drift
 import (
 	"context"
 	"fmt"
+	"path"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
@@ -11,8 +12,10 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	ntpctl "github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/authkeys"
@@ -22,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	tshost "github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -48,6 +52,10 @@ const (
 	NoSSBaseline = "the baseline was saved without ss"
 )
 
+// NotInBaseline is why a fact is not compared with a baseline saved
+// before hardn read it.
+const NotInBaseline = "not in the baseline yet; hardn check --accept adds it"
+
 // Read reads every fact of Specs from sys, a host with facts f, through
 // the readers the screens and the status checks use: it runs only reads,
 // writes nothing and plans nothing. A fact that cannot be established is
@@ -60,7 +68,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) (Facts, error) {
 	out = append(out, readUsers(ctx, sys, f, eff, effErr)...)
 	out = append(out, readSSH(eff, effErr)...)
 	out = append(out, readFirewall(ctx, sys, f)...)
-	out = append(out, readDNS(ctx, sys, f), readUpdates(ctx, sys, f), readSyslog(ctx, sys, f))
+	out = append(out, readDNS(ctx, sys, f), readUpdates(ctx, sys, f), readSyslog(ctx, sys, f), readNTP(ctx, sys, f))
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("drift: %w", err)
 	}
@@ -496,4 +504,40 @@ func readSyslog(ctx context.Context, sys host.System, f detect.Facts) Fact {
 		items = append(items, logforward.ServerWords(fw.Server))
 	}
 	return set(SyslogServers, items)
+}
+
+// readNTP is the set of servers the time service uses, as NTP Settings
+// reads them (its Read), each as its screen words it: the name, then
+// where it is set but for the service's own files, "192.0.2.10 by hardn",
+// "time.example from DHCP". A host with no time service, or in a
+// container, uses none; one whose service or settings are not read is
+// not established. Whether the clock is in sync is not compared: it comes
+// and goes.
+func readNTP(ctx context.Context, sys host.System, f detect.Facts) Fact {
+	r := ntpctl.Read(ctx, sys, f, nil).Host
+	if r.Err != nil {
+		return unknown(TimeServers, r.Err)
+	}
+	var items []string
+	for _, s := range r.Servers {
+		items = append(items, ntpWords(s))
+	}
+	return set(TimeServers, items)
+}
+
+// ntpWords is one server as an item: its name, and the Server row's note
+// on the NTP Settings screen.
+func ntpWords(s tshost.Server) string {
+	w := logview.Safe(s.Name)
+	switch s.From {
+	case tshost.FromHardn:
+		w += " by hardn"
+	case tshost.FromDHCP:
+		w += " from DHCP"
+	case tshost.FromBuiltIn:
+		w += " built in"
+	case tshost.FromOther:
+		w += " in " + logview.Safe(path.Base(s.File))
+	}
+	return w
 }

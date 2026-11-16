@@ -20,7 +20,8 @@ func strp(s string) *string { return &s }
 
 // checkFixtures are hardn check's runs (docs/reference/output.md §1.11):
 // no difference; differences of each kind, a fact not established and one
-// not compared among them; a baseline saved; no baseline.
+// not compared among them; a baseline saved; no baseline; a baseline saved
+// before the NTP servers were read, which says so and differs in nothing.
 func checkFixtures() []struct {
 	name string
 	run  output.CheckRun
@@ -45,6 +46,8 @@ func checkFixtures() []struct {
 	accepted.Accept = true
 	none := output.CheckRun{HardnVersion: fixtureVersion, Hostname: fixtureHost, Facts: &facts, Path: drift.Path,
 		Err: fmt.Errorf("drift: %w", drift.ErrNoBaseline)}
+	older := run
+	older.Notes = []drift.Note{{Fact: drift.TimeServers, Title: "NTP servers", Why: drift.NotInBaseline}}
 	return []struct {
 		name string
 		run  output.CheckRun
@@ -55,6 +58,7 @@ func checkFixtures() []struct {
 		{"drift-one-difference", one, output.ExitChanges},
 		{"drift-accepted", accepted, output.ExitOK},
 		{"drift-no-baseline", none, output.ExitError},
+		{"drift-older-baseline", older, output.ExitOK},
 	}
 }
 
@@ -87,7 +91,8 @@ func TestCheckDocuments(t *testing.T) {
 // TestCheckOutcomes: the outcomes are the existing ones, by the run.
 func TestCheckOutcomes(t *testing.T) {
 	want := map[string]output.Outcome{"drift-same": output.OutcomeNothingToDo, "drift-differences": output.OutcomeChangesNeeded,
-		"drift-one-difference": output.OutcomeChangesNeeded, "drift-accepted": output.OutcomeApplied, "drift-no-baseline": output.OutcomeFailed}
+		"drift-one-difference": output.OutcomeChangesNeeded, "drift-accepted": output.OutcomeApplied, "drift-no-baseline": output.OutcomeFailed,
+		"drift-older-baseline": output.OutcomeNothingToDo}
 	for _, fx := range checkFixtures() {
 		d := output.BuildCheck(fx.run)
 		if d.Result.Outcome != want[fx.name] {

@@ -1,0 +1,21 @@
+# Golden file of TestHumanCheck/drift-older-baseline, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[38;2;129;134;156mNo difference from the baseline of 2026-11-13 10:00 UTC.␛[m$
+  ␛[38;2;129;134;156mNTP servers: not in the baseline yet;␛[m$
+  ␛[38;2;129;134;156m`sudo hardn check --accept` adds it.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  No difference from the baseline of 2026-11-13 10:00 UTC.$
+  NTP servers: not in the baseline yet;$
+  `sudo hardn check --accept` adds it.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[38;2;129;134;156mNo difference from the baseline of 2026-11-13 10:00 UTC.␛[m$
+  ␛[38;2;129;134;156mNTP servers: not in the baseline yet;␛[m$
+  ␛[38;2;129;134;156m`sudo hardn check --accept` adds it.␛[m$
+$
