@@ -189,6 +189,8 @@ func tsVariants() []tsHost {
 			note: hostFQDN + " runs Rocky Linux 10, whose chrony reads no directory of the administrator's."},
 		{name: "debian-chrony", host: func() *fakeHost { return tsOn(pve9Platform, tsYML) },
 			note: hostFQDN + " is a Proxmox VE 9 node: Debian's chrony, its pool in the main file."},
+		{name: "raspios", host: func() *fakeHost { return tsOn(raspiosPlatform, tsYML) },
+			note: hostFQDN + " runs Raspberry Pi OS: Debian 13's systemd-timesyncd."},
 	}
 }
 
@@ -265,6 +267,8 @@ func tsMocks() []listMock {
 			draw: tsReview(host("rocky"), screen.TimeSyncFirstKey)},
 		listMock{name: "review-pve", note: "Set servers on a Proxmox VE 9 node: hardn's file, Debian's pool commented out in chrony's main file, a restart, and a line about the cluster.",
 			draw: tsReview(host("debian-chrony"), screen.TimeSyncFirstKey)},
+		listMock{name: "review-raspios", note: "Set servers on Raspberry Pi OS: as on Debian, with a line about the Pi's clock, and the warning every plan carries there.",
+			draw: tsReview(host("raspios"), screen.TimeSyncFirstKey)},
 		listMock{name: "review-timesyncd", note: "timesyncd's Set servers: a drop-in with NTP=, which systemd-timesyncd uses in place of the servers built into it, and a restart.",
 			draw: tsReview(host("timesyncd"), screen.TimeSyncFirstKey)},
 		listMock{name: "review-alpine", note: "alpine's Set servers: no drop-in, hardn's words in /etc/conf.d/ntpd under a comment naming the ones they replace, and the restart that reads them.",

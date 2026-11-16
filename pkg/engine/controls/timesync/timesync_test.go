@@ -529,7 +529,8 @@ func TestPlanWritesNothing(t *testing.T) {
 }
 
 // The review's notice: NTS where the host's own servers are authenticated
-// (decision 4), the cluster's line on Proxmox VE (decision 18).
+// (decision 4), the cluster's line on Proxmox VE (decision 18), the Pi's
+// clock on Raspberry Pi OS.
 func TestNotice(t *testing.T) {
 	ctx := context.Background()
 	u := ubuntu(t)
@@ -547,5 +548,22 @@ func TestNotice(t *testing.T) {
 	}
 	if cs, err := p.plan(timesync.ActionSet, want); err != nil || len(cs) != 3 {
 		t.Errorf("Proxmox VE plans %v, %v", cs, err)
+	}
+	if timesync.NoticeCluster != "On a cluster, set every node the same way: the nodes need synchronised clocks." {
+		t.Errorf("NoticeCluster = %q", timesync.NoticeCluster)
+	}
+	// Raspberry Pi OS: the Pi's clock (design-custom-distros.md, decision 3 (a)).
+	pi := debian(t)
+	pi.facts.Platform.Variant = detect.VariantRaspiOS
+	rd = timesync.Read(ctx, pi.f, pi.facts, cfg(want))
+	const clock = "Most Raspberry Pi models have no clock of their own: if no server is reached, the time is wrong after a reboot."
+	if got := rd.Notice(timesync.ActionSet, pi.facts); got != timesync.NoticeSet+" "+clock || timesync.NoticePiClock != clock {
+		t.Errorf("Raspberry Pi OS: %q", got)
+	}
+	if got := rd.Notice(timesync.ActionRemove, pi.facts); got != timesync.NoticeRemove {
+		t.Errorf("Raspberry Pi OS, Remove: %q", got)
+	}
+	if got := rd.Notice(timesync.ActionSet, debian(t).facts); strings.Contains(got, "Raspberry") || strings.Contains(got, "cluster") {
+		t.Errorf("Debian: %q", got)
 	}
 }

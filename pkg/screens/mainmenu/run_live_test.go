@@ -214,10 +214,10 @@ const (
 )
 
 // statusRuns are the commands each host's status runs, per pass of the
-// main menu: detect's, the eight rows' checks', Syslog Settings' (dpkg's
-// word on rsyslog; none on Alpine, whose syslogd's options are a file) and
-// the header probe's.
-var statusRuns = map[string]int{"debian13": 35, "ubuntu2604": 36, "alpine324": 15, "pve9": 19, "hardened": 35}
+// main menu: detect's (on Debian, raspberrypi-sys-mods too), the eight
+// rows' checks', Syslog Settings' (dpkg's word on rsyslog; none on Alpine,
+// whose syslogd's options are a file) and the header probe's.
+var statusRuns = map[string]int{"debian13": 36, "ubuntu2604": 36, "alpine324": 15, "pve9": 19, "hardened": 36}
 
 // queries are the commands a status may run, by their first words: each
 // only reads (docs/engine/vmcheck.md §2.5 has each one's arguments).

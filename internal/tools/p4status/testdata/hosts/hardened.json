@@ -40,6 +40,16 @@
 		},
 		{
 			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"raspberrypi-sys-mods"
+			],
+			"stderr": "dpkg-query: no packages found matching raspberrypi-sys-mods\n",
+			"exit": 1
+		},
+		{
+			"argv": [
 				"systemctl",
 				"is-enabled",
 				"ssh.socket"
@@ -1197,6 +1207,13 @@
 		},
 		{
 			"path": "/usr/local",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/usr/local/bin",
 			"type": "dir",
 			"mode": "0755",
 			"uid": 0,

@@ -34,7 +34,7 @@ func facts(t *testing.T, version string) detect.Facts {
 	h.AddDir(detect.OpenRCRunDir, 0o755, 0, 0)
 	ctx := context.Background()
 	f := detect.Facts{OS: detect.ReadOSRelease(ctx, h), Init: detect.DetectInit(ctx, h), Container: detect.Container{Detected: detect.No}}
-	f.Platform = detect.Classify(f.OS, detect.Proxmox{Installed: detect.No})
+	f.Platform = detect.Classify(f.OS, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 	if f.Platform.Distro != detect.DistroAlpine || f.Platform.Support != detect.Supported || f.Init.Kind != detect.OpenRC || f.Init.Running != detect.Yes {
 		t.Fatalf("facts for %s: %+v %+v", version, f.Platform, f.Init)
 	}

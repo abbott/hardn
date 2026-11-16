@@ -10,6 +10,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
@@ -91,8 +92,12 @@ func (r *runner) preplan(ctx context.Context, c engine.Control) (string, *engine
 // a hostname that can't be read then says so in place of the question
 // (nav.ErrPhrase, as CantConfirm). With lockout, a live change whose
 // hostname can't be read says so before asking anything; plan only
-// confirms nothing, so it needs no hostname.
+// confirms nothing, so it needs no hostname. On Raspberry Pi OS the review
+// says what a lockout means there.
 func (r *runner) change(ctx context.Context, lockout bool, c screen.SSHChange, fields []form.Field, control func() engine.Control) error {
+	if r.o.Facts.Platform.Variant == detect.VariantRaspiOS {
+		c = c.OnPi()
+	}
 	if len(fields) == 0 {
 		words, p, err := r.preplan(ctx, control())
 		switch {

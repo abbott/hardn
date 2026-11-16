@@ -77,6 +77,9 @@ type Platform struct {
 	// date for the release. It is the matrix's, not the clock's: whether
 	// it is near or past is the reader's to count.
 	SupportEnds string `json:"supportEnds"`
+	// Variant is, for debian, the custom distribution that keeps Debian's
+	// os-release: truenas, raspios; "" for none (open).
+	Variant string `json:"variant"`
 }
 
 // Proxmox is whether the host runs Proxmox VE.

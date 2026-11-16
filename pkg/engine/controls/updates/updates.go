@@ -54,6 +54,10 @@ const (
 	DetailCantRead        = "can't read"             // Unknown
 	DetailByHand          = "updated by hand"        // NotApplicable: Proxmox VE (decision 7)
 	DetailChangedSince    = "changed since hardn"    // CodeChangedSince's detail (decision 9)
+	// CodeRaspiOSNotUpgraded's details: the row's, and the review's when
+	// updates are turned on (design-custom-distros.md, decision 4 (a)).
+	DetailRaspiOS       = "Pi packages not upgraded"
+	DetailRaspiOSReview = "the Pi's own packages (kernel, firmware) aren't upgraded automatically: use apt full-upgrade"
 )
 
 // The finding codes of this package (pkg/output's registry holds them).
@@ -72,6 +76,12 @@ const (
 	// not upgraded (Debian's default origins never match them; P-43 (6)
 	// decision 5).
 	CodeProxmoxNotUpgraded = "UPDATES_PROXMOX_NOT_UPGRADED"
+	// CodeRaspiOSNotUpgraded: on Raspberry Pi OS, with upgrades running,
+	// the Pi's own packages are not upgraded: Debian's origins don't match
+	// the Pi's archive, and Raspberry Pi has them upgraded with apt
+	// full-upgrade (design-custom-distros.md, decision 4 (a)). The origins
+	// are not compared.
+	CodeRaspiOSNotUpgraded = "UPDATES_RPI_NOT_UPGRADED"
 	// CodeOriginsUnknown: a distribution hardn does not list, built from
 	// Debian or Ubuntu, whose apt job runs: whether its origins match the
 	// distribution's own archives is not established.

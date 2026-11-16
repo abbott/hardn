@@ -324,6 +324,7 @@ func scenarios() []parity.Scenario {
 var readCommands = []string{
 	"sudo --version",
 	host.FormatArgv([]string{"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", "pve-manager"}),
+	host.FormatArgv([]string{"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", detect.RpiSysModsPkg}),
 	"ip -o addr show scope global",
 	"ss -Htlnp",
 	"ss -Hulnp",
@@ -378,6 +379,10 @@ func reportHost(f *fixture, d parity.Distro) *hostfake.System {
 		dpkg = hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "dpkg-query", host.SearchPath, host.ErrNotFound)}
 	}
 	h.Respond(dpkg, "dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", "pve-manager")
+	if !alpine {
+		h.Respond(hostfake.Response{Stderr: "dpkg-query: no packages found matching " + detect.RpiSysModsPkg + "\n", ExitCode: 1},
+			"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", detect.RpiSysModsPkg)
+	}
 	cmds := map[string]hostfake.Response{
 		"ip -o addr show scope global": {Stdout: f.addrs},
 		"df -kP /":                     {Stdout: f.df},

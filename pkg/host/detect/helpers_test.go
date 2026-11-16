@@ -97,6 +97,7 @@ func (d denied) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error)
 // §2.2), as argv joined with NUL.
 var readOnlyRuns = map[string]bool{
 	strings.Join(dpkgQuery, "\x00"):           true,
+	strings.Join(dpkgRpi, "\x00"):             true,
 	"systemctl\x00is-enabled\x00ssh.socket":   true,
 	"systemctl\x00is-active\x00ssh.socket":    true,
 	"systemctl\x00is-enabled\x00ssh.service":  true,

@@ -123,7 +123,7 @@ func btoi(b bool) int {
 // date or no row. It reads the platform and the day alone.
 func TestNoticeOf(t *testing.T) {
 	classify := func(id, v string) detect.Platform {
-		return detect.Classify(detect.OSRelease{ID: id, VersionID: v}, detect.Proxmox{Installed: detect.No})
+		return detect.Classify(detect.OSRelease{ID: id, VersionID: v}, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 	}
 	for _, tt := range []struct {
 		p     detect.Platform
@@ -145,6 +145,14 @@ func TestNoticeOf(t *testing.T) {
 		{detect.Platform{Distro: detect.DistroProxmox, Version: "8", Support: detect.OutOfScope, Ends: "2026-08"}, "2026-11-13",
 			&screen.Alert{Title: "Proxmox VE 8 support ended August 2026", Why: screen.OutOfScopeRefused, Fix: "Upgrade to Proxmox VE 9."}},
 		{detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}, "2040-01-01", nil},
+		// TrueNAS: its notice on every day, never the end-of-support one;
+		// Raspberry Pi OS: none of its own (design-custom-distros.md).
+		{detect.Platform{Distro: detect.DistroDebian, Version: "12", Support: detect.Supported, Ends: "2028-06-30", Variant: detect.VariantTrueNAS}, "2026-11-16",
+			&screen.Alert{Title: "TrueNAS manages its own system", Why: "hardn refuses every change.", Fix: "Make them in TrueNAS's web UI."}},
+		{detect.Platform{Distro: detect.DistroDebian, Version: "12", Support: detect.Supported, Ends: "2028-06-30", Variant: detect.VariantTrueNAS}, "2028-07-01",
+			&screen.Alert{Title: "TrueNAS manages its own system", Why: "hardn refuses every change.", Fix: "Make them in TrueNAS's web UI."}},
+		{detect.Platform{Distro: detect.DistroDebian, Version: "13", Support: detect.Supported, Ends: "2030-06-30", Variant: detect.VariantRaspiOS}, "2026-11-16", nil},
+		{detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}, "2026-11-16", nil},
 		{classify("alpine", "3.19.9"), "2031-01-01", nil},
 		{classify("ubuntu", "25.10"), "2031-01-01", nil},
 		{detect.Platform{}, "2031-01-01", nil},

@@ -145,6 +145,8 @@ See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 | Ubuntu | `26.04`, `24.04` | `22.04` | `26.04`: May 2031, `24.04`: May 2029, `22.04`: May 2027 (without Ubuntu Pro) |
 | Alpine | `3.24`, `3.23` | `3.22` | `3.24`: 2028-06-01, `3.23`: 2027-11-01, `3.22`: 2027-05-01, `3.21`: 2026-11-01 |
 | Proxmox | `9` | | `9`: not announced, so no warning; `8`: August 2026 |
+| TrueNAS | Refused: make changes in its web UI | | |
+| Raspberry Pi OS | 64-bit, as Debian; 32-bit: hardn doesn't start | | as Debian |
 | Rocky, Alma, RHEL | `10`, `9` | | `10`: 2035-05-31, `9`: 2032-05-31 (RHEL without the paid add-on) |
 | CentOS Stream | `10`, `9` | | `10`: 2030-05-31, `9`: 2027-05-31 |
 | Oracle | `10`, `9` | | `10`: June 2035, `9`: June 2032 (the end of Premier Support) |
@@ -153,11 +155,12 @@ See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **End of life schedule**: when each release's free security updates end, as hardn knows them.
 - **Out of scope**: Alpine 3.21 and 3.20, Proxmox 8, Ubuntu's interim releases, and any version not in the table. hardn shows the screens and refuses every change.
+- **Custom distributions**: on Proxmox and Raspberry Pi OS, every plan warns that a change safe on Debian can break them (`PLATFORM_CUSTOM`). TrueNAS manages its own system, so hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
 - **End of support**: from 90 days before a release's vendor support ends, the main menu says so.
 - **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, CentOS Stream, Oracle, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. Since v0.6.0, the release notes name the real hosts a release was tested on, or say that it changed only wording.
 
-What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on Proxmox: [docs/platforms.md](docs/platforms.md).
+What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, on Proxmox, TrueNAS and Raspberry Pi OS: [docs/platforms.md](docs/platforms.md).
 
 ## Security
 

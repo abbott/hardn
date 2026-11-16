@@ -17,12 +17,14 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back. On a cluster, set every node the same␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mway.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mway: the nodes need synchronised clocks.␛[m$
 $
   ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is safe␛[m$
+      ␛[38;2;219;184;83mon Debian can break it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's time servers␛[m$
       ␛[38;2;129;134;156m/etc/chrony/sources.d/hardn.sources␛[m$
@@ -66,12 +68,14 @@ $
 # Note$
 # hardn's servers take the place of the host's own. Remove$
 # servers puts those back. On a cluster, set every node the same$
-# way.$
+# way: the nodes need synchronised clocks.$
 $
   Time ---------------------------------------------------------$
 $
    -  Server               192.0.2.10 by hardn$
    -  Server               192.0.2.11 by hardn$
+  [ ] Proxmox VE is a custom distribution: a change that is safe$
+      on Debian can break it$
 $
    -  Write hardn's time servers$
       /etc/chrony/sources.d/hardn.sources$
@@ -116,7 +120,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back. On a cluster, set every node the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame way.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame way: the nodes need synchronised clocks.␛[m$
 $
   ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -124,6 +128,8 @@ $
       ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m$
       ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is␛[m$
+      ␛[38;2;219;184;83msafe on Debian can break it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's time servers␛[m$
       ␛[38;2;129;134;156m/etc/chrony/sources.d/hardn.sources␛[m$
@@ -167,12 +173,14 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back. On a cluster, set every node the same␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mway.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mway: the nodes need synchronised clocks.␛[m$
 $
   ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m---------------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is safe␛[m$
+      ␛[38;2;219;184;83mon Debian can break it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's time servers␛[m$
       ␛[38;2;129;134;156m/etc/chrony/sources.d/hardn.sources␛[m$

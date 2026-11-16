@@ -1,6 +1,8 @@
 package output
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -31,9 +33,26 @@ func TestSupportEnds(t *testing.T) {
 		"ubuntu": {"22.04", "2027-05"},
 		"fedora": {"43", ""},
 	} {
-		p := detect.Classify(detect.OSRelease{ID: id, VersionID: tt.version}, detect.Proxmox{Installed: detect.No})
+		p := detect.Classify(detect.OSRelease{ID: id, VersionID: tt.version}, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 		if got := hostOf("web-01", detect.Facts{Platform: p}).Platform.SupportEnds; got != tt.want {
 			t.Errorf("%s %s: supportEnds %q, want %q", id, tt.version, got, tt.want)
 		}
+	}
+}
+
+// TestVariantWords: the JSON's platform.variant, as docs/reference/output.md
+// lists them: "" for none.
+func TestVariantWords(t *testing.T) {
+	for v, want := range map[detect.Variant]string{
+		detect.VariantNone: "", detect.VariantTrueNAS: "truenas", detect.VariantRaspiOS: "raspios",
+	} {
+		got := hostOf("web-01", detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian, Variant: v}}).Platform
+		if got.Variant != want || got.Distro != "debian" {
+			t.Errorf("platform of %q = %+v, want debian, variant %q", v, got, want)
+		}
+	}
+	data, err := json.Marshal(hostOf("web-01", detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian, Variant: detect.VariantRaspiOS}}).Platform)
+	if err != nil || !strings.Contains(string(data), `"variant":"raspios"`) {
+		t.Errorf("platform JSON %s, %v; want variant raspios", data, err)
 	}
 }

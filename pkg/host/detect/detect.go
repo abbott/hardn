@@ -1,7 +1,8 @@
 // Package detect establishes the platform facts the Phase 2 safety
 // primitives branch on: the distribution and its place in the support
-// matrix, the init system, how sshd is started, Proxmox VE, containers and
-// the elevation tool (refactor plan P2, next/p2-detect).
+// matrix, the init system, how sshd is started, Proxmox VE, TrueNAS and
+// Raspberry Pi OS, containers and the elevation tool (refactor plan P2,
+// next/p2-detect).
 //
 // Every detector is a function of what a host.System shows it. It reads files
 // and runs read-only queries (systemctl is-enabled and is-active, dpkg-query
@@ -70,6 +71,7 @@ type Facts struct {
 	Init      Init
 	SSH       SSH
 	Proxmox   Proxmox
+	Custom    Custom
 	Container Container
 	Elevation Elevation
 }
@@ -81,10 +83,13 @@ func Detect(ctx context.Context, sys host.System) (Facts, error) {
 	var f Facts
 	f.OS = ReadOSRelease(ctx, sys)
 	f.Proxmox = DetectProxmox(ctx, sys)
-	f.Platform = Classify(f.OS, f.Proxmox)
+	f.Container = DetectContainer(ctx, sys)
+	if f.OS.ID == string(DistroDebian) && f.Proxmox.Installed == No {
+		f.Custom = DetectCustom(ctx, sys, f.Container.Detected)
+	}
+	f.Platform = Classify(f.OS, f.Proxmox, f.Custom)
 	f.Init = DetectInit(ctx, sys)
 	f.SSH = DetectSSH(ctx, sys, f.Init)
-	f.Container = DetectContainer(ctx, sys)
 	f.Elevation = DetectElevation(ctx, sys)
 	if err := ctx.Err(); err != nil {
 		return f, fmt.Errorf("detect: %w", err)

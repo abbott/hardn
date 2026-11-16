@@ -65,14 +65,17 @@ const (
 const (
 	NoticeSet     = "hardn's servers take the place of the host's own. Remove servers puts those back."
 	NoticeNTS     = "The host's own servers are authenticated (NTS). hardn's are not."
-	NoticeCluster = "On a cluster, set every node the same way."
+	NoticeCluster = "On a cluster, set every node the same way: the nodes need synchronised clocks."
+	// NoticePiClock: on Raspberry Pi OS (design-custom-distros.md,
+	// decision 3 (a)).
+	NoticePiClock = "Most Raspberry Pi models have no clock of their own: if no server is reached, the time is wrong after a reboot."
 	NoticeRemove  = "The host's own servers are used again."
 )
 
 // Notice is the review's notice for action a on the host as r reads it, on
 // a host of f: Set's says so where it takes the place of authenticated
-// servers, and on Proxmox VE, whose cluster needs its nodes' clocks to
-// agree.
+// servers, on Proxmox VE, whose cluster needs its nodes' clocks to agree,
+// and on Raspberry Pi OS, where most models have no clock of their own.
 func (r Reading) Notice(a Action, f detect.Facts) string {
 	if a == ActionRemove {
 		return NoticeRemove
@@ -81,8 +84,11 @@ func (r Reading) Notice(a Action, f detect.Facts) string {
 	if r.Host.NTS() {
 		words = append(words, NoticeNTS)
 	}
-	if f.Platform.Distro == detect.DistroProxmox {
+	switch {
+	case f.Platform.Distro == detect.DistroProxmox:
 		words = append(words, NoticeCluster)
+	case f.Platform.Variant == detect.VariantRaspiOS:
+		words = append(words, NoticePiClock)
 	}
 	return strings.Join(words, " ")
 }

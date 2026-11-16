@@ -10,7 +10,7 @@ import (
 )
 
 func classify(id, version string) detect.Platform {
-	return detect.Classify(detect.OSRelease{ID: id, VersionID: version}, detect.Proxmox{Installed: detect.No})
+	return detect.Classify(detect.OSRelease{ID: id, VersionID: version}, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 }
 
 func day(t *testing.T, s string) time.Time {
@@ -28,7 +28,7 @@ func day(t *testing.T, s string) time.Time {
 // date and a date in neither form are none.
 func TestEnd(t *testing.T) {
 	pve := func(v string) detect.Platform {
-		return detect.Classify(detect.OSRelease{ID: "debian", VersionID: "13"}, detect.Proxmox{Installed: detect.Yes, Version: v})
+		return detect.Classify(detect.OSRelease{ID: "debian", VersionID: "13"}, detect.Proxmox{Installed: detect.Yes, Version: v}, detect.Custom{})
 	}
 	for _, tt := range []struct {
 		name  string

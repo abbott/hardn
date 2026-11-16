@@ -124,7 +124,8 @@ func systemctl(args []string) bool {
 var kernelPackage = regexp.MustCompile(`^linux-image-[0-9A-Za-z][0-9A-Za-z.+~_-]*$`)
 
 // dpkgQuery is dpkg-query --show of one package in detect's format:
-// pve-manager (detect.DetectProxmox), unattended-upgrades (the Auto
+// pve-manager (detect.DetectProxmox), raspberrypi-sys-mods
+// (detect.DetectCustom), unattended-upgrades (the Auto
 // Updates check), the SSH server packages (sshd.NoServer: the SSH rows,
 // the Firewall row and Enable, on a host without sshd), or the running
 // kernel's (the header probe).
@@ -133,7 +134,7 @@ func dpkgQuery(args []string) bool {
 		return false
 	}
 	switch args[2] {
-	case "pve-manager", "unattended-upgrades", "openssh-server", "dropbear", "dropbear-bin", "tinysshd":
+	case "pve-manager", "raspberrypi-sys-mods", "unattended-upgrades", "openssh-server", "dropbear", "dropbear-bin", "tinysshd":
 		return true
 	}
 	return kernelPackage.MatchString(args[2])

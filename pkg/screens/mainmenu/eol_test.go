@@ -114,3 +114,53 @@ func TestStatusNotice(t *testing.T) {
 		})
 	}
 }
+
+// TestStatusNoticeCustom (design-custom-distros.md): on TrueNAS the main
+// menu says hardn refuses every change there, in place of the
+// end-of-support notice, on any day; on Raspberry Pi OS it says nothing of
+// its own.
+func TestStatusNoticeCustom(t *testing.T) {
+	noPVE := hostfake.Response{Stderr: "dpkg-query: no packages found matching pve-manager\n", ExitCode: 1}
+	for _, tc := range []struct {
+		name, osRelease, signal, today string
+		want                           *screen.Alert
+	}{
+		{"TrueNAS", "ID=debian\nVERSION_ID=\"12\"\n", detect.TrueNASDebug, "2026-11-16", screen.TrueNAS()},
+		{"TrueNAS, near Debian 12's date", "ID=debian\nVERSION_ID=\"12\"\n", detect.TrueNASRootfs, "2028-05-01", screen.TrueNAS()},
+		{"Raspberry Pi OS", "ID=debian\nVERSION_ID=\"13\"\n", detect.RpiIssue, "2026-11-16", nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := eolHost(tc.osRelease, noPVE)
+			f.AddFile(tc.signal, nil, 0o644, 0, 0)
+			o := options(f)
+			o.Now = func() time.Time {
+				d, err := time.Parse(time.DateOnly, tc.today)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return d
+			}
+			vm, err := mainmenu.Status(context.Background(), o)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if (vm.Notice == nil) != (tc.want == nil) || vm.Notice != nil && *vm.Notice != *tc.want {
+				t.Fatalf("notice %+v, want %+v", vm.Notice, tc.want)
+			}
+			out := plain(t, vm)
+			if tc.want != nil && !strings.Contains(out, "Warning: TrueNAS manages its own system\n   # hardn refuses every change.\n   # Make them in TrueNAS's web UI.") {
+				t.Errorf("drawn:\n%s", out)
+			}
+			if strings.Count(out, "Warning:") != btoi(tc.want != nil) {
+				t.Errorf("drawn:\n%s", out)
+			}
+		})
+	}
+}
+
+func btoi(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}

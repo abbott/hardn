@@ -51,6 +51,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is safe␛[m$
+      ␛[38;2;219;184;83mon Debian can break it␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
@@ -156,6 +158,8 @@ $
 $
    -  Nameservers          192.0.2.54, 2001:db8::54$
    -  Search Domains       example.net$
+  [ ] Proxmox VE is a custom distribution: a change that is safe$
+      on Debian can break it$
   [ ] Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
 $
    -  Set the nameservers$
@@ -275,6 +279,8 @@ $
       ␛[38;2;129;134;156m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is␛[m$
+      ␛[38;2;219;184;83msafe on Debian can break it␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mSaving Proxmox VE's DNS settings rewrites␛[m$
       ␛[38;2;219;184;83m/etc/resolv.conf␛[m$
 $

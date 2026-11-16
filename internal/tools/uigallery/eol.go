@@ -38,7 +38,10 @@ type eolMock struct {
 	// osr is the host's os-release, classified by detect.Classify; bar its
 	// distribution bar.
 	osr detect.OSRelease
-	bar component.ContextBar
+	// custom is its TrueNAS and Raspberry Pi OS facts; the zero value is
+	// neither.
+	custom detect.Custom
+	bar    component.ContextBar
 	// today is the day the notice is made for.
 	today string
 	// cve adds the CVE alert, as output.AlertOf words it.
@@ -67,12 +70,19 @@ func eolMocks() []eolMock {
 			note: "Debian 12, Supported, on 2028-05-01: 60 days before its LTS ends. The notice is the same at every support level."},
 		{name: "with-cve", osr: a322, bar: a322bar, today: "2027-03-15", cve: true,
 			note: "The soon mock with the CVE alert: two callouts, the CVE's first, a blank line between."},
+		{name: "truenas", osr: detect.OSRelease{ID: "debian", VersionID: "12"}, custom: detect.Custom{TrueNAS: detect.Yes, Source: detect.TrueNASDebug},
+			bar: component.ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, today: "2026-11-16",
+			note: "TrueNAS, whose os-release is Debian 12's: hardn refuses every change there, and says so in place of the end-of-support notice."},
 	}
 }
 
 // platform is the mock's release as hardn classifies it.
 func (m eolMock) platform() detect.Platform {
-	return detect.Classify(m.osr, detect.Proxmox{Installed: detect.No})
+	c := m.custom
+	if c == (detect.Custom{}) {
+		c = detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No}
+	}
+	return detect.Classify(m.osr, detect.Proxmox{Installed: detect.No}, c)
 }
 
 // view is the mock's main menu: the fixture's, on the mock's release, with

@@ -612,3 +612,29 @@ func TestFirewallRocky(t *testing.T) {
 		t.Errorf("firewall: %v %q, control %v; want left, status only", rw.Kind, rw.Words, rw.Control)
 	}
 }
+
+// TestTrueNAS (design-custom-distros.md, decision 1 (a)): on TrueNAS every
+// row Run All would plan is refused, in the user's words, and nothing is
+// planned.
+func TestTrueNAS(t *testing.T) {
+	p := debian13()
+	p.facts.Platform.Variant = detect.VariantTrueNAS
+	h := withYML(t, vm(p), "configureDns: true\nnameservers: [192.0.2.53]\n")
+	r := h.read(t, "debian13")
+	const words = "TrueNAS manages its own system: hardn refuses every change. Make them in TrueNAS's web UI."
+	n := 0
+	for _, rw := range r.Rows {
+		switch rw.Kind {
+		case runall.Planned:
+			t.Errorf("%s planned on TrueNAS", rw.ID)
+		case runall.Refused:
+			n++
+			if rw.Refusal != words || !errors.Is(rw.Err, engine.ErrTrueNAS) {
+				t.Errorf("%s: %q (%v), want TrueNAS's refusal", rw.ID, rw.Refusal, rw.Err)
+			}
+		}
+	}
+	if n == 0 || r.Plan != nil || len(r.Controls()) != 0 {
+		t.Errorf("%d rows refused, plan %v", n, r.Plan)
+	}
+}

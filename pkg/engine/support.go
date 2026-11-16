@@ -15,6 +15,12 @@ import (
 // in every plan; next/p3-confirm-cleanup).
 const CodeBestEffort = "PLATFORM_BEST_EFFORT"
 
+// CodeCustom is the finding of a plan made on Proxmox VE or Raspberry Pi
+// OS, custom distributions built on Debian
+// (docs/engine/design-custom-distros.md, decision 2 (b)). It is stable
+// once released.
+const CodeCustom = "PLATFORM_CUSTOM"
+
 // CodeSupportEnds and CodeSupportEnded are the findings of a plan made on
 // a release whose vendor support ends within detect.EndNear days, or has
 // ended (docs/engine/gallery-eol.md, adopted 2026-11-13;
@@ -27,9 +33,9 @@ const (
 
 // platformFindings are the plan's findings of the platform p on the day
 // today: on a best-effort release, CodeBestEffort, whatever the plan holds
-// (P-41: every plan made on one); then, on a release whose support ends
-// soon or has ended, at every support level, CodeSupportEnds or
-// CodeSupportEnded (endFinding). The support gate is unchanged, and never
+// (P-41: every plan made on one); on Proxmox VE and Raspberry Pi OS,
+// CodeCustom; then, on a release whose support ends soon or has ended, at
+// every support level, CodeSupportEnds or CodeSupportEnded (endFinding). The support gate is unchanged, and never
 // reads the clock: out-of-scope, unlisted and unestablished releases are
 // refused for a plan with changes (refuseApply, ErrUnsupported), and a
 // release past its date is changed as before.
@@ -41,6 +47,9 @@ func platformFindings(p detect.Platform, today time.Time) []Finding {
 			detail += " (" + p.Note + ")"
 		}
 		out = append(out, Finding{Code: CodeBestEffort, Detail: detail})
+	}
+	if name := customName(p); name != "" {
+		out = append(out, Finding{Code: CodeCustom, Detail: name + " is a custom distribution: a change that is safe on Debian can break it"})
 	}
 	return append(out, endFinding(p, today)...)
 }
@@ -74,4 +83,17 @@ func releaseName(p detect.Platform) string {
 		name = string(p.Distro)
 	}
 	return name + " " + p.Version
+}
+
+// customName is the custom distribution p is, warned of in every plan:
+// Proxmox VE or Raspberry Pi OS; "" for none. TrueNAS is refused instead
+// (refuseApply).
+func customName(p detect.Platform) string {
+	switch {
+	case p.Distro == detect.DistroProxmox:
+		return p.Distro.Name()
+	case p.Variant == detect.VariantRaspiOS:
+		return p.Variant.Name()
+	}
+	return ""
 }

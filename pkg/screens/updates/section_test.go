@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
@@ -15,7 +16,8 @@ import (
 // not shown on outside hardn. On Rocky Linux: the install timer off after
 // restart, stopped and starting after restart (its name whole), or masked
 // for this boot; automatic.conf unread or changed since hardn; rpm unread,
-// drawing no timer row.
+// drawing no timer row. On Raspberry Pi OS the row says the Pi's own
+// packages are not upgraded.
 func TestSectionRows(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
@@ -51,6 +53,13 @@ func TestSectionRows(t *testing.T) {
 			m.file(confDir+"/99site", "Unattended-Upgrade::Origins-Pattern:: \"origin=Debian\";\n")
 			return m
 		}, []string{"+ unattended-upgrades", "1) Enable automatic updates"}, "Turned on outside hardn"},
+		{"Raspberry Pi OS", func(t *testing.T) *model {
+			m := aptHost(t, debian13(), autoOn)
+			m.facts.Platform.Variant = detect.VariantRaspiOS
+			return m
+		}, []string{"+ unattended-upgrades", "Pi packages not upgraded"}, ""},
+		{"Debian: no Pi line", func(t *testing.T) *model { return aptHost(t, debian13(), autoOn) },
+			[]string{"+ unattended-upgrades"}, "Pi packages"},
 		{"dnf, off after restart", func(t *testing.T) *model {
 			m := dnfHost(t, true)
 			m.units["is-active "+dnfauto.InstallTimer], m.units["is-enabled "+dnfauto.InstallTimer] = "active", "disabled"

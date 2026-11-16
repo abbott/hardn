@@ -120,7 +120,8 @@ func (c Auto) recordRefusal(err error) error {
 // lines whose effective value is "0" or unset, read back with apt-config
 // dump; never debconf, 20auto-upgrades or the timers, so Enable "0", a
 // timer off, its job masked or missing, and no origin refuse, with words.
-// The lines are chosen at plan time, before the install.
+// The lines are chosen at plan time, before the install. On Raspberry Pi
+// OS the first change says the Pi's own packages are not upgraded.
 func (c Auto) planAptOn(ctx context.Context, sys host.System, in engine.Input, r Reading) ([]engine.Change, error) {
 	if err := unreadRefusal(ctx, sys, r); err != nil {
 		return nil, err
@@ -181,6 +182,9 @@ func (c Auto) planAptOn(ctx context.Context, sys host.System, in engine.Input, r
 	}
 	if len(cs) == 0 {
 		return nil, nil
+	}
+	if in.Facts.Platform.Variant == detect.VariantRaspiOS {
+		cs[0].Findings = append(cs[0].Findings, engine.Finding{Code: CodeRaspiOSNotUpgraded, Detail: DetailRaspiOSReview, Source: in.Facts.Custom.Source})
 	}
 	rc, err := c.recordOn(entry, cs)
 	if err != nil {

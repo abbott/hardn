@@ -147,6 +147,7 @@ func TestAllowed(t *testing.T) {
 		{"ss", "-Htln"}, {"ufw", "status", "verbose"}, {"systemctl", "is-enabled", "ufw.service"},
 		{"apt-config", "dump", "APT::Periodic", "Unattended-Upgrade::Origins-Pattern", "Unattended-Upgrade::Allowed-Origins"},
 		{"dpkg-query", "--show", format, "pve-manager"}, {"dpkg-query", "--show", format, "unattended-upgrades"},
+		{"dpkg-query", "--show", format, "raspberrypi-sys-mods"},
 		{"dpkg-query", "--show", format, "openssh-server"}, {"dpkg-query", "--show", format, "dropbear"},
 		{"dpkg-query", "--show", format, "dropbear-bin"}, {"dpkg-query", "--show", format, "tinysshd"},
 		{"dpkg-query", "--show", format, "linux-image-6.12.43+deb13-amd64"},
