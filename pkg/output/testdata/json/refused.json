@@ -13,7 +13,8 @@
       "distro": "ubuntu",
       "version": "24.04",
       "support": "supported",
-      "supportEnds": ""
+      "supportEnds": "",
+      "variant": ""
     },
     "init": "systemd",
     "ssh": "ssh.socket",

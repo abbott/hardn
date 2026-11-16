@@ -166,6 +166,9 @@ type platform struct {
 	// (alpine.InstalledDB), on Alpine: the branch's first with
 	// CVE-2026-123158's fix, a stock current host's (alpine.FixedVersion).
 	openssh string
+	// raspios: Raspberry Pi OS, 64-bit: Debian's os-release, with
+	// /etc/rpi-issue and raspberrypi-sys-mods.
+	raspios bool
 }
 
 // The simulated platforms. Debian 13's and Ubuntu 26.04's sudo, OpenSSH
@@ -226,6 +229,9 @@ var (
 		osRelease: debian13Platform.osRelease, noUFW: true, proxmox: "9.0.10",
 		session: "sshd-session", rootLogin: "without-password", resolver: resolverStatic,
 	}
+	// raspiosPlatform is Raspberry Pi OS, 64-bit: Debian 13's os-release,
+	// /etc/rpi-issue and raspberrypi-sys-mods (design-custom-distros.md).
+	raspiosPlatform = func() platform { p := debian13Platform; p.raspios = true; return p }()
 )
 
 // The processes of a simulated host (/proc/<pid>/stat): init, sshd's
@@ -320,6 +326,9 @@ func simulate(p platform) *fakeHost {
 	}
 	if p.socket {
 		f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)
+	}
+	if p.raspios {
+		f.AddFile(detect.RpiIssue, []byte("Raspberry Pi reference 2025-11-24\n"), 0o644, 0, 0)
 	}
 	h.process(1, initComm, 0, 1)
 	h.process(listenerPID, "sshd", 1, 1200)
@@ -664,8 +673,8 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		if cmd == "sudo --version" {
 			return hostfake.Response{Stdout: h.sudo + "\n"}
 		}
-	case "dpkg-query": // detect's Proxmox VE check; on a status host, any package
-		if pkg := argv[len(argv)-1]; pkg == "pve-manager" || h.status != nil {
+	case "dpkg-query": // detect's Proxmox VE and Raspberry Pi OS checks; on a status host, any package
+		if pkg := argv[len(argv)-1]; pkg == "pve-manager" || pkg == detect.RpiSysModsPkg || h.status != nil {
 			return h.dpkg(pkg)
 		}
 	case "ufw":
@@ -724,12 +733,20 @@ func (h *fakeHost) installed(name string) bool {
 }
 
 // dpkg is dpkg-query --show's answer for pkg: pve-manager at the
-// platform's version on Proxmox VE, a package a status host's readings
+// platform's version on Proxmox VE, raspberrypi-sys-mods on Raspberry Pi
+// OS, a package a status host's readings
 // install at its version, and dpkg-query(1)'s "no packages found", exit 1,
 // for any other.
 func (h *fakeHost) dpkg(pkg string) hostfake.Response {
 	version := h.proxmox
-	if pkg != "pve-manager" {
+	switch pkg {
+	case "pve-manager":
+	case detect.RpiSysModsPkg:
+		version = ""
+		if h.raspios {
+			version = "20251120"
+		}
+	default:
 		version = h.status.installed(pkg)
 	}
 	if version == "" {

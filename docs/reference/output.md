@@ -37,6 +37,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 | `platform.version` | the support matrix's key (`13`, `24.04`, `3.24`); `""` when not established |
 | `platform.support` | `supported`, `best-effort`, `out-of-scope`, `unlisted`, `unknown` |
 | `platform.supportEnds` | the last day of the vendor's free security updates, as hardn's support matrix holds it: a day (`2027-05-01`), or a month (`2027-05`) where the vendor names a month alone, which lasts to its last day; `""` when hardn has no date for the release. It is not counted against the clock: a plan's `PLATFORM_SUPPORT_ENDS` or `PLATFORM_SUPPORT_ENDED` finding is |
+| `platform.variant` | for `debian`, a custom distribution that keeps Debian's os-release: `truenas` (every change refused, `PLATFORM_TRUENAS`), `raspios` (Raspberry Pi OS, 64-bit); `""` for none (open) |
 | `init` | `systemd`, `openrc`, `unknown` (open) |
 | `ssh` | how sshd is started: `ssh.socket`, `ssh.service` (on Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux too, whose unit is `sshd.service`), `openrc`, `unknown` (open) |
 | `proxmox.installed`, `container.detected` | `yes`, `no`, `unknown`; with `proxmox.version` (pve-manager's) and `container.manager` |
@@ -290,6 +291,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |
+| `PLATFORM_TRUENAS` | 1 | TrueNAS: hardn refuses every change, which TrueNAS's web UI makes ([design-custom-distros.md](../engine/design-custom-distros.md)) |
 | `PLATFORM_UNSUPPORTED` | 1 | no changes on a platform outside the support matrix |
 | `ENGINE_CHANGE_INVALID` | 1 | change not valid |
 | `ENGINE_ORDER` | 1 | changes cannot be ordered |
@@ -577,6 +579,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `DNS_UDHCPC_UNKNOWN` | whether Alpine's udhcpc is the DHCP client is not established ([dns.md](../safety/dns.md) §3) |
 | `CONFIG_DEPRECATED_VALUE` | a configuration value in a form that is going away; it still works (§3.17) |
 | `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
+| `PLATFORM_CUSTOM` | Proxmox VE or Raspberry Pi OS, a custom distribution: a change that is safe on Debian can break it; in every plan made on one, as the plan's own finding. It refuses nothing ([design-custom-distros.md](../engine/design-custom-distros.md)) |
 | `PLATFORM_SUPPORT_ENDS` | the release's vendor support ends within 90 days, by the host's clock (`platform.supportEnds`); in every plan made then, as the plan's own finding. It refuses nothing ([screen-eol.md](../engine/screen-eol.md)) |
 | `PLATFORM_SUPPORT_ENDED` | the release's vendor support has ended, by the host's clock; in every plan made then, as the plan's own finding. It refuses nothing: hardn changes the release as before, unless it is out of scope |
 | `SSH_MATCH_ALLOWS_MORE` | a Match block lets in more than the global value does (root's login, a password), for the connections it matches ([check-ssh.md](../engine/check-ssh.md)) |
@@ -602,6 +605,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_APT_VALUE_UNKNOWN` | an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_SCHEDULE_UNKNOWN` | whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_RPI_NOT_UPGRADED` | Raspberry Pi OS: upgrades run, and the Pi's own packages (kernel, firmware) are not among them: Raspberry Pi has them upgraded with apt full-upgrade; on the row, and on turning updates on ([design-custom-distros.md](../engine/design-custom-distros.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
 | `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux `dnf needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |

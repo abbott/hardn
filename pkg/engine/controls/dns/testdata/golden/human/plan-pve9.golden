@@ -14,6 +14,8 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is a custom distribution: a change that is safe on␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mDebian can break it (PLATFORM_CUSTOM)␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PROXMOX_NODE)␛[m$
 $
@@ -30,6 +32,8 @@ $
   No actual changes were made to your system.$
 $
 # Warning$
+# Proxmox VE is a custom distribution: a change that is safe on$
+# Debian can break it (PLATFORM_CUSTOM)$
 # Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
 # (DNS_PROXMOX_NODE)$
 $
@@ -46,6 +50,8 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is a custom distribution: a change that is safe␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon Debian can break it (PLATFORM_CUSTOM)␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSaving Proxmox VE's DNS settings rewrites /etc/resolv.conf␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(DNS_PROXMOX_NODE)␛[m$
 $

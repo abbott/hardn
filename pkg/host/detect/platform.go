@@ -169,13 +169,18 @@ type Platform struct {
 	// Ends is the matrix row's (Release.Ends); "" for a release with no
 	// row, or whose vendor names no date.
 	Ends string
-	Err  error // why Distro or Support is Unknown
+	// Variant is, for DistroDebian, the custom distribution built on it
+	// that keeps its os-release (Custom.Variant).
+	Variant Variant
+	Err     error // why Distro or Support is Unknown
 }
 
-// Classify places a host in the support matrix from its os-release and its
-// Proxmox VE facts. Proxmox VE keeps Debian's os-release, so a Debian ID with
-// Proxmox not established is not established either. Classify is pure.
-func Classify(osr OSRelease, pve Proxmox) Platform {
+// Classify places a host in the support matrix from its os-release, its
+// Proxmox VE facts and its custom distribution facts. Proxmox VE, TrueNAS
+// and Raspberry Pi OS keep Debian's os-release, so a Debian ID with Proxmox
+// or TrueNAS not established is not established either; Raspberry Pi OS
+// not established is plain Debian (Custom.Variant). Classify is pure.
+func Classify(osr OSRelease, pve Proxmox, c Custom) Platform {
 	if !osr.Known() {
 		return Platform{Err: errOr(osr.Err, fmt.Errorf("detect: platform: os-release has no ID: %w", ErrNoSignal))}
 	}
@@ -195,7 +200,15 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 		return Platform{Err: fmt.Errorf("detect: platform: Debian or Proxmox VE: %w", errOr(pve.Err, ErrNoSignal))}
 	}
 	switch d := Distro(osr.ID); d {
-	case DistroDebian, DistroUbuntu:
+	case DistroDebian:
+		v, ok := c.Variant()
+		if !ok {
+			return Platform{Err: fmt.Errorf("detect: platform: Debian or TrueNAS: %w", errOr(c.Err, ErrNoSignal))}
+		}
+		p := lookup(Platform{Distro: d, Version: osr.VersionID})
+		p.Variant = v
+		return p
+	case DistroUbuntu:
 		return lookup(Platform{Distro: d, Version: osr.VersionID})
 	case DistroAlpine:
 		p := lookup(Platform{Distro: d, Version: majorMinor(osr.VersionID)})

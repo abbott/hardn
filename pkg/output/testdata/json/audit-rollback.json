@@ -14,7 +14,8 @@
       "distro": "unknown",
       "version": "",
       "support": "unknown",
-      "supportEnds": ""
+      "supportEnds": "",
+      "variant": ""
     },
     "init": "unknown",
     "ssh": "unknown",

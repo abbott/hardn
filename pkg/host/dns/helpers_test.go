@@ -42,7 +42,7 @@ func facts(t *testing.T, fixture string) detect.Facts {
 	h := hostfake.New(host.Options{})
 	h.AddFile(detect.EtcOSRelease, data, 0o644, 0, 0)
 	f := detect.Facts{OS: detect.ReadOSRelease(context.Background(), h), Container: detect.Container{Detected: detect.No}}
-	f.Platform = detect.Classify(f.OS, pve)
+	f.Platform = detect.Classify(f.OS, pve, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 	f.Init = detect.Init{Kind: detect.Systemd, Running: detect.Yes}
 	if f.Platform.Distro == detect.DistroAlpine {
 		f.Init.Kind = detect.OpenRC

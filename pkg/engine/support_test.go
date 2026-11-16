@@ -21,7 +21,7 @@ func TestBestEffortFinding(t *testing.T) {
 	ctx := context.Background()
 	alpine321 := func() detect.Facts { // as detect classifies it (decision 5, adopted 2026-11-04)
 		f := debian13
-		f.Platform = detect.Classify(detect.OSRelease{ID: "alpine", VersionID: "3.21.5"}, detect.Proxmox{Installed: detect.No})
+		f.Platform = detect.Classify(detect.OSRelease{ID: "alpine", VersionID: "3.21.5"}, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 		return f
 	}
 	platform := func(d detect.Distro, v string, s detect.Support, note string) detect.Facts {
@@ -110,10 +110,10 @@ func checkBestEffort(t *testing.T, p *Plan, want string) {
 func TestEndOfSupportFinding(t *testing.T) {
 	ctx := context.Background()
 	classify := func(id, version string) detect.Platform {
-		return detect.Classify(detect.OSRelease{ID: id, VersionID: version}, detect.Proxmox{Installed: detect.No})
+		return detect.Classify(detect.OSRelease{ID: id, VersionID: version}, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 	}
 	pve := func(version string) detect.Platform {
-		return detect.Classify(detect.OSRelease{ID: "debian", VersionID: "13"}, detect.Proxmox{Installed: detect.Yes, Version: version})
+		return detect.Classify(detect.OSRelease{ID: "debian", VersionID: "13"}, detect.Proxmox{Installed: detect.Yes, Version: version}, detect.Custom{})
 	}
 	day := func(s string) time.Time {
 		d, err := time.ParseInLocation(time.DateOnly, s, time.UTC)
@@ -141,8 +141,8 @@ func TestEndOfSupportFinding(t *testing.T) {
 		{"Ubuntu 22.04, the next month", classify("ubuntu", "22.04"), "2027-06-01", CodeSupportEnded, "Ubuntu 22.04 support ended May 2027: upgrade to Ubuntu 26.04", 2, false},
 		{"Alpine 3.21, out of scope: refused as before", classify("alpine", "3.21.7"), "2026-11-13", CodeSupportEnded, "Alpine 3.21 support ended 2026-11-01: upgrade to Alpine 3.24", 1, true},
 		{"Alpine 3.21, out of scope before its date: refused all the same", classify("alpine", "3.21.7"), "2026-01-01", "", "", 0, true},
-		{"Proxmox VE 8, out of scope", pve("8.4.1"), "2026-11-13", CodeSupportEnded, "Proxmox VE 8 support ended August 2026: upgrade to Proxmox VE 9", 1, true},
-		{"Proxmox VE 9, no date", pve("9.2.22"), "2040-01-01", "", "", 0, false},
+		{"Proxmox VE 8, out of scope", pve("8.4.1"), "2026-11-13", CodeSupportEnded, "Proxmox VE 8 support ended August 2026: upgrade to Proxmox VE 9", 2, true},
+		{"Proxmox VE 9, no date", pve("9.2.22"), "2040-01-01", "", "", 1, false},
 		{"Alpine 3.19, no row", classify("alpine", "3.19.9"), "2031-01-01", "", "", 0, true},
 		{"Alpine edge of a listed branch, unlisted", classify("alpine", "3.22.0_alpha20250101"), "2031-01-01", "", "", 0, true},
 		{"a platform not established", detect.Platform{}, "2031-01-01", "", "", 0, true},
@@ -183,5 +183,80 @@ func TestEndOfSupportFinding(t *testing.T) {
 				t.Fatalf("Apply: %+v, %v; want the change applied", res, err)
 			}
 		})
+	}
+}
+
+// TestCustomDistributions (design-custom-distros.md, adopted 2026-11-16):
+// on Proxmox VE and Raspberry Pi OS every plan carries CodeCustom and is
+// applied; on plain Debian none does; on TrueNAS every plan with changes is
+// refused, one change or many (Run All), in the user's words, and a plan
+// with nothing to change is not.
+func TestCustomDistributions(t *testing.T) {
+	ctx := context.Background()
+	platform := func(d detect.Distro, v detect.Variant) detect.Facts {
+		f := debian13
+		f.Platform = detect.Platform{Distro: d, Version: "13", Support: detect.Supported, Variant: v}
+		if d == detect.DistroProxmox {
+			f.Platform.Version = "9"
+		}
+		return f
+	}
+	one := []Control{fileControl{id: "example.file", path: confPath, want: "listen 2230\n"}}
+	many := []Control{fileControl{id: "example.file", path: confPath, want: "listen 2230\n"}, fileControl{id: "example.other", path: confPath + ".other", want: "x\n"}}
+	for _, tc := range []struct {
+		name     string
+		facts    detect.Facts
+		controls []Control
+		finding  string // CodeCustom's detail; "": none
+		truenas  bool
+	}{
+		{"Debian 13", debian13, one, "", false},
+		{"Proxmox VE 9", platform(detect.DistroProxmox, detect.VariantNone), one,
+			"Proxmox VE is a custom distribution: a change that is safe on Debian can break it", false},
+		{"Raspberry Pi OS", platform(detect.DistroDebian, detect.VariantRaspiOS), one,
+			"Raspberry Pi OS is a custom distribution: a change that is safe on Debian can break it", false},
+		{"TrueNAS, one change", platform(detect.DistroDebian, detect.VariantTrueNAS), one, "", true},
+		{"TrueNAS, Run All", platform(detect.DistroDebian, detect.VariantTrueNAS), many, "", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := newHost(t)
+			e := New(h, testOptions(h, nil, nil, tc.facts))
+			p, err := e.Plan(ctx, tc.controls, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got []Finding
+			for _, f := range p.Findings {
+				if f.Code == CodeCustom {
+					got = append(got, f)
+				}
+			}
+			switch {
+			case tc.finding == "" && len(got) != 0:
+				t.Errorf("findings %+v, want no %s", p.Findings, CodeCustom)
+			case tc.finding != "" && (len(got) != 1 || got[0].Detail != tc.finding):
+				t.Errorf("findings %+v, want one %s %q", p.Findings, CodeCustom, tc.finding)
+			}
+			if tc.truenas {
+				if len(p.Refused) != 1 || p.Refused[0] != ErrTrueNAS || !errors.Is(p.Err(), ErrTrueNAS) || errors.Is(p.Err(), ErrUnsupported) {
+					t.Fatalf("Refused %v, Err %v; want ErrTrueNAS alone", p.Refused, p.Err())
+				}
+				const words = "TrueNAS manages its own system: hardn refuses every change. Make them in TrueNAS's web UI"
+				if ErrTrueNAS.Error() != words {
+					t.Errorf("ErrTrueNAS = %q, want %q", ErrTrueNAS, words)
+				}
+				return
+			}
+			if res, err := e.Apply(ctx, p); err != nil || len(res.Applied) != 1 {
+				t.Fatalf("Apply: %+v, %v; want the change applied", res, err)
+			}
+		})
+	}
+	// Nothing to change on TrueNAS: not refused, as on any platform.
+	h := newHost(t)
+	e := New(h, testOptions(h, nil, nil, platform(detect.DistroDebian, detect.VariantTrueNAS)))
+	p, err := e.Plan(ctx, nil, nil)
+	if err != nil || len(p.Refused) != 0 {
+		t.Errorf("an empty plan on TrueNAS: %v, refused %v", err, p.Refused)
 	}
 }

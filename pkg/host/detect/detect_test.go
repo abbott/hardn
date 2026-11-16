@@ -52,6 +52,7 @@ func (r release) host(t *testing.T) *hostfake.System {
 		mounts = pveMounts
 	case !r.openrc:
 		f.Respond(hostfake.Response{Stderr: "dpkg-query: no packages found matching pve-manager\n", ExitCode: 1}, dpkgQuery[0], dpkgQuery[1:]...)
+		f.Respond(hostfake.Response{Stderr: "dpkg-query: no packages found matching raspberrypi-sys-mods\n", ExitCode: 1}, dpkgRpi[0], dpkgRpi[1:]...)
 	}
 	f.AddFile(detect.SelfMounts, []byte(mounts), 0o444, 0, 0)
 	if r.sudo != "" {

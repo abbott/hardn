@@ -236,14 +236,16 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 }
 
 // refuseApply adds the refusals that Arm, the backups or the platform would
-// make later: everything Apply refuses before it changes anything is
+// make later (TrueNAS, and a release outside the support matrix): everything Apply refuses before it changes anything is
 // refused here, so the dry run shows it. st and stErr are the journal as
 // the plan read it (revert.ReadState).
 func (e *Engine) refuseApply(ctx context.Context, p *Plan, st revert.State, stErr error, refuse func(error)) {
 	n := 0
 	refuseN := func(err error) { n++; refuse(err) }
-	switch s := p.Facts.Platform; s.Support {
-	case detect.Supported, detect.BestEffort:
+	switch s := p.Facts.Platform; {
+	case s.Variant == detect.VariantTrueNAS:
+		refuseN(ErrTrueNAS)
+	case s.Support == detect.Supported, s.Support == detect.BestEffort:
 	default:
 		note := ""
 		if s.Note != "" {

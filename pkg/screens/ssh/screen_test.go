@@ -13,11 +13,13 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	sshscreen "github.com/abbott/hardn/pkg/screens/ssh"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
@@ -679,4 +681,27 @@ func drawn(out string) []int {
 		}
 	}
 	return got
+}
+
+// TestPiNotice (design-custom-distros.md, decision 3 (a)): on Raspberry Pi
+// OS each SSH change's review says what a lockout means there; on Debian
+// it says nothing of the Pi.
+func TestPiNotice(t *testing.T) {
+	const notice = "On a headless Pi, a lockout means taking out the SD card."
+	for _, pi := range []bool{true, false} {
+		for _, item := range []string{"1", "2"} {
+			h := ready(t, "debian13")
+			p := playWith(h, true, func(o *sshscreen.Options) {
+				if pi {
+					o.Facts.Platform.Variant = detect.VariantRaspiOS
+				}
+			}, item, "0")
+			if p.err != nil || !shows(p.out, planned) || shows(p.out, notice) != pi {
+				t.Errorf("Raspberry Pi OS %v, item %s: Run = %v:\n%s", pi, item, p.err, p.out)
+			}
+		}
+	}
+	if screen.SSHPiLockout != notice {
+		t.Errorf("SSHPiLockout = %q", screen.SSHPiLockout)
+	}
 }

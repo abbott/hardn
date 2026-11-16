@@ -49,6 +49,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mDisabled␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is safe␛[m$
+      ␛[38;2;219;184;83mon Debian can break it␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key, carol can't log in: there's no password␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$
@@ -143,6 +145,8 @@ $
    -  Sudo                 Disabled$
   [ ] SSH Keys             None$
    -  Password             None$
+  [ ] Proxmox VE is a custom distribution: a change that is safe$
+      on Debian can break it$
   [ ] Without a key, carol can't log in: there's no password$
 $
    -  Create user carol$
@@ -244,6 +248,8 @@ $
       ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
       ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is␛[m$
+      ␛[38;2;219;184;83msafe on Debian can break it␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key, carol can't log in: there's no password␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$

@@ -355,6 +355,7 @@ const (
 	scheduleUnknown = "UPDATES_SCHEDULE_UNKNOWN"
 	proxmox         = "UPDATES_PROXMOX_NOT_UPGRADED"
 	originsUnknown  = "UPDATES_ORIGINS_UNKNOWN"
+	rpi             = "UPDATES_RPI_NOT_UPGRADED"
 )
 
 // with is a dump with lines replaced or added: each "Name value" pair
@@ -518,6 +519,8 @@ func TestLines(t *testing.T) {
 		{name: "dpkg-query: half-installed", site: site{plat: debian13(), pkg: "install reinstreq half-installed"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 		{name: "apt-config and dpkg-query failing", site: site{plat: debian13(), runs: twoFailing}, state: engine.Unknown, detail: cantRead, err: "COMMAND_FAILED"},
 		{name: "a Debian derivative", site: site{plat: debian13(), facts: raspbian}, state: engine.Unknown, detail: cantRead, findings: []string{originsUnknown}},
+		{name: "Raspberry Pi OS", site: site{plat: debian13(), facts: raspios}, state: engine.Configured, detail: unattended, findings: []string{rpi}},
+		{name: "Raspberry Pi OS, not installed", site: site{plat: debian13(), pkg: gone, facts: raspios}, state: engine.NotConfigured, detail: noPkg},
 		{name: "an Ubuntu derivative, lists not refreshed", site: site{plat: ubuntu2604(), dump: with(ubuntu2604(), lists, `"0"`), facts: func(f *detect.Facts) {
 			f.OS = detect.OSRelease{ID: "linuxmint", IDLike: []string{"ubuntu", "debian"}, VersionCodename: "zara"}
 			f.Platform = detect.Platform{Distro: detect.DistroOther, Like: detect.DistroUbuntu, Support: detect.Unlisted}
@@ -600,6 +603,12 @@ var twoFailing = map[string]*hostfake.Response{
 var raspbian = func(f *detect.Facts) {
 	f.OS = detect.OSRelease{Path: "/etc/os-release", ID: "raspbian", IDLike: []string{"debian"}, VersionCodename: "trixie"}
 	f.Platform = detect.Platform{Distro: detect.DistroOther, Like: detect.DistroDebian, Support: detect.Unlisted}
+}
+
+// raspios is Raspberry Pi OS, 64-bit: Debian with its variant.
+var raspios = func(f *detect.Facts) {
+	f.Platform.Variant = detect.VariantRaspiOS
+	f.Custom = detect.Custom{TrueNAS: detect.No, RaspiOS: detect.Yes, Source: detect.RpiIssue}
 }
 
 var alpineContainer = func(f *detect.Facts) {
@@ -742,6 +751,8 @@ func TestFindings(t *testing.T) {
 			[]engine.Finding{{Code: updates.CodeProxmoxNotUpgraded, Detail: "Proxmox packages not upgraded", Source: "apt-config dump"}}},
 		{row{site: site{plat: debian13(), facts: raspbian}, state: engine.Unknown, detail: cantRead, findings: []string{originsUnknown}},
 			[]engine.Finding{{Code: updates.CodeOriginsUnknown, Detail: "raspbian, like debian", Source: "/etc/os-release"}}},
+		{row{site: site{plat: debian13(), facts: raspios}, state: engine.Configured, detail: unattended, findings: []string{rpi}},
+			[]engine.Finding{{Code: updates.CodeRaspiOSNotUpgraded, Detail: "Pi packages not upgraded", Source: detect.RpiIssue}}},
 		{row{site: site{plat: debian13(), units: units(upEnabled, "disabled"), runs: fails(hostfake.Response{ExitCode: 1}, listActive)}, state: engine.Partial, detail: offRestart,
 			findings: []string{scheduleUnknown}},
 			[]engine.Finding{{Code: updates.CodeScheduleUnknown, Detail: "can't read apt-daily.timer", Source: listActive}}},

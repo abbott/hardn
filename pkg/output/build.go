@@ -507,6 +507,7 @@ var (
 		detect.DistroAlpine: "alpine", detect.DistroProxmox: "proxmox", detect.DistroRocky: "rocky",
 		detect.DistroAlma: "almalinux", detect.DistroRHEL: "rhel", detect.DistroCentOS: "centos",
 		detect.DistroOracle: "ol", detect.DistroOther: "other"}
+	variantWords = map[detect.Variant]string{detect.VariantNone: "", detect.VariantTrueNAS: "truenas", detect.VariantRaspiOS: "raspios"}
 	flavourWords = map[detect.SudoFlavor]string{detect.SudoOriginal: "sudo", detect.SudoRS: "sudo-rs"}
 )
 
@@ -531,7 +532,7 @@ func hostOf(hostname string, f detect.Facts) Host {
 		Hostname: hostname,
 		OS:       OS{ID: f.OS.ID, VersionID: f.OS.VersionID, Codename: f.OS.VersionCodename, PrettyName: f.OS.PrettyName},
 		Platform: Platform{Distro: word(distroWords, f.Platform.Distro), Version: f.Platform.Version, Support: supportWord(f.Platform.Support),
-			SupportEnds: f.Platform.Ends},
+			SupportEnds: f.Platform.Ends, Variant: word(variantWords, f.Platform.Variant)},
 		Init:      word(initWords, f.Init.Kind),
 		SSH:       word(sshWords, f.SSH.Mode),
 		Proxmox:   Proxmox{Installed: triWord(f.Proxmox.Installed), Version: f.Proxmox.Version},

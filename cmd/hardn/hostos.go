@@ -16,8 +16,9 @@ var osHost = func() host.System { return host.NewReal(host.Options{}) }
 // 2026-11-04): pkg/host/detect's os-release and Proxmox VE facts, placed by
 // Classify. No os-release, or one naming an OS other than Debian, Ubuntu,
 // Alpine or an EL distribution (detect.DistroOther), is refused; Proxmox
-// VE is Debian's. The EL distributions (Rocky Linux, AlmaLinux, RHEL,
-// CentOS Stream, Oracle Linux) are placed by the matrix as the others are
+// VE is Debian's, and so are TrueNAS and Raspberry Pi OS (64-bit), whose
+// facts are not read here (detect.Custom{}). The EL distributions (Rocky
+// Linux, AlmaLinux, RHEL, CentOS Stream, Oracle Linux) are placed by the matrix as the others are
 // (docs/engine/el-changes.md, el-rhel.md, design-centos-oracle.md). It
 // says nothing of an OS it accepts, and clears nothing: the OS is on the
 // main menu's context bar.
@@ -28,7 +29,7 @@ func hostOS() error {
 	if !osr.Known() {
 		return fmt.Errorf("cannot detect OS type: %w", osr.Err)
 	}
-	if detect.Classify(osr, detect.DetectProxmox(ctx, sys)).Distro == detect.DistroOther {
+	if detect.Classify(osr, detect.DetectProxmox(ctx, sys), detect.Custom{}).Distro == detect.DistroOther {
 		return fmt.Errorf("unsupported OS type detected: %s", osr.ID)
 	}
 	return nil

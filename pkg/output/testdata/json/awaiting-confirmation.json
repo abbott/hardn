@@ -13,7 +13,8 @@
       "distro": "debian",
       "version": "13",
       "support": "supported",
-      "supportEnds": ""
+      "supportEnds": "",
+      "variant": ""
     },
     "init": "systemd",
     "ssh": "ssh.service",

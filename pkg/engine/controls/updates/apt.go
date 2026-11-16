@@ -69,7 +69,8 @@ var (
 // next boot. A masked apt-daily-upgrade.service is NotConfigured too: its
 // timer runs, and starts nothing. With upgrades running, Proxmox VE
 // carries CodeProxmoxNotUpgraded unless an origin matches Proxmox VE's
-// repository, and a derivative hardn does not list is Unknown with
+// repository, Raspberry Pi OS carries CodeRaspiOSNotUpgraded (its origins
+// not compared), and a derivative hardn does not list is Unknown with
 // CodeOriginsUnknown: whether its origins match its own archives is not
 // read.
 func checkApt(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
@@ -113,6 +114,10 @@ func checkApt(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		st.Evidence = append(st.Evidence, fmt.Sprintf("%s: origins matching Proxmox VE's repository %d", dumpSource, n))
 		if n == 0 {
 			st.Findings = append(st.Findings, engine.Finding{Code: CodeProxmoxNotUpgraded, Detail: "Proxmox packages not upgraded", Source: dumpSource})
+		}
+	case detect.DistroDebian:
+		if f.Platform.Variant == detect.VariantRaspiOS {
+			st.Findings = append(st.Findings, engine.Finding{Code: CodeRaspiOSNotUpgraded, Detail: DetailRaspiOS, Source: f.Custom.Source})
 		}
 	case detect.DistroOther:
 		// apt's job runs, and what it takes is the distribution's own

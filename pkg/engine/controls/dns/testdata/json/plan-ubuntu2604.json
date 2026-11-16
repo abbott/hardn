@@ -13,7 +13,8 @@
       "distro": "ubuntu",
       "version": "26.04",
       "support": "supported",
-      "supportEnds": ""
+      "supportEnds": "",
+      "variant": ""
     },
     "init": "systemd",
     "ssh": "unknown",

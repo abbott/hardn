@@ -67,6 +67,11 @@ var (
 	// ErrUnsupported: the platform's support level (detect.Support) is not
 	// Supported or BestEffort, so no change is made.
 	ErrUnsupported = errors.New("no changes on a platform outside the support matrix")
+	// ErrTrueNAS: the host is TrueNAS, whose middleware writes the system's
+	// files back from its own database, so no change is made
+	// (docs/engine/design-custom-distros.md, decision 1 (a)). Its text is
+	// the user's words.
+	ErrTrueNAS = errors.New("TrueNAS manages its own system: hardn refuses every change. Make them in TrueNAS's web UI")
 	// ErrChange: a change is not one the engine can journal and order.
 	ErrChange = errors.New("change not valid")
 	// ErrOrder: the changes cannot be put in one order: a cycle, a

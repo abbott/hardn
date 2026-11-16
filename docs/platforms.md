@@ -87,6 +87,8 @@ On Rocky, Alma, RHEL, CentOS Stream and Oracle:
 
 ## Proxmox
 
+Proxmox VE is a custom distribution: every plan warns that a change that is safe on Debian can break it (`PLATFORM_CUSTOM`).
+
 On a Proxmox node:
 
 - hardn never turns root's SSH login off, because the nodes log in to each other as root by key: `-d` and Run All make it key-only instead. Where it is already off, they leave it off; the SSH screen's Root key-only item turns it back to key-only.
@@ -95,9 +97,24 @@ On a Proxmox node:
 - Root's password is never locked.
 - The firewall is only read (pve-firewall). `ufw` is never touched, and `-w` is refused.
 - Auto Updates only shows the state.
+- NTP's review says to set every node the same way: the nodes need synchronised clocks.
 
 The default cluster join (`pvecm add`, or the web UI) logs in to the other node's API with root's password, and needs no SSH password login. Two steps log in over SSH as root instead. hardn does neither, so do them by hand:
 
 - **`pvecm add <node> --use_ssh`** joins over SSH to the existing node. Where hardn made root key-only on that node (`-d`, Run All or the SSH screen), root logs in there by key only. Add the joining node's root key (`/root/.ssh/id_rsa.pub`) to root's keys there first.
 - **`pvecm qdevice setup <address>`** logs in to the QDevice host as root over SSH, using root's password where the node's key isn't there yet. If hardn turned root login off on that host (`-d`, or Run All), allow it again there by hand for the setup.
 
+## TrueNAS
+
+TrueNAS (SCALE, Community Edition) keeps Debian's os-release, and its middleware writes the system's files back from its own database. hardn shows the screens and the status, and refuses every change, Run All and the flags included (`PLATFORM_TRUENAS`). The main menu says so. Make changes in TrueNAS's web UI.
+
+## Raspberry Pi OS
+
+The 64-bit Raspberry Pi OS keeps Debian's os-release and is treated as Debian, with warnings:
+
+- Every plan warns that a change that is safe on Debian can break it (`PLATFORM_CUSTOM`).
+- Auto Updates doesn't upgrade the Pi's own packages (kernel, firmware): use `apt full-upgrade` (`UPDATES_RPI_NOT_UPGRADED`).
+- SSH's review says that on a headless Pi a lockout means taking out the SD card.
+- NTP's review says that most models have no clock of their own: if no server is reached, the time is wrong after a reboot.
+
+The 32-bit Raspberry Pi OS (`ID=raspbian`) is not supported: hardn doesn't start, and there is no 32-bit ARM build.

@@ -65,7 +65,8 @@ const (
 // over the header the main menu reads (hd: an Unknown row's "Counted as
 // not configured", the uptime's line under a host that does not upgrade
 // itself); then decision 9 (a)'s line, the control's finding, which
-// output.StatusViewOf does not draw (it draws the risk factors). A reading
+// output.StatusViewOf does not draw (it draws the risk factors), and
+// Raspberry Pi OS's (design-custom-distros.md, decision 4 (a)). A reading
 // cut short is Unknown.
 func statusRow(h reading, hd header.Header) component.StatusList {
 	rp := engine.Report{Control: updatesctl.ID, Title: updatesctl.Auto{}.Title(), Status: h.Status, Err: h.StatusErr}
@@ -80,7 +81,7 @@ func statusRow(h reading, hd header.Header) component.StatusList {
 	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != rp.Title })
 	if len(view.Rows) == 1 {
 		for _, fd := range h.Status.Findings {
-			if fd.Code == updatesctl.CodeChangedSince {
+			if fd.Code == updatesctl.CodeChangedSince || fd.Code == updatesctl.CodeRaspiOSNotUpgraded {
 				view.Rows[0].Lines = append(view.Rows[0].Lines, component.StatusLine{Text: fd.Detail, Warn: true})
 			}
 		}

@@ -46,6 +46,8 @@ $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is safe␛[m$
+      ␛[38;2;219;184;83mon Debian can break it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -222,6 +224,8 @@ $
   SSH Configuration --------------------------------------------$
 $
    -  Root SSH Login       Key only$
+  [ ] Proxmox VE is a custom distribution: a change that is safe$
+      on Debian can break it$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
@@ -411,6 +415,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;129;134;156mKey only␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mProxmox VE is a custom distribution: a change that is␛[m$
+      ␛[38;2;219;184;83msafe on Debian can break it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$

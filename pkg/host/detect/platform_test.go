@@ -88,13 +88,57 @@ func TestClassify(t *testing.T) {
 		{"Proxmox VE version unparsable", read("debian-13"), pve("nine"), detect.DistroProxmox, "", detect.SupportUnknown, detect.ErrUnrecognised},
 	}
 	for _, tt := range tests {
-		got := detect.Classify(tt.osr, tt.pve)
+		got := detect.Classify(tt.osr, tt.pve, notCustom)
 		if got.Distro != tt.distro || got.Version != tt.version || got.Support != tt.support {
 			t.Errorf("%s: Classify = %s %q %s, want %s %q %s", tt.name, got.Distro, got.Version, got.Support, tt.distro, tt.version, tt.support)
 		}
 		if (tt.wantErr == nil) != (got.Err == nil) || (tt.wantErr != nil && !errors.Is(got.Err, tt.wantErr)) {
 			t.Errorf("%s: Classify err = %v, want %v", tt.name, got.Err, tt.wantErr)
 		}
+	}
+}
+
+// notCustom is a host that is neither TrueNAS nor Raspberry Pi OS.
+var notCustom = detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No}
+
+// TrueNAS and Raspberry Pi OS are Debian, with a variant; TrueNAS not
+// established is not either, and Raspberry Pi OS not established is plain
+// Debian. Off Debian the facts are not read.
+func TestClassifyCustom(t *testing.T) {
+	ctx := context.Background()
+	debian12 := detect.ReadOSRelease(ctx, newFake(t, "debian-12"))
+	notPVE := detect.Proxmox{Installed: detect.No}
+	errFixture := errors.New("fixture: stat failed")
+	tests := []struct {
+		name    string
+		osr     detect.OSRelease
+		pve     detect.Proxmox
+		c       detect.Custom
+		distro  detect.Distro
+		variant detect.Variant
+		support detect.Support
+		wantErr error
+	}{
+		{"TrueNAS", debian12, notPVE, detect.Custom{TrueNAS: detect.Yes}, detect.DistroDebian, detect.VariantTrueNAS, detect.Supported, nil},
+		{"Raspberry Pi OS", debian12, notPVE, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.Yes}, detect.DistroDebian, detect.VariantRaspiOS, detect.Supported, nil},
+		{"plain Debian", debian12, notPVE, notCustom, detect.DistroDebian, detect.VariantNone, detect.Supported, nil},
+		{"TrueNAS not established", debian12, notPVE, detect.Custom{Err: errFixture}, detect.DistroUnknown, detect.VariantNone, detect.SupportUnknown, errFixture},
+		{"TrueNAS not read", debian12, notPVE, detect.Custom{}, detect.DistroUnknown, detect.VariantNone, detect.SupportUnknown, detect.ErrNoSignal},
+		{"Raspberry Pi OS not established is Debian", debian12, notPVE, detect.Custom{TrueNAS: detect.No, Err: errFixture}, detect.DistroDebian, detect.VariantNone, detect.Supported, nil},
+		{"Proxmox VE first", debian12, detect.Proxmox{Installed: detect.Yes, Version: "9.1.1"}, detect.Custom{}, detect.DistroProxmox, detect.VariantNone, detect.Supported, nil},
+		{"Ubuntu: not read", detect.OSRelease{ID: "ubuntu", VersionID: "24.04"}, notPVE, detect.Custom{}, detect.DistroUbuntu, detect.VariantNone, detect.Supported, nil},
+	}
+	for _, tt := range tests {
+		got := detect.Classify(tt.osr, tt.pve, tt.c)
+		if got.Distro != tt.distro || got.Variant != tt.variant || got.Support != tt.support {
+			t.Errorf("%s: Classify = %s %q %s, want %s %q %s", tt.name, got.Distro, got.Variant, got.Support, tt.distro, tt.variant, tt.support)
+		}
+		if (tt.wantErr == nil) != (got.Err == nil) || (tt.wantErr != nil && !errors.Is(got.Err, tt.wantErr)) {
+			t.Errorf("%s: Classify err = %v, want %v", tt.name, got.Err, tt.wantErr)
+		}
+	}
+	if detect.VariantTrueNAS.Name() != "TrueNAS" || detect.VariantRaspiOS.Name() != "Raspberry Pi OS" || detect.VariantNone.Name() != "" {
+		t.Error("Variant.Name")
 	}
 }
 
@@ -119,7 +163,7 @@ func TestEL(t *testing.T) {
 // A derivative names what it is built from, and is not in the matrix.
 func TestClassifyDerivative(t *testing.T) {
 	osr := detect.OSRelease{ID: "examplelinux", IDLike: []string{"examplebase", "ubuntu", "debian"}, VersionID: "7"}
-	got := detect.Classify(osr, detect.Proxmox{Installed: detect.No})
+	got := detect.Classify(osr, detect.Proxmox{Installed: detect.No}, detect.Custom{TrueNAS: detect.No, RaspiOS: detect.No})
 	if got.Distro != detect.DistroOther || got.Like != detect.DistroUbuntu || got.Support != detect.Unlisted || got.Err != nil {
 		t.Errorf("Classify(derivative) = %+v, want other, like ubuntu, unlisted", got)
 	}

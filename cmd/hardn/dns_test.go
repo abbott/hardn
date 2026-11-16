@@ -1051,3 +1051,23 @@ func (f firstWrite) Write(p []byte) (int, error) {
 	f.fire()
 	return f.w.Write(p)
 }
+
+// TestConfigureDNSFlagTrueNAS (design-custom-distros.md, decision 1 (a)):
+// on TrueNAS -g is refused as every change is, in the user's words with
+// its code, nothing written, exit status 1; -n -g too.
+func TestConfigureDNSFlagTrueNAS(t *testing.T) {
+	for _, args := range [][]string{{"--yes", "-g"}, {"-n", "-g"}} {
+		h, cfg := newDNSHost(t, "debian13", dnsTestList)
+		h.facts.Platform.Variant = detect.VariantTrueNAS
+		r, s := runG(t, h, cfg, nil, args...)
+		report := s.out.String()
+		if !r.ended || r.code != 1 || len(h.writes()) > 0 || s.applies != 0 {
+			t.Errorf("%v: exit %d (ended %v), wrote %q, applies %d; report:\n%s", args, r.code, r.ended, h.writes(), s.applies, report)
+		}
+		for _, w := range []string{"Operation Failed", "TrueNAS manages its own system: hardn refuses every change.", "Make them in TrueNAS's web UI (PLATFORM_TRUENAS)"} {
+			if !strings.Contains(report, w) {
+				t.Errorf("%v: the report lacks %q:\n%s", args, w, report)
+			}
+		}
+	}
+}

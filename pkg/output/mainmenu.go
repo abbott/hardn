@@ -76,8 +76,14 @@ func AlertOf(l risk.Level) (*screen.Alert, risk.Level) {
 // engine's gate refuses to change (refuseApply: any level but Supported
 // and Best effort) it says so. It is a notice alone: nothing hardn does
 // follows from it. Its words are hardn's own, detect's name and the
-// matrix's version and date, never the host's text. It is pure.
+// matrix's version and date, never the host's text. On TrueNAS it is
+// TrueNAS's notice instead, on every day: the engine refuses every change
+// there (design-custom-distros.md, decision 1 (a)), and Debian's upgrade
+// is TrueNAS's to make. It is pure.
 func NoticeOf(p detect.Platform, today time.Time) *screen.Alert {
+	if p.Variant == detect.VariantTrueNAS {
+		return screen.TrueNAS()
+	}
 	end := p.End(today)
 	if !end.Due() {
 		return nil

@@ -26,7 +26,7 @@ origin/main: menu/system_details_open.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -187,7 +187,7 @@ origin/main: menu/system_details_invalid.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "7", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -270,7 +270,7 @@ origin/main: menu/system_details_return.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -349,7 +349,7 @@ origin/main: menu/system_details_refresh.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "1", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -429,7 +429,7 @@ origin/main: menu/system_details_open.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -501,7 +501,7 @@ origin/main: menu/system_details_render.golden ()
   a renderer golden: its rows are synthetic and unmasked; Hypervisor and CPU Freq, which no file the new path reads holds, are origin/main's alone
   start: a synthetic report, no calls
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -573,7 +573,7 @@ origin/main: menu/system_details_render_zfs.golden ()
   a renderer golden: its rows are synthetic and unmasked; Hypervisor and CPU Freq, which no file the new path reads holds, are origin/main's alone
   start: a synthetic report, no calls
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -648,7 +648,7 @@ origin/main: menu/system_details_error.golden ()
   start: /etc/resolv.conf -> 66 bytes; /etc/passwd -> 148 bytes; /etc/group -> 40 bytes; /etc/os-release -> 139 bytes; /proc/uptime -> 22 bytes; /proc/cpuinfo -> 75 bytes; /proc/meminfo -> error: file not found: /proc/meminfo
   probes: 4x read /etc/resolv.conf -> 66 bytes; 4x read /etc/passwd -> 148 bytes; 7x read /etc/group -> 40 bytes; 3x read /etc/os-release -> 139 bytes; 4x read /proc/uptime -> 22 bytes; 3x exec uname -r -> ok; 3x read /proc/cpuinfo -> 75 bytes; 3x read /proc/meminfo -> error: file not found: /proc/meminfo; 3x exec cat /proc/meminfo -> ok; 3x exec df -k -> ok; 1x tool nproc; 1x tool lscpu
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -689,7 +689,7 @@ origin/main: menu/system_details_no_lastlog.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -768,7 +768,7 @@ origin/main: menu/system_details_never_logged_in.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -845,7 +845,7 @@ origin/main: menu/system_details_login_hostname.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -925,7 +925,7 @@ origin/main: menu/system_details_no_lscpu.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1005,7 +1005,7 @@ origin/main: menu/system_details_zfs_all_healthy.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1088,7 +1088,7 @@ origin/main: menu/system_details_zfs_dataset.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1171,7 +1171,7 @@ origin/main: menu/system_details_zfs_other_dataset.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health rpool; zfs get -Hp -o value used,available rpool/ROOT/pve-1; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health rpool; zfs get -Hp -o value used,available rpool/ROOT/pve-1; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1308,7 +1308,7 @@ origin/main: menu/system_details_export_default.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1453,7 +1453,7 @@ origin/main: menu/system_details_export_named.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1598,7 +1598,7 @@ origin/main: menu/system_details_export_overwrite.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1687,7 +1687,7 @@ origin/main: menu/system_details_export_fails.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1775,7 +1775,7 @@ origin/main: menu/system_details_export_dry_run.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1919,7 +1919,7 @@ origin/main: menu/system_details_export_zfs.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" raspberrypi-sys-mods; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" chrony
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24

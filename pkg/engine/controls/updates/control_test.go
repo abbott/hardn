@@ -926,3 +926,31 @@ func TestApkOffReadBack(t *testing.T) {
 		t.Error("not rolled back")
 	}
 }
+
+// TestOnRaspiOS: on Raspberry Pi OS, turning updates on says, on its first
+// change, that the Pi's own packages are not upgraded (design-custom-distros.md,
+// decision 4 (a)); the plan is otherwise Debian's, and Debian's says nothing.
+func TestOnRaspiOS(t *testing.T) {
+	for _, pi := range []bool{true, false} {
+		m := debianOff(t)
+		if pi {
+			raspios(&m.facts)
+		}
+		cs, err := plan(t, m, updates.AutoOn, nil)
+		if err != nil || len(cs) != 2 {
+			t.Fatalf("Raspberry Pi OS %v: %v, %v", pi, ids(cs), err)
+		}
+		var got []engine.Finding
+		for _, c := range cs {
+			got = append(got, c.Findings...)
+		}
+		want := []engine.Finding{{Code: "UPDATES_RPI_NOT_UPGRADED",
+			Detail: "the Pi's own packages (kernel, firmware) aren't upgraded automatically: use apt full-upgrade", Source: "/etc/rpi-issue"}}
+		if !pi {
+			want = nil
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("Raspberry Pi OS %v: findings %+v, want %+v", pi, got, want)
+		}
+	}
+}

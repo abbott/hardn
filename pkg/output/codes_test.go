@@ -117,6 +117,7 @@ var sentinels = map[string]error{
 	"engine.ErrRolledBack":              engine.ErrRolledBack,
 	"engine.ErrUnjournalled":            engine.ErrUnjournalled,
 	"engine.ErrUnsupported":             engine.ErrUnsupported,
+	"engine.ErrTrueNAS":                 engine.ErrTrueNAS,
 	"engine.ErrWindow":                  engine.ErrWindow,
 	"host.ErrHardLink":                  host.ErrHardLink,
 	"host.ErrLocked":                    host.ErrLocked,
@@ -777,6 +778,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks
 	want = append(want, engine.CodeSupportEnds, engine.CodeSupportEnded)                                                         // the end-of-support notice
 	want = append(want, users.CodeEmptyPassword)                                                                                 // account hygiene
+	want = append(want, engine.CodeCustom, updates.CodeRaspiOSNotUpgraded)                                                       // custom distributions
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

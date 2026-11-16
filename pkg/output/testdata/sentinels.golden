@@ -66,6 +66,7 @@ engine.ErrPlanChanged PLAN_CHANGED
 engine.ErrPlanUsed PLAN_USED
 engine.ErrRefused PLAN_REFUSED
 engine.ErrRolledBack ROLLED_BACK
+engine.ErrTrueNAS PLATFORM_TRUENAS
 engine.ErrUnjournalled CHANGE_UNJOURNALLED
 engine.ErrUnsupported PLATFORM_UNSUPPORTED
 engine.ErrWindow CONFIRM_WINDOW_CLOSING

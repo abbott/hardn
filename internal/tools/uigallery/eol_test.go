@@ -35,6 +35,7 @@ func TestEOLMocks(t *testing.T) {
 		{"out-of-scope", detect.OutOfScope, "   # Warning: Alpine 3.21 support ended 2026-11-01\n   # Out of scope: hardn refuses every change.\n   # Upgrade to Alpine 3.24."},
 		{"supported", detect.Supported, "   # Warning: Debian 12 support ends 2028-06-30\n   # Upgrade to Debian 13."},
 		{"with-cve", detect.BestEffort, cve + "   # Warning: Alpine 3.22 support ends 2027-05-01\n   # Upgrade to Alpine 3.24."},
+		{"truenas", detect.Supported, "   # Warning: TrueNAS manages its own system\n   # hardn refuses every change.\n   # Make them in TrueNAS's web UI."},
 	}
 	mocks := eolMocks()
 	if len(tests) != len(mocks) {

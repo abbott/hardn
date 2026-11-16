@@ -61,3 +61,19 @@ func (e EndOfSupport) Alert() *Alert {
 	}
 	return a
 }
+
+// The main menu's notice on TrueNAS, which hardn refuses to change
+// (docs/engine/design-custom-distros.md, decision 1 (a)), drawn as the
+// end-of-support notice is. Here with no colour and ASCII glyphs:
+//
+//	# Warning: TrueNAS manages its own system
+//	# hardn refuses every change.
+//	# Make them in TrueNAS's web UI.
+const (
+	TrueNASTitle = "TrueNAS manages its own system"
+	TrueNASWhy   = "hardn refuses every change."
+	TrueNASFix   = "Make them in TrueNAS's web UI."
+)
+
+// TrueNAS is the main menu's notice on TrueNAS.
+func TrueNAS() *Alert { return &Alert{Title: TrueNASTitle, Why: TrueNASWhy, Fix: TrueNASFix} }

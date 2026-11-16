@@ -234,6 +234,7 @@ var errorCodes = []Entry{
 	// The engine's own, before the primitives' errors they wrap.
 	is("CONFIRM_WINDOW_CLOSING", engine.ErrWindow),
 	is("BOOT_UNIT_NOT_INSTALLED", engine.ErrBootUnit),
+	is("PLATFORM_TRUENAS", engine.ErrTrueNAS).what("TrueNAS: hardn refuses every change, which TrueNAS's web UI makes"),
 	is("PLATFORM_UNSUPPORTED", engine.ErrUnsupported),
 	is("ENGINE_CHANGE_INVALID", engine.ErrChange),
 	is("ENGINE_ORDER", engine.ErrOrder),
@@ -589,6 +590,7 @@ var findingCodes = []Entry{
 	finding("DNS_UDHCPC_UNKNOWN", "whether Alpine's udhcpc is the DHCP client is not established"),
 	finding(CodeDeprecated, "a configuration value in a form that is going away; it still works (§3.17)"),
 	finding(engine.CodeBestEffort, "a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (P-41)"),
+	finding(engine.CodeCustom, "Proxmox VE or Raspberry Pi OS, a custom distribution: a change that is safe on Debian can break it"),
 	// The end-of-support notice's (docs/engine/screen-eol.md).
 	finding(engine.CodeSupportEnds, "the release's vendor support ends within 90 days, by the host's clock"),
 	finding(engine.CodeSupportEnded, "the release's vendor support has ended, by the host's clock; hardn changes it as before, unless it is out of scope"),
@@ -621,6 +623,7 @@ var findingCodes = []Entry{
 	finding(updates.CodeAptValueUnknown, "an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established"),
 	finding(updates.CodeScheduleUnknown, "whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot"),
 	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded"),
+	finding(updates.CodeRaspiOSNotUpgraded, "Raspberry Pi OS: upgrades run, and the Pi's own packages (kernel, firmware) are not among them: Raspberry Pi has them upgraded with apt full-upgrade"),
 	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
 	finding(updates.CodeChangedSince, "hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone"),
 	// The header probe's own (next/p4-header): why a reboot is pending.

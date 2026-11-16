@@ -277,6 +277,17 @@ func SSHUpgradeChange(pkg, installed, wanted string) SSHChange {
 	return sshChange(sshUpgradeLabel, "Upgrade openssh?", component.KeyValue{Key: pkg, Value: fmt.Sprintf(sshUpgradeTo, installed, wanted)})
 }
 
+// SSHPiLockout is the review's notice on Raspberry Pi OS
+// (design-custom-distros.md, decision 3 (a)).
+const SSHPiLockout = "On a headless Pi, a lockout means taking out the SD card."
+
+// OnPi is c with SSHPiLockout above its review, as the services' notices
+// are drawn (screenkit's Reviewed).
+func (c SSHChange) OnPi() SSHChange {
+	c.Review.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{SSHPiLockout}}}
+	return c
+}
+
 // SSHPortHave refuses port, one sshd listens on already.
 func SSHPortHave(port uint16) string { return fmt.Sprintf(sshPortHave, port) }
 
