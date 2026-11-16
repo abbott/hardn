@@ -22,11 +22,10 @@ func TestCreateDefaultConfigServers(t *testing.T) {
 		syslogQ = "Enter syslog server (optional, press Enter to skip): "
 		head    = "\n\n\n\n" // username, port, updates, key
 	)
-	prevInteractive, prevExample, prevDefault := isInteractive, ensureExample, CheckReleasesDefault
+	prevInteractive, prevExample := isInteractive, ensureExample
 	isInteractive = func() bool { return true }
 	ensureExample = func() error { return nil }
-	CheckReleasesDefault = nil
-	t.Cleanup(func() { isInteractive, ensureExample, CheckReleasesDefault = prevInteractive, prevExample, prevDefault })
+	t.Cleanup(func() { isInteractive, ensureExample = prevInteractive, prevExample })
 	for _, tc := range []struct {
 		name, answers string
 		ntp           []string
@@ -73,7 +72,7 @@ func TestCreateDefaultConfigServers(t *testing.T) {
 			// The order: the key, NTP, syslog, the release question, then the lines.
 			at := 0
 			for _, want := range []string{"Add SSH public key (optional, press Enter to skip): " + ntpQ, syslogQ,
-				ReleaseQuestion(false) + " Created configuration file at " + path + "\n", "A complete example configuration"} {
+				ReleaseQuestion() + " Created configuration file at " + path + "\n", "A complete example configuration"} {
 				i := strings.Index(out[at:], want)
 				if i < 0 {
 					t.Fatalf("%q is missing or out of order:\n%s", want, out)

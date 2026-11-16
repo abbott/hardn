@@ -17,29 +17,29 @@ import (
 )
 
 // TestCreateDefaultConfigCheckReleases: the release question is the last
-// of the hardn.yml questions, and the file written holds checkReleases
-// either way, with no question too. Its default is no, or yes where
-// hardn's state holds one (CheckReleasesDefault).
+// of the hardn.yml questions, its default yes, and the file written holds
+// checkReleases either way, with no question too: Enter writes true, the
+// end of the input false.
 func TestCreateDefaultConfigCheckReleases(t *testing.T) {
-	prevInteractive, prevExample, prevDefault := isInteractive, ensureExample, CheckReleasesDefault
+	prevInteractive, prevExample := isInteractive, ensureExample
 	ensureExample = func() error { return errors.New("test: /etc/hardn not written") }
-	t.Cleanup(func() { isInteractive, ensureExample, CheckReleasesDefault = prevInteractive, prevExample, prevDefault })
+	t.Cleanup(func() { isInteractive, ensureExample = prevInteractive, prevExample })
 	for _, tc := range []struct {
-		name, answers   string
-		asked, stateYes bool
-		want            bool
+		name, answers string
+		asked, want   bool
+		said          string
 	}{
-		{"Enter", "\n\n\n\n\n\n\n", true, false, false},
-		{"y", "\n\n\n\n\n\ny\n", true, false, true},
-		{"n", "\n\n\n\n\n\nn\n", true, false, false},
-		{"the end of the input", "\n\n\n\n", true, false, false},
-		{"Enter, a yes in the state", "\n\n\n\n\n\n\n", true, true, true},
-		{"n, a yes in the state", "\n\n\n\n\n\nno\n", true, true, false},
-		{"no question", "", false, false, false},
+		{"Enter", "\n\n\n\n\n\n\n", true, true, ""},
+		{"y", "\n\n\n\n\n\ny\n", true, true, ""},
+		{"n", "\n\n\n\n\n\nn\n", true, false, ""},
+		{"no", "\n\n\n\n\n\nno\n", true, false, ""},
+		{"neither", "\n\n\n\n\n\nmaybe\n", true, false, "Taken as no.\n"},
+		{"the end of the input", "\n\n\n\n", true, false, ""},
+		{"the end of the input at the question", "\n\n\n\n\n\n", true, false, ""},
+		{"no question", "", false, false, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			isInteractive = func() bool { return tc.asked }
-			CheckReleasesDefault = func() bool { return tc.stateYes }
 			useReader(t, prompt.New(strings.NewReader(tc.answers), true))
 			path := filepath.Join(t.TempDir(), "hardn.yml")
 			var err error
@@ -48,11 +48,9 @@ func TestCreateDefaultConfigCheckReleases(t *testing.T) {
 				t.Fatalf("CreateDefaultConfig: %v (ended %v)", err, ended)
 			}
 			if tc.asked {
-				q := ReleaseQuestion(tc.stateYes)
 				if want := "Add SSH public key (optional, press Enter to skip): Enter NTP server (optional, press Enter to skip): " +
-					"Enter syslog server (optional, press Enter to skip): " + q + " Created configuration file at "; !strings.Contains(out, want) ||
-					strings.HasSuffix(q, "[Y/n]:") != tc.stateYes {
-					t.Errorf("the question is not the last, or its default is wrong:\n%s", out)
+					"Enter syslog server (optional, press Enter to skip): " + ReleaseQuestion() + " " + tc.said + "Created configuration file at "; !strings.Contains(out, want) {
+					t.Errorf("the question is not the last:\n%s", out)
 				}
 			} else if strings.Contains(out, "releases") {
 				t.Errorf("asked with no terminal:\n%s", out)
@@ -73,35 +71,34 @@ func TestCreateDefaultConfigCheckReleases(t *testing.T) {
 }
 
 // TestAskCheckReleases: the question alone, on the prompt kit: its words,
-// Enter the default, y or yes a yes, anything else a no; the end of the
-// input is no answer; Ctrl-C ends hardn.
+// Enter, y or yes a yes, n or no a no, anything else a no said; the end of
+// the input is no answer; Ctrl-C ends hardn.
 func TestAskCheckReleases(t *testing.T) {
-	if got := ReleaseQuestion(false); got != "Check for new hardn releases, once a day? [y/N]:" {
+	if got := ReleaseQuestion(); got != "Check for new hardn releases, once a day? [Y/n]:" {
 		t.Errorf("the question: %q", got)
 	}
 	for _, tc := range []struct {
 		script        string
-		def           bool
 		yes, answered bool
+		said          string
 	}{
-		{"\n", false, false, true},
-		{"\n", true, true, true},
-		{"y\n", false, true, true},
-		{" YES \r\n", false, true, true},
-		{"n\n", true, false, true},
-		{"nope\n", true, false, true},
-		{"", false, false, false},
-		{"", true, false, false},
+		{"\n", true, true, ""},
+		{"y\n", true, true, ""},
+		{" YES \r\n", true, true, ""},
+		{"n\n", false, true, ""},
+		{"No\n", false, true, ""},
+		{"nope\n", false, true, "Taken as no.\n"},
+		{"", false, false, ""},
 	} {
 		useReader(t, prompt.New(strings.NewReader(tc.script), true))
 		var yes, answered bool
-		out, _, ended := ask(t, func() { yes, answered = AskCheckReleases(tc.def) })
-		if ended || yes != tc.yes || answered != tc.answered || !strings.HasPrefix(out, ReleaseQuestion(tc.def)+" ") {
-			t.Errorf("%q, default %t: yes %t, answered %t (ended %v); printed %q", tc.script, tc.def, yes, answered, ended, out)
+		out, _, ended := ask(t, func() { yes, answered = AskCheckReleases() })
+		if ended || yes != tc.yes || answered != tc.answered || !strings.HasPrefix(out, ReleaseQuestion()+" ") || !strings.HasSuffix(out, tc.said) || tc.said == "" && strings.Contains(out, "Taken") {
+			t.Errorf("%q: yes %t, answered %t (ended %v); printed %q", tc.script, yes, answered, ended, out)
 		}
 	}
 	useReader(t, prompt.New(interruptedInput{}, true))
-	if _, code, ended := ask(t, func() { AskCheckReleases(false) }); !ended || code != int(sigint) {
+	if _, code, ended := ask(t, func() { AskCheckReleases() }); !ended || code != int(sigint) {
 		t.Errorf("Ctrl-C: ended %v with %d, want SIGINT", ended, code)
 	}
 }

@@ -43,11 +43,8 @@ func releaseAsker() *version.Asker {
 }
 
 // releaseAskYes reports whether hardn's state holds a yes to the question:
-// what turns the check on while no hardn.yml is found, and the question's
-// default where hardn.yml is created (config.CheckReleasesDefault).
+// what turns the check on while no hardn.yml is found.
 func releaseAskYes() bool { return releaseAsker().Yes(context.Background()) }
-
-func init() { config.CheckReleasesDefault = releaseAskYes }
 
 // releaseAskOut is where the question's lines are written: pkg/config's
 // Stdout, the output frame's, as its prompts are.
@@ -86,7 +83,7 @@ func releaseAsk(ctx context.Context, c *config.Config) {
 		if !asking || !a.Due(ctx) {
 			return
 		}
-		yes, answered := askCheckReleases(false)
+		yes, answered := askCheckReleases()
 		answer := version.AskNone
 		switch {
 		case yes:
@@ -103,11 +100,10 @@ func releaseAsk(ctx context.Context, c *config.Config) {
 	if !asking {
 		return
 	}
-	def := a.Yes(ctx) // answered before there was a hardn.yml
-	if !def && !a.Due(ctx) {
+	if !a.Yes(ctx) && !a.Due(ctx) { // a yes answered before there was a hardn.yml
 		return
 	}
-	yes, answered := askCheckReleases(def)
+	yes, answered := askCheckReleases()
 	if !answered {
 		_, _ = fmt.Fprintf(releaseAskOut(), "No answer: %s not changed\n", path)
 		_ = a.Record(ctx, version.AskNone)

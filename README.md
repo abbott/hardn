@@ -104,7 +104,7 @@ What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on P
 
 ## Security
 
-- **No telemetry.** `hardn` makes no network request unless you turn the release check on, by answering yes when it asks or with `checkReleases: true`. The check asks GitHub for the latest release's tag once a day and sends nothing about the host. No account or cloud service required.
+- **No telemetry.** `hardn` makes no network request but the release check, which it asks about, yes by default, or which `checkReleases` sets. It asks GitHub for the latest release's tag once a day and sends nothing about the host. No account or cloud service required.
 - **Releases.** Each binary has [SLSA](https://slsa.dev) Build Level 3 provenance and a [Sigstore](https://www.sigstore.dev/) signature, and a rebuild of a tag is byte-identical: [docs/verify.md](docs/verify.md).
 - **CVEs.** hardn checks for the vendor's fix to a CVE that makes one of its changes unsafe, today one on Alpine: [docs/cve.md](docs/cve.md).
 - **Reporting.** Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**.

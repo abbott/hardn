@@ -212,7 +212,7 @@ func ksReview(kh ksHost, key string) func(context.Context, component.Ctx) (strin
 // ksGroup is the main menu's items, Kernel its item 4: Kernel Settings
 // left the Configuration group (the maintainer, 2026-11-14).
 func ksGroup(_ context.Context, c component.Ctx) (string, error) {
-	return component.Menu{Items: screen.MainMenuItems(false, false)}.Render(c), nil
+	return component.Menu{Items: screen.MainMenuItems(false, false, "")}.Render(c), nil
 }
 
 // ksMocks are the listing's mocks: the group's menu, each host's screen,

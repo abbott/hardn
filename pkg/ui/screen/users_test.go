@@ -16,7 +16,7 @@ import (
 // goldens. Synthetic values only.
 var (
 	usrTestStatus = component.StatusList{Rows: []component.StatusRow{{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo"}}}
-	usrTestGeorge = []component.KeyValue{{Key: "Sudo", Value: "Enabled,", State: component.ValueWarn, Note: "No password to ask for"},
+	usrTestGeorge = []component.KeyValue{{Key: "Sudo", Value: "Enabled,", State: component.ValueWarn, Note: "passwordless"},
 		{Key: UsersByKey, Value: "/etc/sudoers.d/90-cloud-init-users"}, UsersKeysRow(2), {Key: UsersPasswordKey, Value: "None"}}
 	usrTestAlice = []component.KeyValue{{Key: "Sudo", Value: "Enabled", State: component.ValueOK}, {Key: UsersByKey, Value: "group sudo"},
 		UsersKeysRow(0), {Key: UsersPasswordKey, Value: "Set"}}

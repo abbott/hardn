@@ -28,8 +28,8 @@ const (
 	disabled      = "Disabled"
 	cantRead      = "Can't read"
 	noPassword    = "No password"
-	noPassToAsk   = "No password to ask for" // a cost, not a failure (decision 3)
-	noPassSet     = "No password set"        // the rights wait for one (the maintainer, 2026-11-11)
+	noPassToAsk   = "passwordless"    // a cost, not a failure (decision 3)
+	noPassSet     = "No password set" // the rights wait for one (the maintainer, 2026-11-11)
 	pwSet         = "Set"
 	pwNone        = "None"
 	pwLocked      = "Locked,"

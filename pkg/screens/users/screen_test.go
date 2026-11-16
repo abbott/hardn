@@ -63,7 +63,7 @@ const (
 	wordsNoKeyNotice  = "Without a key, %s can't log in: there's no password."
 	wordsEdited       = "%s holds a rule hardn didn't write. Change it there, then try again."
 	wordsLocked       = "sshd refuses %s's keys: the account is locked (!) and sshd doesn't use PAM"
-	wordsNoPassToAsk  = "No password to ask for"
+	wordsNoPassToAsk  = "passwordless"
 )
 
 // carolKey is a synthetic key the tests paste.
@@ -626,7 +626,7 @@ func TestCreateSetsPassword(t *testing.T) {
 		{name: "plan only", lines: []string{"2", "carol", "y", "y", "n", "0"}, dryRun: true, pw: accounts.PasswordNotRead, said: []string{planned}, notSaid: []string{"Set carol's password now?"}},
 		{name: "passwd fails", lines: []string{"2", "carol", "y", "y", "y", "n", "y", "0"}, fails: true, ran: 1, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone, said: []string{applied, notSet}},
 		{name: "no password", lines: []string{"2", "carol", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) NOPASSWD: ALL", pw: accounts.PasswordNone,
-			said: []string{"Enabled, No password to ask for", applied}, notSaid: []string{"Set carol's password now?", "until a password is set"}},
+			said: []string{"Enabled, passwordless", applied}, notSaid: []string{"Set carol's password now?", "until a password is set"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := newHost(t, "debian13")
@@ -668,7 +668,7 @@ func TestCreateSetsPassword(t *testing.T) {
 	h := newHost(t, "yml-missing")
 	cfg := loadYML(t, h, "username: deploy\nadminNoPassword: true\n")
 	if p := playWith(h, true, func(o *usrscreen.Options) { o.Config = cfg }, "2", "", "y", "", "n", "0"); p.err != nil || !shows(p.out, "Require password for admin rights? [y/N") ||
-		!shows(p.out, "Enabled, No password to ask for") || !shows(p.out, planned) {
+		!shows(p.out, "Enabled, passwordless") || !shows(p.out, planned) {
 		t.Errorf("adminNoPassword: true: Run = %v:\n%s", p.err, p.out)
 	}
 }

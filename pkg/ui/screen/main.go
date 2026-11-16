@@ -253,7 +253,14 @@ const (
 // firewalld's, which has no rules to manage in hardn (el-firewalld.md
 // §1.6). Item 5: on Proxmox VE, where the screen enables nothing,
 // v0.10.0's words. pkg/screens/mainmenu binds each item to its screen.
-func MainMenuItems(pve, el bool) []component.MenuItem {
+//
+// Item 1's aside names the host's elevation tool, tool: "doas" where the
+// host runs hardn as root through doas (detect.Elevation.Command), else
+// sudo; "" is sudo.
+func MainMenuItems(pve, el bool, tool string) []component.MenuItem {
+	if tool == "" {
+		tool = "sudo"
+	}
 	item := func(key, label, description, aside string) component.MenuItem {
 		return component.MenuItem{Key: key, Label: label, Description: description, Aside: aside}
 	}
@@ -265,7 +272,7 @@ func MainMenuItems(pve, el bool) []component.MenuItem {
 		firewall = mainFirewallEL
 	}
 	return []component.MenuItem{
-		item("1", "User", "Create, manage", "sudo, SSH keys"),
+		item("1", "User", "Create, manage", tool+", SSH keys"),
 		item("2", SSHTitle, "Disable root and passwords, set port", ""),
 		item("3", "Firewall", firewall, ""),
 		item("4", "Kernel", "Harden sysctl", "network, kernel"),

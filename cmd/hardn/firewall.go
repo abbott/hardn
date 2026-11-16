@@ -109,17 +109,21 @@ var enableFirewall = typedConfirm{
 // distribution, read through engineDetect once, as the main menu is first
 // drawn, facts that do not change while hardn runs.
 func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
-	type kind struct{ pve, el bool }
+	type kind struct {
+		pve, el bool
+		tool    string
+	}
 	read := sync.OnceValue(func() kind {
 		facts, err := engineDetect(context.Background(), statusHost())
 		if err != nil {
 			return kind{}
 		}
 		pve, el := mainmenu.FirewallOf(facts)
-		return kind{pve: pve, el: el}
+		return kind{pve: pve, el: el, tool: facts.Elevation.Command()}
 	})
 	m.Firewall = func() error { return runFirewallScreen(context.Background(), c) }
 	m.FirewallPVE, m.FirewallEL = func() bool { return read().pve }, func() bool { return read().el }
+	m.Elevation = func() string { return read().tool }
 	return m
 }
 

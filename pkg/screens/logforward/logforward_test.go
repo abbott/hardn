@@ -379,3 +379,18 @@ func TestKeys(t *testing.T) {
 		t.Error("the items' keys moved")
 	}
 }
+
+// TestRefresh: Refresh, after the items, reads the host again and draws the
+// screen from it, changing nothing.
+func TestRefresh(t *testing.T) {
+	once := newModel(detect.DistroUbuntu, true)
+	p0 := play(once, ymlTCP, false, "0")
+	m := newModel(detect.DistroUbuntu, true)
+	p := play(m, ymlTCP, false, "2", "0")
+	if p.err != nil || p.unread != 0 || strings.Count(p.out, "2) Refresh              Read the host again") != 2 || m.has(logfwd.DropIn) || len(m.changed()) != 0 {
+		t.Fatalf("Run = %v, %d unread:\n%s", p.err, p.unread, p.out)
+	}
+	if p0.err != nil || len(m.f.Runs()) != 2*len(once.f.Runs()) || len(once.f.Runs()) == 0 {
+		t.Errorf("reads: %d after Refresh, %d once", len(m.f.Runs()), len(once.f.Runs()))
+	}
+}

@@ -23,7 +23,7 @@ You can create a configuration file in several ways:
 
 On first run, `hardn` will offer to create a default configuration file interactively if no existing config is found.
 
-Say yes and it asks seven things: a username, the SSH port, automatic updates, an SSH key, an NTP server, a syslog server, and last "Check for new hardn releases, once a day? [y/N]:". The file it writes holds `checkReleases` either way.
+Say yes and it asks seven things: a username, the SSH port, automatic updates, an SSH key, an NTP server, a syslog server, and last "Check for new hardn releases, once a day? [Y/n]:", Enter yes. The file it writes holds `checkReleases` either way.
 
 The NTP and syslog questions take one server each, and Enter skips them. The syslog server is `host` or `host:port`: TCP, port 514 unless given. An answer hardn can't set, such as an IPv6 address, is refused and asked again. The answers only fill [`ntpServers`](#ntp) and [`syslogServers`](#syslog): Run All sets them, or Set servers on each screen. On Alpine's default logger a TCP server is refused when it is set: use `protocol: udp`. At the main menu, say no and it asks that one question next, when it is due: see [`checkReleases`](#checkreleases-new-releases).
 
@@ -240,10 +240,10 @@ A change that could lock you out rolls back unless `sudo hardn confirm` keeps it
 #### `checkReleases`: new releases
 
 ```yaml
-checkReleases: true                 # off unless set
+checkReleases: true                 # off unless set or answered yes
 ```
 
-Off, the default, hardn makes no network request. On, the main menu says when a newer release is out, such as "v0.9.1 available", under the repository link. As root, `hardn --version` says it too, from the last check's answer.
+Off, the default where no one answered, hardn makes no network request. On, the main menu says when a newer release is out, such as "v0.9.1 available", under the repository link. As root, `hardn --version` says it too, from the last check's answer.
 
 - **One request a day at most**, to `https://api.github.com/repos/abbott/hardn/releases/latest`, while the main menu is open. The menu never waits for it: the answer shows the next time the menu is drawn.
 - **Nothing about the host is sent.** GitHub sees the host's address and hardn's version (`User-Agent: hardn/<version>`).
@@ -254,7 +254,7 @@ Off, the default, hardn makes no network request. On, the main menu says when a 
 - **hardn doesn't update itself.** Install the release with [install.sh](install.md).
 - The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
-**hardn asks.** Before the main menu, on a terminal, as root: "Check for new hardn releases, once a day? [y/N]:". Enter is no. A flag, a subcommand and `hardn check` don't ask, nor does `-n`. The one exception: a flag run that creates hardn.yml asks it with the other first-run questions.
+**hardn asks.** Before the main menu, on a terminal, as root: "Check for new hardn releases, once a day? [Y/n]:". Enter is yes, n or no is no, and any other answer is taken as no, which hardn says. The end of the input or Ctrl-C is no answer. A flag, a subcommand and `hardn check` don't ask, nor does `-n`. The one exception: a flag run that creates hardn.yml asks it with the other first-run questions.
 
 - **Creating hardn.yml:** it is the last question, and the file holds your answer.
 - **A hardn.yml without the key**, such as one from an older install: hardn asks, then writes your answer to the file, yes or no. The rest of the file and its comments stay. If the file can't be edited in place, hardn says so and writes nothing: set the key by hand.

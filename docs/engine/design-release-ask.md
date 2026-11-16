@@ -2,6 +2,8 @@
 
 Status: **adopted 2026-11-15, built the same day** (§7; what is not verified: §8). The maintainer adopted §4's recommended answers ("adopt all"), with two changes: decision 7 is replaced (7 below is as adopted), and decision 8's words lose "GitHub". §4 is kept as the record.
 
+**2026-11-16: decision 4 reversed by the maintainer**: "check releases should default to true". The question is `[Y/n]` wherever it is asked, Enter yes; n or no is no, anything else is taken as no and said. The end of the input and Ctrl-C stay no answer. Decision 5's default-from-state is gone with it. `checkReleases` itself stays false where no one answered.
+
 ## 1. What is there
 
 - **The release check is off unless hardn.yml says `checkReleases: true`.** Off, hardn makes no network request. On, the main menu asks GitHub for the latest release's tag at most once a day and shows "v0.10.2 available" (`cmd/hardn/release.go`, `docs/engine/screen-release-check.md`).
