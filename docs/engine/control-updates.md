@@ -2,6 +2,8 @@
 
 `pkg/engine/controls/updates`, `next/s7-control`: the check of [check-updates.md](check-updates.md) gains a `Plan` that turns updates on or off, the record, and the reading the Auto Updates screen draws. It builds what [gallery-updates.md](gallery-updates.md) §4 adopted (2026-11-03, "Adopt all, start (b)") and §5's words, on the mock's behaviour (`internal/tools/uigallery/updates.go`, `updateshost.go`). Status: tested on macOS on `hostfake` only; nothing ran on a VM.
 
+*Since `next/autoupdates-save` (2026-11-16): on saves the configuration as given (`steps.PlanSave`, in `StageVerify`, before the record) where its `enableAutoUpdates` is not the file's; the screen sets it true. Run All's key is true already, so it saves nothing. Unlike off's, a save refused does not refuse on: on is planned without it, and a note says "hardn.yml Not changed", with the refusal's Why.*
+
 *Since `next/s7-replace`: main menu 6 opens the Auto Updates screen on this control. Run All does not use it yet (slice 8).*
 
 ## 1. What it does

@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"slices"
 	"strings"
 	"time"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -53,19 +55,58 @@ func unreadRefusal(ctx context.Context, sys host.System, r Reading) error {
 }
 
 // planOn is on (decision 3): refused on Proxmox VE (decision 7) and with
-// the record unreadable; apt's or Alpine's, then the record.
-func (c Auto) planOn(ctx context.Context, sys host.System, in engine.Input, r Reading) ([]engine.Change, error) {
+// the record unreadable; apt's, Alpine's or dnf's, then the save
+// (planOnSave), then the record. notes say why hardn.yml is not saved.
+func (c Auto) planOn(ctx context.Context, sys host.System, in engine.Input, r Reading) (cs []engine.Change, notes []Note, err error) {
 	switch {
 	case r.PVE:
-		return nil, refuse(codeProxmox, ErrProxmox, nil, "Proxmox VE is updated with apt full-upgrade, and unattended-upgrades wouldn't take its packages", "update it by hand")
+		return nil, nil, refuse(codeProxmox, ErrProxmox, nil, "Proxmox VE is updated with apt full-upgrade, and unattended-upgrades wouldn't take its packages", "update it by hand")
 	case r.RecordErr != nil:
-		return nil, c.recordRefusal(r.RecordErr)
+		return nil, nil, c.recordRefusal(r.RecordErr)
 	case r.Apk:
-		return c.planApkOn(ctx, sys, in, r)
+		cs, err = c.planApkOn(ctx, sys, in, r)
 	case r.Dnf:
-		return c.planDnfOn(ctx, sys, r)
+		cs, err = c.planDnfOn(ctx, sys, r)
+	default:
+		cs, err = c.planAptOn(ctx, sys, in, r)
 	}
-	return c.planAptOn(ctx, sys, in, r)
+	if err != nil || len(cs) == 0 {
+		return nil, nil, err
+	}
+	return planOnSave(ctx, sys, r.Config, cs)
+}
+
+// planOnSave puts cfg's save (steps.PlanSave) before cs's last change, the
+// record, where its enableAutoUpdates is not the file's: the caller sets
+// it true (decided 2026-11-16: Enable saves true, as Disable saves false),
+// so Run All, its key true already, saves nothing. Unlike off's, a save
+// refused does not refuse on: on is planned without it, and a note says
+// hardn.yml is not changed, in the refusal's words, or the error's where
+// the file can't be read.
+func planOnSave(ctx context.Context, sys host.System, cfg *config.Config, cs []engine.Change) ([]engine.Change, []Note, error) {
+	if cfg == nil || cfg.Path() == "" || !settingChanged(ctx, sys, cfg) {
+		return cs, nil, nil
+	}
+	n := len(cs) - 1
+	if cs[n].ID != ChangeRecord {
+		return nil, nil, fmt.Errorf("updates: on's last change is %s, not the record: %w", cs[n].ID, fs.ErrInvalid)
+	}
+	save, err := steps.PlanSave(ctx, sys, ChangeSave, cfg, []string{Setting}, changeIDs(cs[:n])...)
+	var ref *steps.Refusal
+	switch {
+	case errors.As(err, &ref):
+		return cs, []Note{{Key: "hardn.yml", Value: "Not changed", Note: ref.Why, Warn: true}}, nil
+	case err != nil: // not read (EACCES, EISDIR) or not edited: not saved either
+		why := "hardn can't save it: " + firstLine(strings.TrimPrefix(err.Error(), "steps: save: "))
+		return cs, []Note{{Key: "hardn.yml", Value: "Not changed", Note: why, Warn: true}}, nil
+	}
+	for i := range save {
+		save[i].Stage = engine.StageVerify // after dnf's timer starts (StageReload), as the record is
+	}
+	rc := cs[n]
+	out := append(slices.Clone(cs[:n]), save...)
+	rc.After = changeIDs(out)
+	return append(out, rc), nil, nil
 }
 
 // recordRefusal is a direction refused for the record unreadable.

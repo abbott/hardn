@@ -3,6 +3,7 @@ package updates_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -21,10 +22,10 @@ import (
 const hardnYML = "/etc/hardn/hardn.yml"
 
 // TestSaveAdopted: on a loaded hardn.yml saying enableAutoUpdates
-// true, Disable saves it false, its review naming the save; then Enable,
-// then Disable again, each applying, the file and the configuration in
-// memory agreeing after each (screenkit.Adopt), so that no save is refused
-// as CONFIG_CHANGED.
+// true, Disable saves it false, its review naming the save; then Enable
+// saves it true (2026-11-16), then Disable false again, each applying and
+// naming its save, the file and the configuration in memory agreeing after
+// each (screenkit.Adopt), so that no save is refused as CONFIG_CHANGED.
 func TestSaveAdopted(t *testing.T) {
 	ctx := context.Background()
 	m := newHost(t, "by-hardn-debian")
@@ -33,10 +34,12 @@ func TestSaveAdopted(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	agree := func(after string) {
+	agree := func(after string, want bool) {
 		t.Helper()
 		data, err := m.f.ReadFile(ctx, hardnYML)
-		if err != nil || !cfg.LoadedFrom(data) || cfg.EnableAutoUpdates || !strings.Contains(string(data), "enableAutoUpdates: false") {
+		line := fmt.Sprintf("enableAutoUpdates: %t", want)
+		if err != nil || !cfg.LoadedFrom(data) || cfg.EnableAutoUpdates != want || !strings.Contains(string(data), line) ||
+			!strings.HasPrefix(string(data), "# hardn's configuration") {
 			t.Errorf("after %s: the file %q (%v), in memory %v, loaded from it %v", after, data, err, cfg.EnableAutoUpdates, cfg.LoadedFrom(data))
 		}
 	}
@@ -47,9 +50,9 @@ func TestSaveAdopted(t *testing.T) {
 			engines++
 			switch engines { // the plan before asking of the second and third change
 			case 3:
-				agree("Disable")
+				agree("Disable", false)
 			case 5:
-				agree("Enable")
+				agree("Enable", true)
 			}
 			return m.engine(progress)
 		}
@@ -62,13 +65,16 @@ func TestSaveAdopted(t *testing.T) {
 			t.Errorf("change %d: %v", i+1, r.Err)
 		}
 	}
-	agree("Disable again")
-	first, _, _ := strings.Cut(p.out, askOff)
+	agree("Disable again", false)
+	first, rest, _ := strings.Cut(p.out, askOff)
 	if !shows(first, "Save the configuration") {
 		t.Errorf("the first Disable's review names no save:\n%s", first)
 	}
-	if _, third, _ := strings.Cut(p.out[strings.LastIndex(p.out, "1) "+disable):], askOff); shows(third, "Save the configuration") {
-		t.Error("the second Disable saves again: the file already says false")
+	if on, _, _ := strings.Cut(rest, askOn); !shows(on[strings.LastIndex(on, "1) "+enable):], "Save the configuration") {
+		t.Errorf("Enable's review names no save:\n%s", on)
+	}
+	if third, _, _ := strings.Cut(p.out[strings.LastIndex(p.out, "1) "+disable):], askOff); !shows(third, "Save the configuration") {
+		t.Error("the second Disable names no save: Enable saved true")
 	}
 }
 

@@ -347,7 +347,7 @@ A change that is refused, doesn't apply or has nothing to change is skipped, and
 
 **`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
 
-The main menu's Auto Updates (5) reads the host, never `enableAutoUpdates`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableAutoUpdates: false` where hardn.yml says true, so Run All doesn't turn them back on.
+The main menu's Auto Updates (5) reads the host, never `enableAutoUpdates`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them on saves `enableAutoUpdates: true` where hardn.yml says false, and off saves false where it says true, so hardn.yml and the screen agree. Where hardn.yml can't be saved, on still turns them on, and its review says hardn.yml is not changed and why; off refuses.
 
 ### Firewall Configuration with UFW Application Profiles
 
