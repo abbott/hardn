@@ -299,8 +299,9 @@ var rootCmd = &cobra.Command{
 
 			// The question that turns the release check on, where due
 			// (releaseask.go), inside the output frame as the first-run
-			// question is.
-			releaseAsk(context.Background(), cfg)
+			// question is. A hardn.yml loaded that was not found before the
+			// load is one this run created.
+			releaseAsk(context.Background(), cfg, !found.Exists && cfg.Path() != "")
 
 			// The main menu; its screens' items and its status: hooks.go.
 			// It keeps its own rows: no output frame around it (frame.go).

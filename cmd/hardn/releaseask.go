@@ -59,28 +59,44 @@ func releaseAskOut() io.Writer {
 // opens on c, and sets c.CheckReleases for this session where the answer,
 // or one kept before, is yes.
 //
-// A hardn.yml that sets checkReleases decides alone: nothing is asked,
-// read or written. With no hardn.yml, a yes in hardn's state turns the
-// check on; otherwise the question is asked when due (version.Asker.Due)
-// and the answer kept there. A hardn.yml without the key is asked about
-// when due, at once the first time, and the answer, yes or no, is written
-// to it in place (config.SaveKeys); left unanswered, or the file not one
-// hardn can edit, nothing is written to it and the question is due again
-// by the same rule. Where hardn's state can't be written the question is
-// never due (version.Asker.Due), with or without a hardn.yml.
-func releaseAsk(ctx context.Context, c *config.Config) {
+// A hardn.yml that sets checkReleases decides alone: nothing is asked or
+// written, except a false the question wrote there itself (hardn's state
+// names that file: version.Asker.WroteFalse), asked about again when due
+// (2026-11-16). That mark is dropped, so the false is the person's from
+// then on, where hardn.yml says true or does not set the key, or the
+// hardn.yml loaded is not the one named, or none is, or this run created
+// it (created: the first-run questions asked for its false), and where
+// the Configuration screen saves the key. With no hardn.yml, a yes in hardn's state turns the check on;
+// otherwise the question is asked when due (version.Asker.Due) and the
+// answer kept there. A hardn.yml without the key is asked about when due,
+// at once the first time, and the answer, yes or no, is written to it in
+// place (config.SaveKeys); a no is marked as the question's. Left
+// unanswered, or the file not one hardn can edit, nothing is written to it
+// and the question is due again by the same rule. Where hardn's state
+// can't be written the question is never due (version.Asker.Due), with or
+// without a hardn.yml.
+func releaseAsk(ctx context.Context, c *config.Config, created bool) {
 	path := c.Path()
-	if path != "" && c.FileSets(checkReleasesKey) {
-		return
-	}
+	sets := path != "" && c.FileSets(checkReleasesKey)
 	a := releaseAsker()
 	asking := c.DryRunSource() != config.DryRunFlag && releaseAskTerminals()
+	if !asking {
+		if path == "" && a.Yes(ctx) {
+			c.CheckReleases = true
+		}
+		return
+	}
+	marked := a.WroteFalse(ctx)
+	if marked != "" && (created || marked != path || !sets || c.CheckReleases) {
+		_ = a.Forget(ctx)
+		marked = ""
+	}
 	if path == "" {
 		if a.Yes(ctx) {
 			c.CheckReleases = true
 			return
 		}
-		if !asking || !a.Due(ctx) {
+		if !a.Due(ctx) {
 			return
 		}
 		yes, answered := askCheckReleases()
@@ -97,16 +113,20 @@ func releaseAsk(ctx context.Context, c *config.Config) {
 		c.CheckReleases = yes
 		return
 	}
-	if !asking {
-		return
-	}
-	if !a.Yes(ctx) && !a.Due(ctx) { // a yes answered before there was a hardn.yml
+	switch {
+	case sets && marked == "":
+		return // set by hand, by the Configuration screen, or true
+	case sets:
+		if !a.Due(ctx) { // the question's own false
+			return
+		}
+	case !a.Yes(ctx) && !a.Due(ctx): // a yes answered before there was a hardn.yml
 		return
 	}
 	yes, answered := askCheckReleases()
 	if !answered {
 		_, _ = fmt.Fprintf(releaseAskOut(), "No answer: %s not changed\n", path)
-		_ = a.Record(ctx, version.AskNone)
+		_ = a.RecordIn(ctx, version.AskNone, marked)
 		return
 	}
 	was := c.CheckReleases
@@ -114,10 +134,15 @@ func releaseAsk(ctx context.Context, c *config.Config) {
 	if err := saveCheckReleases(ctx, c); err != nil {
 		c.CheckReleases = was
 		_, _ = fmt.Fprintf(releaseAskOut(), "%s not changed: %s. Set %s there by hand\n", path, notSaved(err), checkReleasesKey)
-		_ = a.Record(ctx, version.AskNone)
+		_ = a.RecordIn(ctx, version.AskNone, marked)
 		return
 	}
 	_, _ = fmt.Fprintf(releaseAskOut(), "Saved %s: %t to %s\n", checkReleasesKey, yes, path)
+	if yes {
+		_ = a.Forget(ctx)
+	} else {
+		_ = a.RecordIn(ctx, version.AskNo, path) // asked again by the count
+	}
 }
 
 // notSaved is why hardn.yml was not saved, in a few words: what about the

@@ -25,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/form"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/version"
 )
 
 // Editing hardn.yml (docs/engine/design-config-edit.md, adopted 2026-11-15,
@@ -234,7 +235,8 @@ func isPort(s string) bool {
 // save runs one key's change through the flow: the form, each answer
 // checked; the plan, the save of key alone from a copy of hardn.yml edited
 // by set; the question; the save. Once saved it says where the key acts,
-// and decision 13's line for syslogServers. -u's username stays the
+// and decision 13's line for syslogServers; a checkReleases saved drops
+// the release question's mark (version.Asker.Forget). -u's username stays the
 // session's when the file's is the one saved.
 func (r *runner) save(ctx context.Context, key string, f form.Form, question string, set func(*config.Config)) error {
 	cfg := r.o.Config
@@ -250,6 +252,11 @@ func (r *runner) save(ctx context.Context, key string, f form.Form, question str
 	})
 	if !r.saved {
 		return err
+	}
+	if key == "checkReleases" {
+		// Either way, the key is the person's from now on: a false the
+		// release question wrote is not asked about again.
+		_ = (&version.Asker{System: r.o.System, Now: r.o.Now}).Forget(ctx)
 	}
 	if flagged {
 		cfg.Username = session

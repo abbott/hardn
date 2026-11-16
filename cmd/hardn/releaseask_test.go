@@ -86,9 +86,12 @@ func (b *asking) read(t *testing.T) *config.Config {
 
 // open is one start of the main menu on c, and how often the question was
 // asked in it.
-func (b *asking) open(c *config.Config) int {
+func (b *asking) open(c *config.Config) int { return b.openNew(c, false) }
+
+// openNew is open, created telling whether this run created c's hardn.yml.
+func (b *asking) openNew(c *config.Config, created bool) int {
 	before := b.asked
-	releaseAsk(context.Background(), c)
+	releaseAsk(context.Background(), c, created)
 	return b.asked - before
 }
 
@@ -143,7 +146,7 @@ func TestReleaseAskClockBackwards(t *testing.T) {
 // TestReleaseAskYesNoConfig: a yes with no hardn.yml turns the check on in
 // this session and in the next, is never asked again, a dry run included,
 // and --version says a newer release. A hardn.yml that says false then
-// wins: no check, no request, and the state not read.
+// wins: no check, no request, and the state not written.
 func TestReleaseAskYesNoConfig(t *testing.T) {
 	b := useAsking(t, "y")
 	c := config.DefaultConfig()
@@ -180,9 +183,9 @@ func TestReleaseAskYesNoConfig(t *testing.T) {
 
 	// A hardn.yml, later, with checkReleases: false.
 	off := b.yml(t, "checkReleases: false\n")
-	calls := len(b.f.Calls())
-	if b.open(off) != 0 || off.CheckReleases || len(b.f.Calls()) != calls {
-		t.Errorf("hardn.yml says false: asked %d, on %t, host calls %v", b.asked, off.CheckReleases, b.f.Calls()[calls:])
+	state := b.state()
+	if b.open(off) != 0 || off.CheckReleases || b.state() != state {
+		t.Errorf("hardn.yml says false: asked %d, on %t, state %q", b.asked, off.CheckReleases, b.state())
 	}
 	if m := withReleaseCheck(mainmenu.Options{}, off, "0.4.0"); m.Release != nil || m.CheckRelease != nil {
 		t.Error("hardn.yml says false, and the main menu has a check")
@@ -272,9 +275,10 @@ func TestReleaseAskFlagsAndUsers(t *testing.T) {
 
 // TestReleaseAskLegacy: a hardn.yml without the key is asked about once,
 // and the answer, yes or no, is written to it in place, its comments and
-// every other byte kept; a yes is on in this session. With the key set it
-// is never asked about again; hardn's state holds no answer, only that the
-// question was due (version.Asker.Due).
+// every other byte kept; a yes is on in this session. After a yes it is
+// never asked about again, hardn's state holding only that the question
+// was due (version.Asker.Due); a no is kept as the question's own false
+// (TestReleaseAskOwnFalse).
 func TestReleaseAskLegacy(t *testing.T) {
 	for _, tc := range []struct {
 		answer string
@@ -290,11 +294,18 @@ func TestReleaseAskLegacy(t *testing.T) {
 		if want := legacyYML + "checkReleases: " + word + "\n"; string(yml.Data) != want {
 			t.Errorf("%q: hardn.yml is\n%s\nwant\n%s", tc.answer, yml.Data, want)
 		}
-		if want := "Saved checkReleases: " + word + " to " + ymlPath + "\n"; b.out.String() != want || !strings.Contains(b.state(), `"answer":"none"`) {
+		state := `"answer":"none"`
+		if !tc.on {
+			state = `"answer":"no","asked":"2026-11-15T12:00:00Z","opens":0,"wroteFalse":"` + ymlPath + `"`
+		}
+		if want := "Saved checkReleases: " + word + " to " + ymlPath + "\n"; b.out.String() != want || !strings.Contains(b.state(), state) {
 			t.Errorf("%q: said %q, want %q; state %q", tc.answer, b.out.String(), want, b.state())
 		}
 		if m := withReleaseCheck(mainmenu.Options{}, c, "0.4.0"); (m.CheckRelease != nil) != tc.on {
 			t.Errorf("%q: the main menu's check is %t", tc.answer, m.CheckRelease != nil)
+		}
+		if !tc.on {
+			continue
 		}
 		b.now = b.now.Add(10 * version.AskEvery)
 		for i := 0; i < 2*version.AskOpens; i++ {
@@ -321,7 +332,7 @@ func TestReleaseAskLegacyUnanswered(t *testing.T) {
 		c := b.yml(t, tc.content)
 		yml, _ := b.f.Entry(ymlPath)
 		if b.open(c) != 1 || c.CheckReleases || string(yml.Data) != tc.content || b.out.String() != tc.says ||
-			!strings.Contains(b.state(), `"answer":"none"`) {
+			!strings.Contains(b.state(), `"answer":"none"`) || strings.Contains(b.state(), "wroteFalse") {
 			t.Fatalf("%s: asked %d, on %t, said %q, state %q, hardn.yml %q", tc.name, b.asked, c.CheckReleases, b.out.String(), b.state(), yml.Data)
 		}
 		for i := 1; i < version.AskOpens; i++ {
@@ -397,6 +408,168 @@ func TestReleaseAskStateNotKept(t *testing.T) {
 		if b.asked != 0 || c.CheckReleases || b.state() != "" || b.out.Len() != 0 || legacy && string(yml.Data) != legacyYML {
 			t.Errorf("hardn.yml %t: asked %d, on %t, state %q, said %q, hardn.yml %q",
 				legacy, b.asked, c.CheckReleases, b.state(), b.out.String(), yml.Data)
+		}
+	}
+}
+
+// setState puts hardn's state on the bench's host.
+func (b *asking) setState(content string) {
+	b.f.AddDir(revert.DefaultDir, 0o700, 0, 0)
+	b.f.AddFile(askState, []byte(content), 0o600, 0, 0)
+}
+
+// TestReleaseAskOwnFalse: a checkReleases: false the question wrote to
+// hardn.yml is asked about again: not for 14 opens, at the 15th, and 30
+// days on. A no keeps false and restarts the count; the end of the input
+// writes nothing and keeps the mark; a yes writes true, drops the mark and
+// is never asked again.
+func TestReleaseAskOwnFalse(t *testing.T) {
+	b := useAsking(t, "n", "n", "eof", "y")
+	b.open(b.yml(t, legacyYML))
+	no := legacyYML + "checkReleases: false\n"
+	same := func(when string) {
+		t.Helper()
+		if yml, _ := b.f.Entry(ymlPath); string(yml.Data) != no || !strings.Contains(b.state(), `"wroteFalse":"`+ymlPath+`"`) {
+			t.Fatalf("%s: hardn.yml %q, state %q", when, yml.Data, b.state())
+		}
+	}
+	same("the first no")
+	notFor := func(when string) {
+		t.Helper()
+		for i := 1; i < version.AskOpens; i++ {
+			if b.open(b.read(t)) != 0 {
+				t.Fatalf("%s: asked at open %d", when, i)
+			}
+		}
+	}
+	notFor("the first no")
+	b.out.Reset()
+	if c := b.read(t); b.open(c) != 1 || c.CheckReleases || b.out.String() != "Saved checkReleases: false to "+ymlPath+"\n" {
+		t.Fatalf("15th open: asked %d, on %t, said %q", b.asked, c.CheckReleases, b.out.String())
+	}
+	same("the second no")
+	notFor("the second no")
+	b.now = b.now.Add(version.AskEvery)
+	if b.open(b.read(t)) != 1 {
+		t.Fatal("not asked 30 days on")
+	}
+	same("the end of the input")
+	notFor("the end of the input")
+	b.now = b.now.Add(version.AskEvery)
+	c := b.read(t)
+	if b.open(c) != 1 || !c.CheckReleases {
+		t.Fatalf("not asked, or off after a yes: %t", c.CheckReleases)
+	}
+	if yml, _ := b.f.Entry(ymlPath); string(yml.Data) != legacyYML+"checkReleases: true\n" || strings.Contains(b.state(), "wroteFalse") {
+		t.Fatalf("after the yes: hardn.yml %q, state %q", yml.Data, b.state())
+	}
+	b.now = b.now.Add(10 * version.AskEvery)
+	for i := 0; i < 2*version.AskOpens; i++ {
+		if b.open(b.read(t)) != 0 {
+			t.Fatalf("asked at open %d after the yes", i)
+		}
+	}
+}
+
+// TestReleaseAskOwnFalseNotSaved: where the question's own false is asked
+// about again and the answer can't be saved (hardn.yml now merges with
+// <<), the mark is kept and it is asked again by the count.
+func TestReleaseAskOwnFalseNotSaved(t *testing.T) {
+	const anchored = "base: &b\n  x: 1\n<<: *b\ncheckReleases: false\n"
+	b := useAsking(t, "n", "y", "y")
+	b.open(b.yml(t, legacyYML))
+	b.f.AddFile(ymlPath, []byte(anchored), 0o644, 0, 0)
+	for i := 1; i < version.AskOpens; i++ {
+		b.open(b.read(t))
+	}
+	if c := b.read(t); b.open(c) != 1 || c.CheckReleases || !strings.Contains(b.state(), `"wroteFalse":"`+ymlPath+`"`) {
+		t.Fatalf("15th open: asked %d, on %t, state %q", b.asked, c.CheckReleases, b.state())
+	}
+	for i := 1; i < version.AskOpens; i++ {
+		if b.open(b.read(t)) != 0 {
+			t.Fatalf("asked at open %d after the failed save", i)
+		}
+	}
+	if b.open(b.read(t)) != 1 {
+		t.Error("not asked again at the 15th open after the failed save")
+	}
+	if yml, _ := b.f.Entry(ymlPath); string(yml.Data) != anchored {
+		t.Errorf("hardn.yml is %q", yml.Data)
+	}
+}
+
+// TestReleaseAskFalseNotOwn: a false the question did not write is never
+// asked about: one set by hand, one under v0.10.3's state (which can't be
+// told from a no kept by hand later), one where the mark names another
+// hardn.yml, one set after hardn.yml said true or left the key out, or
+// one the first-run questions wrote to the hardn.yml this run created.
+// The mark is dropped where the file loaded is another, none is, it says
+// true or not the key, or this run created it.
+func TestReleaseAskFalseNotOwn(t *testing.T) {
+	const (
+		marked = `{"answer":"no","asked":"2026-11-15T12:00:00Z","opens":15,"wroteFalse":"` + ymlPath + `"}` + "\n"
+		other  = `{"answer":"no","asked":"2026-11-15T12:00:00Z","opens":15,"wroteFalse":"/root/hardn.yml"}` + "\n"
+		v0103  = `{"answer":"none","asked":"2026-11-15T12:00:00Z","opens":15}` + "\n"
+	)
+	for _, tc := range []struct {
+		name, state, yml string
+		created          bool
+	}{
+		{"set by hand", "", "checkReleases: false\n", false},
+		{"v0.10.3's no", v0103, legacyYML + "checkReleases: false\n", false},
+		{"another hardn.yml's mark", other, "checkReleases: false\n", false},
+		{"true, then false", marked, "checkReleases: true\n", false},
+		{"the key left out, then false", strings.Replace(marked, `"opens":15`, `"opens":0`, 1), legacyYML, false},
+		{"created by this run", marked, "checkReleases: false\n", true},
+		{"no hardn.yml", strings.Replace(marked, `"opens":15`, `"opens":0`, 1), "", false},
+	} {
+		b := useAsking(t)
+		if tc.state != "" {
+			b.setState(tc.state)
+		}
+		load := func() *config.Config {
+			if tc.yml == "" {
+				return config.DefaultConfig()
+			}
+			return b.yml(t, tc.yml)
+		}
+		if b.openNew(load(), tc.created) != 0 || strings.Contains(b.state(), "wroteFalse") {
+			t.Fatalf("%s: asked, or the mark kept: %q", tc.name, b.state())
+		}
+		if tc.yml == "" {
+			continue
+		}
+		if tc.yml = strings.Replace(tc.yml, "true", "false", 1); tc.yml == legacyYML {
+			tc.yml += "checkReleases: false\n"
+		}
+		b.now = b.now.Add(10 * version.AskEvery)
+		for i := 0; i < 2*version.AskOpens; i++ {
+			if b.open(load()) != 0 {
+				t.Fatalf("%s: asked at open %d", tc.name, i)
+			}
+		}
+		if tc.state == "" && b.state() != "" {
+			t.Errorf("%s: state written: %q", tc.name, b.state())
+		}
+	}
+}
+
+// TestReleaseAskMarkNotAsking: off a terminal and under -n the mark is
+// neither read for a question nor dropped: nothing written.
+func TestReleaseAskMarkNotAsking(t *testing.T) {
+	const marked = `{"answer":"no","asked":"2026-11-15T12:00:00Z","opens":15,"wroteFalse":"` + ymlPath + `"}` + "\n"
+	for _, yml := range []string{"checkReleases: false\n", "checkReleases: true\n"} {
+		b := useAsking(t)
+		b.setState(marked)
+		releaseAskTerminals = func() bool { return false }
+		if b.open(b.yml(t, yml)) != 0 || b.state() != marked {
+			t.Errorf("%q: asked, or state %q", yml, b.state())
+		}
+		releaseAskTerminals = func() bool { return true }
+		c := b.yml(t, yml)
+		c.ResolveDryRun(true, true)
+		if b.open(c) != 0 || b.state() != marked {
+			t.Errorf("%q under -n: asked, or state %q", yml, b.state())
 		}
 	}
 }

@@ -2,6 +2,7 @@ package version
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -147,5 +148,48 @@ func TestAskStateNotKept(t *testing.T) {
 	}
 	if _, ok := f.Entry(askPath); ok {
 		t.Error("a state file written")
+	}
+}
+
+// TestAskWroteFalse: RecordIn keeps the hardn.yml the question wrote false
+// to, and Due's count keeps it; Record and Forget drop it. Forget writes
+// only where there is one. A state from before it (v0.10.3's) reads as
+// none.
+func TestAskWroteFalse(t *testing.T) {
+	ctx := context.Background()
+	a, f, _ := asker()
+	const yml = "/etc/hardn/hardn.yml"
+	if err := a.RecordIn(ctx, AskNo, yml); err != nil {
+		t.Fatal(err)
+	}
+	for i := 1; i < AskOpens; i++ {
+		if a.Due(ctx) {
+			t.Fatalf("due at open %d", i)
+		}
+	}
+	if !a.Due(ctx) || a.WroteFalse(ctx) != yml {
+		t.Fatalf("not due at open %d, or the mark lost: %q", AskOpens, a.WroteFalse(ctx))
+	}
+	if err := a.Forget(ctx); err != nil || a.WroteFalse(ctx) != "" || !a.Due(ctx) {
+		t.Errorf("Forget: %v, mark %q, or the count lost", err, a.WroteFalse(ctx))
+	}
+	_ = a.RecordIn(ctx, AskNone, yml)
+	if _ = a.Record(ctx, AskNo); a.WroteFalse(ctx) != "" {
+		t.Error("Record kept the mark")
+	}
+
+	calls := len(f.Calls())
+	if err := a.Forget(ctx); err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range f.Calls()[calls:] {
+		if strings.HasPrefix(c.Op, "write") || c.Op == "rename" {
+			t.Errorf("Forget with no mark: %s %s", c.Op, c.Path)
+		}
+	}
+
+	f.AddFile(askPath, []byte(`{"answer":"none","asked":"2026-11-15T12:00:00Z","opens":15}`+"\n"), 0o600, 0, 0)
+	if a.WroteFalse(ctx) != "" || !a.Due(ctx) {
+		t.Error("v0.10.3's state: a mark, or not valid")
 	}
 }
