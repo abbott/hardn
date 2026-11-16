@@ -274,7 +274,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ## hardn.yml
 
-hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `syslogServers`, `ntpServers`, `kernel`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
+hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `syslogServers`, `ntpServers`, `kernel`, and Run All's switches: `enableAutoUpdates`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
 ```yaml
 username: "george"

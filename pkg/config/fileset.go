@@ -16,17 +16,20 @@ import (
 // FileSets reports whether the file c was read from gives the top-level key
 // a value: false for a key it leaves out or leaves null, which keeps the
 // default as the loader reads it, and for a Config read from no file.
-// disableRootSSH is set by its old name, disableRoot, too (readDisableRoot).
+// A key renamed is set by its old name too (readRenamed).
 // After Save it is the file as saved.
 func (c *Config) FileSets(key string) bool {
 	if _, ok := c.loaded.set[key]; ok {
 		return true
 	}
-	if _, old := c.loaded.set[disableRootKey]; key != disableRootSSHKey || !old {
-		return false
+	for _, r := range renamed {
+		if _, old := c.loaded.set[r.old]; key != r.new || !old {
+			continue
+		}
+		// A new name the file has, null too, shadows the old one.
+		return !slices.ContainsFunc(c.loaded.deprecations, func(d Deprecation) bool { return d.Key == r.old && d.Shadowed })
 	}
-	// A disableRootSSH the file has, null too, shadows the old name.
-	return !slices.ContainsFunc(c.loaded.deprecations, func(d Deprecation) bool { return d.Key == disableRootKey && d.Shadowed })
+	return false
 }
 
 // FileWord is the value the file gives the top-level key: one string, bool
@@ -83,7 +86,7 @@ func mergeSet(m *yaml.Node, set map[string]string, seen map[string]bool, in map[
 		if k.Kind != yaml.ScalarNode {
 			continue
 		}
-		if k.Value == "<<" && (k.Tag == "" || k.Tag == "!" || k.ShortTag() == "!!merge") { // yaml.v3's isMerge
+		if isMerge(k) {
 			merge = v
 			continue
 		}
@@ -117,6 +120,12 @@ func mergeSet(m *yaml.Node, set map[string]string, seen map[string]bool, in map[
 	default:
 		mergeSet(merge, set, seen, in)
 	}
+}
+
+// isMerge reports whether k, a scalar key, is a merge key, as yaml.v3's
+// isMerge does.
+func isMerge(k *yaml.Node) bool {
+	return k.Value == "<<" && (k.Tag == "" || k.Tag == "!" || k.ShortTag() == "!!merge")
 }
 
 // setOf is readSet of data, a hardn.yml's bytes; nil where they hold no

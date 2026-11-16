@@ -27,7 +27,7 @@ func TestConfigGolden(t *testing.T) { goldenListing(t, configListing) }
 // TestConfigMocks holds each mock to what its note says: which keys the file sets,
 // every other key a default, and the keys nothing reads.
 func TestConfigMocks(t *testing.T) {
-	typical := []string{"username", "sshKeys", "sshPort", "disableRootSSH", "enableUfwSshPolicy", "ufwAppProfiles", "configureDns", "nameservers", "enableUnattendedUpgrades"}
+	typical := []string{"username", "sshKeys", "sshPort", "disableRootSSH", "enableUfwSshPolicy", "ufwAppProfiles", "configureDns", "nameservers", "enableAutoUpdates"}
 	tests := []struct {
 		mock   string
 		set    []string

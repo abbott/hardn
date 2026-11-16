@@ -1,5 +1,7 @@
 # Configuration mock (unit (a))
 
+*Since `next/auto-updates-key` (2026-11-16): the key is `enableAutoUpdates`, which fits the key column; the old name is still read, with a warning.*
+
 *Since `next/config-edit` (2026-11-15; [design-config-edit.md](design-config-edit.md)): the screen edits, and the mocks run on a simulated host (Ubuntu 24.04; Alpine 3.23 for `alpine-tcp`) that a save writes to. Every hardn.yml mock with a file has "Select an option" and `1) Edit a setting`; `none` and `missing` end "File" with "Start hardn again to create one.". New in the listing: `alpine-tcp` (the line under `syslogServers` where busybox syslogd can't use a TCP server) and `edit`, `edit-port`, `edit-yesno`, `edit-username`, `edit-timeout`, `edit-keys`, `edit-ntp`, `edit-syslog`, `edit-syslog-remove`, `edit-changed`, each the real screen with lines typed, stopped before any save. A save is in play only (`play config/etc`, then 1), where the goldens write the backup's random id as `xxxxxxxx`. Decision 5's list of keys to edit is revised by design-config-edit.md decisions 1 and 3: `sshConfigFile` stays read-only. Where this page says read only, or that nothing is read from a host, this note is current.*
 
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the menu's items are hardn.yml, DNS Settings, NTP Settings and Syslog Settings. Kernel Settings is main menu 4.*

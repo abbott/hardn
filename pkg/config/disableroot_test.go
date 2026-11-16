@@ -54,3 +54,63 @@ func TestDisableRoot(t *testing.T) {
 		})
 	}
 }
+
+// TestAutoUpdatesRenamed: enableUnattendedUpgrades is read as
+// enableAutoUpdates, as disableRoot is (renamed), through a merge key too;
+// with both set, enableAutoUpdates wins; with both old names set, two
+// warnings.
+func TestAutoUpdatesRenamed(t *testing.T) {
+	for _, tc := range []struct {
+		name, yaml string
+		want       bool
+		warnings   []string
+	}{
+		{"old name true", "username: alice\nenableUnattendedUpgrades: true\n", true,
+			[]string{"enableUnattendedUpgrades (line 2) is now enableAutoUpdates"}},
+		{"both, enableAutoUpdates false wins", "enableUnattendedUpgrades: true\nenableAutoUpdates: false\n", false,
+			[]string{"enableUnattendedUpgrades (line 1) is now enableAutoUpdates, which this file sets too; enableAutoUpdates is used"}},
+		{"enableAutoUpdates alone", "enableAutoUpdates: true\n", true, nil},
+		{"both old names", "enableUnattendedUpgrades: yes\ndisableRoot: true\n", true,
+			[]string{"disableRoot (line 2) is now disableRootSSH", "enableUnattendedUpgrades (line 1) is now enableAutoUpdates"}},
+		{"old name by a merge key", "base: &b {enableUnattendedUpgrades: true}\n<<: *b\n", true,
+			[]string{"enableUnattendedUpgrades (line 1) is now enableAutoUpdates"}},
+		{"enableAutoUpdates by a merge key wins", "base: &b {enableAutoUpdates: false}\n<<: *b\nenableUnattendedUpgrades: true\n", false,
+			[]string{"enableUnattendedUpgrades (line 3) is now enableAutoUpdates, which this file sets too; enableAutoUpdates is used"}},
+		{"own key wins over a merged one", "base: &b {enableUnattendedUpgrades: false}\n<<: *b\nenableUnattendedUpgrades: true\n", true,
+			[]string{"enableUnattendedUpgrades (line 3) is now enableAutoUpdates"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := DefaultConfig()
+			if err := yaml.Unmarshal([]byte(tc.yaml), c); err != nil {
+				t.Fatal(err)
+			}
+			if c.EnableAutoUpdates != tc.want {
+				t.Errorf("EnableAutoUpdates = %t, want %t", c.EnableAutoUpdates, tc.want)
+			}
+			var got []string
+			for _, d := range c.Deprecations() {
+				got = append(got, d.String())
+			}
+			if strings.Join(got, "\n") != strings.Join(tc.warnings, "\n") {
+				t.Errorf("deprecations %q, want %q", got, tc.warnings)
+			}
+		})
+	}
+	if c := DefaultConfig(); yaml.Unmarshal([]byte("enableUnattendedUpgrades: sometimes\n"), c) == nil {
+		t.Error("enableUnattendedUpgrades: sometimes read with no error")
+	}
+}
+
+// TestAutoUpdatesRenamedEdit: Edit of enableAutoUpdates on a file with
+// only the old name adds the new key, which wins, so false reads back.
+func TestAutoUpdatesRenamedEdit(t *testing.T) {
+	c := load(t, "enableUnattendedUpgrades: true\n")
+	c.EnableAutoUpdates = false
+	out, err := Edit([]byte("enableUnattendedUpgrades: true\n"), c, autoUpdatesKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if back := load(t, string(out)); back.EnableAutoUpdates || !strings.Contains(string(out), "enableAutoUpdates: false") {
+		t.Errorf("Edit wrote %q, which reads back %t", out, back.EnableAutoUpdates)
+	}
+}

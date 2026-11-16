@@ -31,7 +31,7 @@ const etc = "/etc/hardn/hardn.yml"
 
 // typical is a hardn.yml that sets some keys and leaves the rest out.
 const typical = "username: george\nsshKeys:\n  - \"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAISYNTHETICKEY george@laptop-1\"\n" +
-	"sshPort: 2222\ndisableRootSSH: true\nconfigureDns: true\nnameservers:\n  - 192.0.2.53\n  - 192.0.2.54\nenableUnattendedUpgrades: true\n"
+	"sshPort: 2222\ndisableRootSSH: true\nconfigureDns: true\nnameservers:\n  - 192.0.2.53\n  - 192.0.2.54\nenableAutoUpdates: true\n"
 
 // read is yml at path as hardn loads it.
 func read(t *testing.T, path, yml string) *config.Config {
@@ -142,7 +142,7 @@ func TestNoFile(t *testing.T) {
 		}
 		for _, l := range strings.Split(p.out, "\n") {
 			if rest, ok := strings.CutPrefix(l, "   -  "); ok && !strings.HasSuffix(l, "(default)") &&
-				!slices.ContainsFunc([]string{"Path", "From", "hardn is using", "Start hardn again", "sshConfigFile", "enableUnattendedUpgrades"}, func(k string) bool { return strings.HasPrefix(rest, k) }) {
+				!slices.ContainsFunc([]string{"Path", "From", "hardn is using", "Start hardn again", "sshConfigFile"}, func(k string) bool { return strings.HasPrefix(rest, k) }) {
 				t.Errorf("%s: a row that is no default: %q", tt.name, l)
 			}
 		}
@@ -159,7 +159,7 @@ func TestDefaultsMarked(t *testing.T) {
 		"   -  sshPort              2222\n", "   -  disableRootSSH       true\n",
 		"   -  enableUfwSshPolicy   false (default)\n", "   -  ufwAppProfiles       None (default)\n", "   -  ufwTrustedInterfaces None (default)\n",
 		"   -  configureDns         true\n", "   -  nameservers          2: 192.0.2.53, 192.0.2.54\n",
-		"   -  enableUnattendedUpgrades\n      true\n",
+		"   -  enableAutoUpdates    true\n",
 		"   -  enableBackups        true (default)\n", "   -  backupPath           /var/backups/hardn (default)\n",
 		"   -  dryRun               false (default)\n", "   -  confirmTimeout       3m (default)\n")
 	if strings.Contains(p.out, "AAAAC3") || strings.Contains(p.out, "george@laptop-1") {

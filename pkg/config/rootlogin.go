@@ -40,12 +40,11 @@ func (r RootLogin) Valid() bool {
 // the caller shows it as a warning (brief §4: add the new form, and
 // deprecate the old one with a warning).
 type Deprecation struct {
-	Key   string // permitRootLogin, disableRoot
+	Key   string // permitRootLogin, disableRoot, enableUnattendedUpgrades
 	Line  int    // the value's line in the file, 1-based
 	Found string // the value as written, such as false
 	Use   string // what to write instead, which means the same, such as "no"; for a key renamed, the key's new name
-	// Renamed: Key is an old name of the key Use (disableRoot, v0.3.2's
-	// disableRootSSH), read as Use. Shadowed: the file sets Use too, which
+	// Renamed: Key is an old name of the key Use (renamed), read as Use. Shadowed: the file sets Use too, which
 	// wins, so Key's value is not read.
 	Renamed, Shadowed bool
 }
@@ -61,52 +60,97 @@ func (d Deprecation) String() string {
 	return fmt.Sprintf("%s: %s (line %d) is deprecated; write %q, which means the same", d.Key, d.Found, d.Line, d.Use)
 }
 
-// disableRootKey is v0.3.2's name for disableRootSSH (refactor plan §3.11,
-// approved 2026-11-04): read as disableRootSSH, with a Deprecation, where
-// the file does not set disableRootSSH itself; until then it was ignored
-// without a word (V24).
+// renamed is hardn.yml's keys read by an old name too: each old name is
+// read as its new one, with a Deprecation, where the file does not set the
+// new name itself. disableRoot is v0.3.2's name for disableRootSSH
+// (refactor plan §3.11, approved 2026-11-04); until then it was ignored
+// without a word (V24). enableUnattendedUpgrades was too wide for the key
+// column. merge: the names are read through a merge key ("<<") too, as the
+// decoder read the old name when it was a field; disableRoot never was.
+var renamed = []struct {
+	old, new string
+	field    func(*Config) *bool
+	merge    bool
+}{
+	{disableRootKey, disableRootSSHKey, func(c *Config) *bool { return &c.DisableRootSSH }, false},
+	{"enableUnattendedUpgrades", autoUpdatesKey, func(c *Config) *bool { return &c.EnableAutoUpdates }, true},
+}
+
 const (
 	disableRootKey    = "disableRoot"
 	disableRootSSHKey = "disableRootSSH"
+	autoUpdatesKey    = "enableAutoUpdates"
 )
 
-// readDisableRoot reads m's disableRoot, hardn.yml's top-level mapping, as
-// disableRootSSH (disableRootKey), the last value of either winning as
-// the decoder's did; a value that is not a bool is the error a bool field
-// gives.
-func (c *Config) readDisableRoot(m *yaml.Node) []string {
-	var old *yaml.Node
-	shadowed := false
+// readRenamed reads m's old names (renamed), hardn.yml's top-level mapping,
+// as their new ones, the last value of either winning as the decoder's
+// did; a value that is not a bool is the error a bool field gives.
+func (c *Config) readRenamed(m *yaml.Node) []string {
+	var errs []string
+	for _, r := range renamed {
+		old := lookup(m, r.old, r.merge, map[*yaml.Node]bool{})
+		shadowed := lookup(m, r.new, r.merge, map[*yaml.Node]bool{}) != nil
+		if old == nil {
+			continue
+		}
+		v := old
+		for v.Kind == yaml.AliasNode && v.Alias != nil {
+			v = v.Alias
+		}
+		if !shadowed && !(v.Kind == yaml.ScalarNode && v.ShortTag() == "!!null") {
+			var b bool
+			if err := v.Decode(&b); err != nil {
+				var te *yaml.TypeError
+				if errors.As(err, &te) {
+					errs = append(errs, te.Errors...)
+				} else {
+					errs = append(errs, err.Error())
+				}
+				continue
+			}
+			*r.field(c) = b
+		}
+		c.loaded.deprecations = append(c.loaded.deprecations, Deprecation{Key: r.old, Line: old.Line, Found: old.Value,
+			Use: r.new, Renamed: true, Shadowed: shadowed})
+	}
+	return errs
+}
+
+// lookup is key's value node in m, a mapping: the last of a repeated key;
+// with merge, as readSet reads a merge key: m's own key wins, a null too,
+// then the first mapping merged that has it. nil for none. in holds the
+// mappings being read, so that one that merges itself ends.
+func lookup(m *yaml.Node, key string, merge bool, in map[*yaml.Node]bool) *yaml.Node {
+	if m.Kind == yaml.AliasNode && m.Alias != nil {
+		m = m.Alias
+	}
+	if m.Kind != yaml.MappingNode || in[m] {
+		return nil
+	}
+	in[m] = true
+	defer delete(in, m)
+	var v, merged *yaml.Node
 	for i := 0; i+1 < len(m.Content); i += 2 {
 		switch k := m.Content[i]; {
 		case k.Kind != yaml.ScalarNode:
-		case k.Value == disableRootKey:
-			old = m.Content[i+1]
-		case k.Value == disableRootSSHKey:
-			shadowed = true
+		case k.Value == key:
+			v = m.Content[i+1]
+		case merge && isMerge(k):
+			merged = m.Content[i+1]
 		}
 	}
-	if old == nil {
+	switch {
+	case v != nil || merged == nil:
+		return v
+	case merged.Kind == yaml.SequenceNode:
+		for _, n := range merged.Content {
+			if v := lookup(n, key, merge, in); v != nil {
+				return v
+			}
+		}
 		return nil
 	}
-	v := old
-	for v.Kind == yaml.AliasNode && v.Alias != nil {
-		v = v.Alias
-	}
-	if !shadowed && !(v.Kind == yaml.ScalarNode && v.ShortTag() == "!!null") {
-		var b bool
-		if err := v.Decode(&b); err != nil {
-			var te *yaml.TypeError
-			if errors.As(err, &te) {
-				return te.Errors
-			}
-			return []string{err.Error()}
-		}
-		c.DisableRootSSH = b
-	}
-	c.loaded.deprecations = append(c.loaded.deprecations, Deprecation{Key: disableRootKey, Line: old.Line, Found: old.Value,
-		Use: disableRootSSHKey, Renamed: true, Shadowed: shadowed})
-	return nil
+	return lookup(merged, key, merge, in)
 }
 
 // loaded is what the YAML said beyond Config's fields, and where it was.
@@ -189,7 +233,7 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 	}
 	c.loaded.dryRun, c.loaded.username = c.DryRun, c.Username
 	if n.Kind == yaml.MappingNode {
-		errs = append(errs, c.readDisableRoot(n)...)
+		errs = append(errs, c.readRenamed(n)...)
 	}
 	if len(values) > 0 {
 		var te *yaml.TypeError

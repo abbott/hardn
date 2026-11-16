@@ -16,7 +16,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM: no␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPAM, root "!", george in wheel, no ufw, no apk-cron.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml: george with a key, port 22, two nameservers,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableUnattendedUpgrades, enableUfwSshPolicy,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableAutoUpdates, enableUfwSshPolicy,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigureDns and disableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -237,7 +237,7 @@ $
 # web-01.example.net runs Alpine 3.23 (OpenRC). As the VM: no$
 # PAM, root "!", george in wheel, no ufw, no apk-cron.$
 # hardn.yml: george with a key, port 22, two nameservers,$
-# backups on, and enableUnattendedUpgrades, enableUfwSshPolicy,$
+# backups on, and enableAutoUpdates, enableUfwSshPolicy,$
 # configureDns and disableRootSSH true.$
 $
 # Run All ######################################################$
@@ -459,8 +459,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno PAM, root "!", george in wheel, no ufw, no apk-cron.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml: george with a key, port 22, two nameservers,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableUnattendedUpgrades,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUfwSshPolicy, configureDns and disableRootSSH true.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableAutoUpdates, enableUfwSshPolicy,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigureDns and disableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

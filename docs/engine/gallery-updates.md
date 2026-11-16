@@ -1,5 +1,7 @@
 # Auto Updates mock (slice 7, unit (a))
 
+*Since `next/auto-updates-key` (2026-11-16): the key is `enableAutoUpdates`, which fits the key column; the old name is still read, with a warning.*
+
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): main menu 5 reads "Enable automatic updates", and on Proxmox VE "Configure automatic updates" as before. The row weighs 15, not 20.*
 
 Unit (a) of slice 7, `next/s7-gallery`, adopted 2026-11-03; since unit (b), `next/s7-control`, it runs on the real control. The screen is still the gallery's (unit (c)); the mock is in `internal/tools/uigallery` (`updates.go`, `updateshost.go`).

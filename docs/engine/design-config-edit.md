@@ -70,7 +70,7 @@ Proposed words throughout. The hardn.yml screen, its rows as today, with one ite
    9) kernel               false
   10) confirmTimeout       3m
   11) checkReleases        false
-  12) enableUnattendedUpgrades  false
+  12) enableAutoUpdates    false
 
    0) Return
 
@@ -251,7 +251,7 @@ Editing (1 to 7), then first run (8 to 12). Gates come first in each part.
 
 1. **A refused save is the flow's report**, as on every screen: "Operation Failed", the refusal and its code, "To go on: ...". §3's "Warning ... Nothing was saved." is not drawn.
 2. **The prompts carry the kit's hint:** "Enter SSH port [2222] [0 or q]:". A form of several fields numbers them ("1. Enter syslog server").
-3. **`enableUnattendedUpgrades` keeps its value on its line** ("12) enableUnattendedUpgrades  false"), as §3 draws it: `component.Menu` would otherwise stack every item.
+3. **`enableUnattendedUpgrades` keeps its value on its line** ("12) enableUnattendedUpgrades  false"), as §3 draws it: `component.Menu` would otherwise stack every item. *Since 2026-11-16 the key is `enableAutoUpdates`, which fits; the rule stays for a key that does not.*
 4. **A list's rows sit under a section,** "Servers" or "Keys": the kit draws no rows without one. Remove shows only where the list has an entry.
 5. **Field words.** "Enter username (Enter for none)", "Enter confirm timeout (Enter for 3m)", "Enter SSH public key", "Enter NTP server", "Enter syslog server", "Enter protocol [tcp]", "Enter port [514]" (6514 for tls), "Enter CA file", "Select a key to remove", "Select a server to remove".
 6. **Refusals.** §3's for a port and IPv6; "Not an IPv4 address or a host name"; "Not a time of 1m or more, such as 90s or 5m"; "Not an SSH public key hardn takes"; "This key is in sshKeys already" (a warning); "Not udp, tcp or tls"; the user-name form's words from User Management; the rest are `Resolve`'s own, without the number of the entry typed ("The same address and port as server 1", "TLS needs caFile"); a fault of an entry the file already holds keeps its number ("Server 1: tls needs caFile").

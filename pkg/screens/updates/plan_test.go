@@ -20,7 +20,7 @@ import (
 // hardnYML is the loaded hardn.yml's path.
 const hardnYML = "/etc/hardn/hardn.yml"
 
-// TestSaveAdopted: on a loaded hardn.yml saying enableUnattendedUpgrades
+// TestSaveAdopted: on a loaded hardn.yml saying enableAutoUpdates
 // true, Disable saves it false, its review naming the save; then Enable,
 // then Disable again, each applying, the file and the configuration in
 // memory agreeing after each (screenkit.Adopt), so that no save is refused
@@ -28,7 +28,7 @@ const hardnYML = "/etc/hardn/hardn.yml"
 func TestSaveAdopted(t *testing.T) {
 	ctx := context.Background()
 	m := newHost(t, "by-hardn-debian")
-	m.f.AddFile(hardnYML, []byte("# hardn's configuration (web-01.example.net)\nusername: alice\nenableUnattendedUpgrades: true\n"), 0o600, 0, 0)
+	m.f.AddFile(hardnYML, []byte("# hardn's configuration (web-01.example.net)\nusername: alice\nenableAutoUpdates: true\n"), 0o600, 0, 0)
 	cfg, err := config.Read(ctx, m.f, hardnYML)
 	if err != nil {
 		t.Fatal(err)
@@ -36,8 +36,8 @@ func TestSaveAdopted(t *testing.T) {
 	agree := func(after string) {
 		t.Helper()
 		data, err := m.f.ReadFile(ctx, hardnYML)
-		if err != nil || !cfg.LoadedFrom(data) || cfg.EnableUnattendedUpgrades || !strings.Contains(string(data), "enableUnattendedUpgrades: false") {
-			t.Errorf("after %s: the file %q (%v), in memory %v, loaded from it %v", after, data, err, cfg.EnableUnattendedUpgrades, cfg.LoadedFrom(data))
+		if err != nil || !cfg.LoadedFrom(data) || cfg.EnableAutoUpdates || !strings.Contains(string(data), "enableAutoUpdates: false") {
+			t.Errorf("after %s: the file %q (%v), in memory %v, loaded from it %v", after, data, err, cfg.EnableAutoUpdates, cfg.LoadedFrom(data))
 		}
 	}
 	engines := 0

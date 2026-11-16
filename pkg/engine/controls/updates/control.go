@@ -31,7 +31,7 @@ const (
 	// apk-cron and crond, then the record.
 	AutoOn
 	// AutoOff undoes what the record says hardn did, saves
-	// enableUnattendedUpgrades false and deletes the record.
+	// enableAutoUpdates false and deletes the record.
 	AutoOff
 )
 
@@ -47,7 +47,7 @@ const (
 	// Package is the package apt's upgrades need.
 	Package = unattended
 	// Setting is hardn.yml's key off saves as false (decision 2).
-	Setting = "enableUnattendedUpgrades"
+	Setting = "enableAutoUpdates"
 
 	hardnHead    = "// Written by hardn (Auto Updates).\n"
 	upgradeTimer = upgradeJob + ".timer"

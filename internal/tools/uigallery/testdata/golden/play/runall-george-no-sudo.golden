@@ -16,7 +16,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 where george has␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys and no sudo rule, alice the admin; hardn through su from␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgeorge's session. hardn.yml: george with a key, port 22, two␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnameservers, backups on, and enableUnattendedUpgrades,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnameservers, backups on, and enableAutoUpdates,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUfwSshPolicy, configureDns and disableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -119,7 +119,7 @@ $
 # web-01.example.net runs Debian 13. debian13 where george has$
 # keys and no sudo rule, alice the admin; hardn through su from$
 # george's session. hardn.yml: george with a key, port 22, two$
-# nameservers, backups on, and enableUnattendedUpgrades,$
+# nameservers, backups on, and enableAutoUpdates,$
 # enableUfwSshPolicy, configureDns and disableRootSSH true.$
 $
 # Run All ######################################################$
@@ -224,8 +224,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas keys and no sudo rule, alice the admin; hardn through␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msu from george's session. hardn.yml: george with a key,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -49,8 +49,7 @@ $
 $
   ␛[1;38;2;129;134;156mAuto Updates␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
-      ␛[38;2;129;134;156mtrue␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -96,7 +95,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -146,7 +145,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -159,7 +158,7 @@ $
       ␛[38;2;86;91;107m@@ -14,3 +14,4 @@␛[m$
       ␛[38;2;129;134;156m   - 1.1.1.1␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;112;212;127m+kernel: true␛[m$
 $
   ␛[38;2;192;196;216mSave kernel: true?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
@@ -186,7 +185,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mtrue␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -212,7 +211,7 @@ $
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
       ␛[38;2;86;91;107m@@ -15,3 +15,5 @@␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;129;134;156m kernel: true␛[m$
       ␛[38;2;112;212;127m+ntpServers:␛[m$
       ␛[38;2;112;212;127m+  - "192.0.2.10"␛[m$
@@ -254,7 +253,7 @@ $
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
       ␛[38;2;86;91;107m@@ -15,5 +15,4 @@␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;129;134;156m kernel: true␛[m$
       ␛[38;2;231;70;105m-ntpServers:␛[m$
       ␛[38;2;231;70;105m-  - "192.0.2.10"␛[m$
@@ -296,7 +295,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mtrue␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -335,8 +334,7 @@ $
 $
   ␛[1;38;2;129;134;156mAuto Updates␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
-      ␛[38;2;129;134;156mtrue␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -451,8 +449,7 @@ $
 $
   Auto Updates -------------------------------------------------$
 $
-   -  enableUnattendedUpgrades$
-      true$
+   -  enableAutoUpdates    true$
 $
   Syslog -------------------------------------------------------$
 $
@@ -498,7 +495,7 @@ $
    9) kernel               false$
   10) confirmTimeout       3m$
   11) checkReleases        false$
-  12) enableUnattendedUpgrades  true$
+  12) enableAutoUpdates    true$
 $
    0) Return$
 $
@@ -548,7 +545,7 @@ $
    9) kernel               false$
   10) confirmTimeout       3m$
   11) checkReleases        false$
-  12) enableUnattendedUpgrades  true$
+  12) enableAutoUpdates    true$
 $
    0) Return$
 $
@@ -561,7 +558,7 @@ $
       @@ -14,3 +14,4 @@$
          - 1.1.1.1$
          - 1.0.0.1$
-       enableUnattendedUpgrades: true$
+       enableAutoUpdates: true$
       +kernel: true$
 $
   Save kernel: true? [y/N, 0 or q]: y$
@@ -588,7 +585,7 @@ $
    9) kernel               true$
   10) confirmTimeout       3m$
   11) checkReleases        false$
-  12) enableUnattendedUpgrades  true$
+  12) enableAutoUpdates    true$
 $
    0) Return$
 $
@@ -614,7 +611,7 @@ $
       /etc/hardn/hardn.yml$
       @@ -15,3 +15,5 @@$
          - 1.0.0.1$
-       enableUnattendedUpgrades: true$
+       enableAutoUpdates: true$
        kernel: true$
       +ntpServers:$
       +  - "192.0.2.10"$
@@ -656,7 +653,7 @@ $
       /etc/hardn/hardn.yml$
       @@ -15,5 +15,4 @@$
          - 1.0.0.1$
-       enableUnattendedUpgrades: true$
+       enableAutoUpdates: true$
        kernel: true$
       -ntpServers:$
       -  - "192.0.2.10"$
@@ -698,7 +695,7 @@ $
    9) kernel               true$
   10) confirmTimeout       3m$
   11) checkReleases        false$
-  12) enableUnattendedUpgrades  true$
+  12) enableAutoUpdates    true$
 $
    0) Return$
 $
@@ -737,8 +734,7 @@ $
 $
   Auto Updates -------------------------------------------------$
 $
-   -  enableUnattendedUpgrades$
-      true$
+   -  enableAutoUpdates    true$
 $
   Syslog -------------------------------------------------------$
 $
@@ -866,7 +862,7 @@ $
 $
   ␛[1;38;2;129;134;156mAuto Updates␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableAutoUpdates␛[m$
       ␛[38;2;129;134;156mtrue␛[m$
 $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -933,7 +929,8 @@ $
       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -995,7 +992,8 @@ $
       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -1008,7 +1006,7 @@ $
       ␛[38;2;86;91;107m@@ -14,3 +14,4 @@␛[m$
       ␛[38;2;129;134;156m   - 1.1.1.1␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;112;212;127m+kernel: true␛[m$
 $
   ␛[38;2;192;196;216mSave kernel: true?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
@@ -1047,7 +1045,8 @@ $
       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -1074,7 +1073,7 @@ $
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
       ␛[38;2;86;91;107m@@ -15,3 +15,5 @@␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;129;134;156m kernel: true␛[m$
       ␛[38;2;112;212;127m+ntpServers:␛[m$
       ␛[38;2;112;212;127m+  - "192.0.2.10"␛[m$
@@ -1118,7 +1117,7 @@ $
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
       ␛[38;2;86;91;107m@@ -15,5 +15,4 @@␛[m$
       ␛[38;2;129;134;156m   - 1.0.0.1␛[m$
-      ␛[38;2;129;134;156m enableUnattendedUpgrades: true␛[m$
+      ␛[38;2;129;134;156m enableAutoUpdates: true␛[m$
       ␛[38;2;129;134;156m kernel: true␛[m$
       ␛[38;2;231;70;105m-ntpServers:␛[m$
       ␛[38;2;231;70;105m-  - "192.0.2.10"␛[m$
@@ -1173,7 +1172,8 @@ $
       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -1224,7 +1224,7 @@ $
 $
   ␛[1;38;2;129;134;156mAuto Updates␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableAutoUpdates␛[m$
       ␛[38;2;129;134;156mtrue␛[m$
 $
   ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$

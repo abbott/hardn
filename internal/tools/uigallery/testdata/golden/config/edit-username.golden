@@ -23,7 +23,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -72,7 +72,7 @@ $
    9) kernel               false$
   10) confirmTimeout       3m$
   11) checkReleases        false$
-  12) enableUnattendedUpgrades  true$
+  12) enableAutoUpdates    true$
 $
    0) Return$
 $
@@ -132,7 +132,8 @@ $
       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -181,7 +182,7 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableAutoUpdates␛[m    ␛[38;2;129;134;156mtrue␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $

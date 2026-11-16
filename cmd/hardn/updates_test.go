@@ -22,7 +22,7 @@ import (
 // The Auto Updates item's tests (refactor plan slice 7, unit (d)): the
 // Auto Updates screen on the DNS tests' Alpine 3.24 host (dns_test.go),
 // apk-cron not installed and crond stopped, its hardn.yml saying
-// enableUnattendedUpgrades true; apk, rc-service and rc-update answered as
+// enableAutoUpdates true; apk, rc-service and rc-update answered as
 // the screen's model answers them (pkg/screens/updates/fake_test.go).
 // Synthetic values only.
 
@@ -37,7 +37,7 @@ type updatesHost struct {
 }
 
 // newUpdatesHost returns the host, and its hardn.yml as hardn reads it,
-// enableUnattendedUpgrades true.
+// enableAutoUpdates true.
 func newUpdatesHost(t *testing.T) (*updatesHost, *config.Config) {
 	t.Helper()
 	d, _ := newDNSHost(t, "alpine324", dnsTestList)
@@ -52,11 +52,11 @@ func newUpdatesHost(t *testing.T) (*updatesHost, *config.Config) {
 	h.AddDir("/etc/runlevels/default", 0o755, 0, 0)
 	h.AddDir("/proc", 0o555, 0, 0)
 	h.AddFile(header.UptimeFile, []byte("259200.00 518400.00\n"), 0o444, 0, 0)
-	h.AddFile(dnsTestYML, []byte(h.content(dnsTestYML)+"enableUnattendedUpgrades: true\n"), 0o644, 0, 0)
+	h.AddFile(dnsTestYML, []byte(h.content(dnsTestYML)+"enableAutoUpdates: true\n"), 0o644, 0, 0)
 	h.Handler = h.answer
 	cfg, err := config.Read(context.Background(), h, dnsTestYML)
-	if err != nil || !cfg.EnableUnattendedUpgrades {
-		t.Fatalf("hardn.yml: %v, enableUnattendedUpgrades %t", err, cfg != nil && cfg.EnableUnattendedUpgrades)
+	if err != nil || !cfg.EnableAutoUpdates {
+		t.Fatalf("hardn.yml: %v, enableAutoUpdates %t", err, cfg != nil && cfg.EnableAutoUpdates)
 	}
 	return h, cfg
 }
@@ -113,7 +113,7 @@ func (h *updatesHost) answer(argv []string, stdin []byte) hostfake.Response {
 // on the configuration main gives it and hardn's version: Enable applies,
 // apk-cron installed and crond started, the control's record carrying
 // that version, hardn.yml not saved; at the next visit Disable applies, saves
-// enableUnattendedUpgrades false through the control's plan, its backup
+// enableAutoUpdates false through the control's plan, its backup
 // under /var/backups/hardn, and the main menu's configuration adopts the
 // save (screenkit.Adopt), so that the next save is not refused
 // CONFIG_CHANGED; 0 goes back (nil). The signals are registered for each
@@ -153,8 +153,8 @@ func TestUpdatesHook(t *testing.T) {
 		t.Errorf("after Disable: apk-cron installed %t, crond started %t", h.apkCron, h.crond)
 	}
 	yml = h.content(dnsTestYML)
-	if cfg.EnableUnattendedUpgrades || !strings.Contains(yml, "enableUnattendedUpgrades: false") || !cfg.LoadedFrom([]byte(yml)) {
-		t.Errorf("the main menu's configuration says enableUnattendedUpgrades %t, loaded from hardn.yml %t:\n%s", cfg.EnableUnattendedUpgrades, cfg.LoadedFrom([]byte(yml)), yml)
+	if cfg.EnableAutoUpdates || !strings.Contains(yml, "enableAutoUpdates: false") || !cfg.LoadedFrom([]byte(yml)) {
+		t.Errorf("the main menu's configuration says enableAutoUpdates %t, loaded from hardn.yml %t:\n%s", cfg.EnableAutoUpdates, cfg.LoadedFrom([]byte(yml)), yml)
 	}
 	if !strings.HasPrefix(yml, "# hardn's configuration") || !strings.Contains(yml, "nameservers:\n  - 192.0.2.53\n") {
 		t.Errorf("hardn.yml's other lines not kept:\n%s", yml)
@@ -196,8 +196,8 @@ func TestUpdatesScreen(t *testing.T) {
 			if got := h.writes(); len(got) > 0 || h.apkCron || h.crond || s.applies != 0 {
 				t.Errorf("wrote %q, apk-cron %t, crond %t, %d applies", got, h.apkCron, h.crond, s.applies)
 			}
-			if !cfg.EnableUnattendedUpgrades {
-				t.Error("the main menu's configuration says enableUnattendedUpgrades false")
+			if !cfg.EnableAutoUpdates {
+				t.Error("the main menu's configuration says enableAutoUpdates false")
 			}
 		})
 	}

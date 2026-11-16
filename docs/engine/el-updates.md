@@ -63,7 +63,7 @@ With no record, Off has nothing to undo (`UPDATES_NOTHING_TO_UNDO`), as on Alpin
 ### 1.4 Elsewhere
 
 - **The screen:** rows dnf-automatic, Install Timer (the timer the row reads: `dnf-automatic.timer` where it installs updates), Updates ("Security only" or "All updates"), Restarts (where `reboot` isn't never, a warning), Turned on by. Item words: "Daily security updates, by dnf-automatic" and "Install dnf-automatic" (proposed).
-- **Run All:** its Auto Updates row turns on dnf-automatic there when `enableUnattendedUpgrades` asks, as it turns on unattended-upgrades elsewhere. The key names a policy, not a tool. That is my call; say if you'd rather it left the row to the screen.
+- **Run All:** its Auto Updates row turns on dnf-automatic there when `enableAutoUpdates` asks, as it turns on unattended-upgrades elsewhere. The key names a policy, not a tool. That is my call; say if you'd rather it left the row to the screen.
 - **p4status:** allows `rpm -q dnf-automatic` and the two timers' `is-active` and `is-enabled`.
 
 ## 2. API

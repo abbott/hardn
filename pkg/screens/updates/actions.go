@@ -28,12 +28,12 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// edit sets in cfg what action saves: enableUnattendedUpgrades false at
+// edit sets in cfg what action saves: enableAutoUpdates false at
 // off, which the control saves where the loaded hardn.yml says true; on
 // saves nothing.
 func edit(action updatesctl.AutoAction, cfg *config.Config) {
 	if action == updatesctl.AutoOff {
-		cfg.EnableUnattendedUpgrades = false
+		cfg.EnableAutoUpdates = false
 	}
 }
 
