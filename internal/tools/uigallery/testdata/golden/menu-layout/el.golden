@@ -20,12 +20,12 @@ $
    ␛[38;2;112;212;127m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;112;212;127mLow␛[m ␛[38;2;86;91;107m≈ strong security␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
-                             ␛[38;2;219;184;83m~ No password to become root␛[m$
+                             ␛[38;2;219;184;83m~ passwordless sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m6 items applied␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdnf-automatic, security␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107muses SELinux␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;86;91;107muses SELinux␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -66,12 +66,12 @@ $
   [*] Risk Level           Low ~ strong security$
 $
   [+] User                 + non-root, sudo$
-                             ~ No password to become root$
+                             ~ passwordless sudo$
   [+] SSH                  + key-only, no root, port 2230$
   [+] Firewall             + firewalld running$
   [+] Kernel               + 6 items applied$
   [+] Auto Updates         + dnf-automatic, security$
-  [-] AppArmor             Not Applicable uses SELinux$
+  [-] AppArmor             uses SELinux$
 $
 ----------------------------------------------------------------$
 $
@@ -116,7 +116,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
-        ␛[38;2;219;184;83m~ No password to become root␛[m$
+        ␛[38;2;219;184;83m~ passwordless sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
@@ -126,7 +126,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdnf-automatic, security␛[m$
    ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107muses SELinux␛[m$
+      ␛[38;2;86;91;107muses SELinux␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -179,12 +179,12 @@ $
   ␛[38;2;112;212;127m[*]␛[m ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;112;212;127mLow␛[m ␛[38;2;86;91;107m~ strong security␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
-                             ␛[38;2;219;184;83m~ No password to become root␛[m$
+                             ␛[38;2;219;184;83m~ passwordless sudo␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m6 items applied␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdnf-automatic, security␛[m$
-  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107muses SELinux␛[m$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;86;91;107muses SELinux␛[m$
 $
 ␛[38;2;22;24;29m----------------------------------------------------------------␛[m$
 $

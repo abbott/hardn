@@ -64,7 +64,7 @@ func TestHosts(t *testing.T) {
 		}
 		for _, dryRun := range []bool{false, true} {
 			m := newHost(t, name)
-			if name != "pve9" { // Not Applicable there: the engine never checks it
+			if name != "pve9" { // there: the engine never checks it
 				if st, err := (updatesctl.Auto{}).Check(ctx, m.f, m.facts); (err != nil) != (name == "not-read") || st.Detail != w.detail {
 					t.Errorf("%s: the check reads %q, %v; want %q", name, st.Detail, err, w.detail)
 				}
@@ -195,7 +195,7 @@ func TestApplyRocky(t *testing.T) {
 				"$ systemctl enable dnf-automatic-install.timer", "$ systemctl start dnf-automatic-install.timer", "Record hardn's changes"},
 			[]string{"dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic", "write-atomic " + dnfauto.Conf,
 				"systemctl enable " + dnfauto.InstallTimer, "systemctl start " + dnfauto.InstallTimer, "write-atomic " + recordPath}},
-		{askOff, enable, "Not Configured no dnf-automatic",
+		{askOff, enable, "Review ~ no dnf-automatic",
 			[]string{"Turn off daily updates", "$ systemctl stop dnf-automatic-install.timer", "$ systemctl disable dnf-automatic-install.timer",
 				"Put back the update type", "-upgrade_type = security", "+upgrade_type = default", "Remove dnf-automatic", "Delete hardn's record"},
 			[]string{"systemctl stop " + dnfauto.InstallTimer, "systemctl disable " + dnfauto.InstallTimer, "write-atomic " + dnfauto.Conf,

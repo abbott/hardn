@@ -30,18 +30,18 @@ func TestSysctlMocks(t *testing.T) {
 		has, lack []string
 	}{
 		{"menu", []string{"4) Kernel               Harden sysctl (network, kernel)", "8) Configuration        hardn.yml, dns, ntp, syslog"}, []string{"Kernel Settings"}},
-		{"default", []string{"Not Configured 4 to set", "[ ] ICMP redirects       1 accepted, hardn sets 0", "[ ] Process tracing      0 unrestricted, hardn sets 1",
+		{"default", []string{"Review ~ 4 unset", "[ ] ICMP redirects       1 accepted, hardn sets 0", "[ ] Process tracing      0 unrestricted, hardn sets 1",
 			"[+] Reverse-path filter  1 strict", " -  Forwarding           0 off", "1) Apply settings       Set 4 settings", "[0-1 or q]"}, []string{" -  File ", "Remove settings"}},
 		{"configured", []string{"+ 4 items applied", "[+] ICMP redirects       0 ignored", "Set by hardn -", " -  File                 " + sysctl.File, "1) Remove settings      Undo hardn's change"},
 			[]string{"[ ]", "Apply settings", "At boot"}},
-		{"overridden", []string{"Partial 1 set outside hardn", "[ ] ICMP redirects       1 accepted, set in 99-sysctl.conf", "1) Remove settings"}, []string{"Apply settings", "hardn sets"}},
+		{"overridden", []string{"Partial ~ 1 set outside hardn", "[ ] ICMP redirects       1 accepted, set in 99-sysctl.conf", "1) Remove settings"}, []string{"Apply settings", "hardn sets"}},
 		{"routes", []string{" -  Sending redirects    1 on, left alone: this host routes", " -  Reverse-path filter  2 loose, left alone: this host routes", " -  Forwarding           1 on: this host routes",
 			"[ ] IPv6 redirects       1 accepted, hardn sets 0", "[+] Performance events   3 limited", "Set 4 settings"}, []string{"Sending redirects    1 on, hardn sets"}},
 		{"pve", []string{" -  Sending redirects    1 on, left alone: Proxmox VE", " -  Forwarding           0 off", "Set 4 settings"}, []string{"this host routes"}},
-		{"container", []string{"Not Applicable in a container", " -  Process tracing      0 unrestricted", "In a container: hardn sets none of these.", "Not in a container", "[-] Unavailable", "[0 or q]"},
+		{"container", []string{"in a container", " -  Process tracing      0 unrestricted", "In a container: hardn sets none of these.", "Not in a container", "[-] Unavailable", "[0 or q]"},
 			[]string{"[ ]", "[+]", ", hardn sets"}},
-		{"alpine", []string{"Not Configured 6 to set", "[ ] FIFOs in /tmp        0 not protected, hardn sets 1", "[ ] IPv6 redirects       1 accepted, hardn sets 0", "[+] Unprivileged BPF     1 off"}, nil},
-		{"alpine-not-at-boot", []string{"Partial not set at boot", "[ ] At boot              Not set: sysctl service not enabled", " -  To fix               rc-update add sysctl boot",
+		{"alpine", []string{"Review ~ 6 unset", "[ ] FIFOs in /tmp        0 not protected, hardn sets 1", "[ ] IPv6 redirects       1 accepted, hardn sets 0", "[+] Unprivileged BPF     1 off"}, nil},
+		{"alpine-not-at-boot", []string{"Partial ~ not set at boot", "[ ] At boot              Not set: sysctl service not enabled", " -  To fix               rc-update add sysctl boot",
 			"[+] ICMP redirects       0 ignored", "1) Remove settings"}, []string{"Apply settings"}},
 		{"review", []string{"# Apply settings #", "+" + strings.TrimSpace(sysctl.Header), "+# before: net.ipv6.conf.eth0.accept_redirects = 1", "+net.ipv4.conf.*.accept_redirects = 0",
 			"+net.ipv6.conf.*.accept_redirects = 0", "+net.ipv4.conf.*.send_redirects = 0", "+kernel.yama.ptrace_scope = 1", "$ sysctl -w net.ipv6.conf.eth0.accept_redirects=0", "$ sysctl -w kernel.yama.ptrace_scope=1", "gdb -p", "Apply kernel settings? [y/N, 0 or q]:"},
@@ -118,13 +118,13 @@ func TestSysctlUsage(t *testing.T) {
 // the plan. No command goes unanswered.
 func TestPlaySysctl(t *testing.T) {
 	code, out, errs, unread := playGallery([]string{"4", "1", "y", "1", "y", "0", "0"}, "-profile", "plain")
-	for _, want := range []string{"Info: " + ksMainHost, "Not Configured 4 to set", "Apply kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=1", "+ 4 items applied",
+	for _, want := range []string{"Info: " + ksMainHost, "Review ~ 4 unset", "Apply kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=1", "+ 4 items applied",
 		"[+] ICMP redirects       0 ignored", "1) Remove settings      Undo hardn's change", "Remove hardn's kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=0"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("play, 4: no %q", want)
 		}
 	}
-	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") || strings.Count(out, "Not Configured 4 to set") != 2 {
+	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") || strings.Count(out, "Review ~ 4 unset") != 2 {
 		t.Errorf("play, 4: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	// The row's count is the settings hardn's file sets, not its lines:
@@ -138,7 +138,7 @@ func TestPlaySysctl(t *testing.T) {
 		}
 	}
 	code, out, errs, unread = playGallery([]string{"1", "y", "0"}, "-profile", "plain", ksPrefix+"/alpine-service-off")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Partial not set at boot") || !strings.Contains(out, "To fix               rc-update add sysctl boot") || strings.Contains(out, "$ rc-update") {
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Partial ~ not set at boot") || !strings.Contains(out, "To fix               rc-update add sysctl boot") || strings.Contains(out, "$ rc-update") {
 		t.Errorf("play sysctl/alpine-service-off: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, errs, unread = playGallery([]string{"1", "0"}, "-profile", "plain", "-sequence", "dry-run", ksMainHost)

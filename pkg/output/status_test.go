@@ -444,11 +444,13 @@ func TestFactorLines(t *testing.T) {
 		name    string
 		reports []engine.Report
 		h       header.Header
+		doas    bool // the User row names doas
 	}{
-		{"every kind", every, long},
-		{"figma", figmaReports(), upFor(figmaUptime)},
-		{"nothing read", nil, header.Header{}},
-		{"a grant not read", notRead, upFor(time.Hour)},
+		{"every kind", every, long, false},
+		{"figma", figmaReports(), upFor(figmaUptime), false},
+		{"nothing read", nil, header.Header{}, false},
+		{"a grant not read", notRead, upFor(time.Hour), false},
+		{"doas", replaced(figmaReports(), row("users.admin", "User", engine.Configured, "non-root, doas", users.CodeNoPassword)), upFor(time.Hour), true},
 	} {
 		l := risk.Assess(c.reports, c.h)
 		v := output.StatusViewOf(c.reports, l)
@@ -468,7 +470,14 @@ func TestFactorLines(t *testing.T) {
 				t.Errorf("%s: %s %q under %q, a row the main menu does not show", c.name, f.Kind, f.Detail, f.Control)
 			default:
 				// A line the SSH controls share is under their row once.
-				if line := (component.StatusLine{Text: f.Detail, Warn: f.Established}); !slices.Contains(want[titles[f.Control]], line) {
+				text := f.Detail
+				if f.Kind == risk.KindNoPassword && f.Established {
+					text = "passwordless sudo" // the row's words; doas where the row names it
+					if c.doas {
+						text = "passwordless doas"
+					}
+				}
+				if line := (component.StatusLine{Text: text, Warn: f.Established}); !slices.Contains(want[titles[f.Control]], line) {
 					want[titles[f.Control]] = append(want[titles[f.Control]], line)
 				}
 			}
@@ -481,6 +490,36 @@ func TestFactorLines(t *testing.T) {
 	}
 	if len(kinds) != 8 {
 		t.Errorf("%d kinds drawn, want 8", len(kinds))
+	}
+}
+
+// TestPasswordlessTool: the line under the User row names the tool the
+// USERS_NOPASSWD findings name, not the one the row's detail names (the
+// first that grants root, which may ask a password): both where both do;
+// the detail's where no finding names one, else sudo.
+func TestPasswordlessTool(t *testing.T) {
+	for _, c := range []struct {
+		detail   string
+		findings []string
+		want     string
+	}{
+		{"non-root, sudo", []string{"alice: doas without password"}, "passwordless doas"},
+		{"non-root, doas", []string{"alice: sudo without password"}, "passwordless sudo"},
+		{"non-root, sudo", []string{"alice: sudo without password", "bob: doas without password"}, "passwordless sudo, doas"},
+		{"non-root, sudo", []string{"alice: sudo without password", "bob: sudo without password"}, "passwordless sudo"},
+		{"non-root, doas", []string{"synthetic"}, "passwordless doas"},
+		{"2 admins", []string{"synthetic"}, "passwordless sudo"},
+	} {
+		r := row("users.admin", "User", engine.Configured, c.detail)
+		for _, d := range c.findings {
+			r.Status.Findings = append(r.Status.Findings, engine.Finding{Code: users.CodeNoPassword, Detail: d})
+		}
+		rs := replaced(figmaReports(), r)
+		v := output.StatusViewOf(rs, risk.Assess(rs, upFor(time.Hour)))
+		i := slices.IndexFunc(v.Status.Rows, func(x component.StatusRow) bool { return x.Label == "User" })
+		if want := []component.StatusLine{{Text: c.want, Warn: true}}; !slices.Equal(v.Status.Rows[i].Lines, want) {
+			t.Errorf("%s, %v: %+v, want %+v", c.detail, c.findings, v.Status.Rows[i].Lines, want)
+		}
 	}
 }
 
@@ -537,6 +576,38 @@ func TestRiskFindings(t *testing.T) {
 	}
 	if d.Result.ExitCode != output.ExitChanges {
 		t.Errorf("exit %d: the level changes no exit status", d.Result.ExitCode)
+	}
+}
+
+// TestRowWords: the status rows say "no ufw" and "N unset" for the
+// controls' "ufw not installed" and "N to set", on the main menu and a
+// screen's own row; the report's rows keep the controls' words, and so
+// does any other control with the same detail (gallery-menu-layout.md §8).
+func TestRowWords(t *testing.T) {
+	fw := row(firewall.ID, "Firewall", engine.NotConfigured, firewall.DetailNoUFW)
+	kernel := row(kernelsettings.ID, "Kernel", engine.Partial, "3 to set")
+	other := row(apparmor.ID, "AppArmor", engine.NotConfigured, "3 to set")
+	reports := []engine.Report{fw, kernel, other}
+	want := map[string]string{"Firewall": "no ufw", "Kernel": "3 unset", "AppArmor": "3 to set"}
+	for _, r := range reports {
+		if got := output.StatusRowOf(r); got.Detail != want[r.Title] {
+			t.Errorf("StatusRowOf %s: %q, want %q", r.Title, got.Detail, want[r.Title])
+		}
+	}
+	for _, r := range output.StatusViewOf(reports, risk.Level{}).Status.Rows {
+		if w, ok := want[r.Label]; ok && r.Detail != w {
+			t.Errorf("main menu %s: %q, want %q", r.Label, r.Detail, w)
+		}
+	}
+	for _, r := range output.ReportRows(reports) {
+		if w := map[string]string{"Firewall": firewall.DetailNoUFW, "Kernel": "3 to set", "AppArmor": "3 to set"}; w[r.Label] != "" && r.Detail != w[r.Label] {
+			t.Errorf("report %s: %q, want %q", r.Label, r.Detail, w[r.Label])
+		}
+	}
+	for _, d := range []string{kernelsettings.DetailBaseline, "3 to settle", "x to set"} {
+		if got := output.StatusRowOf(row(kernelsettings.ID, "Kernel", engine.Partial, d)); got.Detail != d {
+			t.Errorf("Kernel %q: %q", d, got.Detail)
+		}
 	}
 }
 

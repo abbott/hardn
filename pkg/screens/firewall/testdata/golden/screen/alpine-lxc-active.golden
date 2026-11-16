@@ -5,7 +5,7 @@
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107moff after restart␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ off after restart␛[m$
 $
   ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -45,7 +45,7 @@ $
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Firewall Settings ############################################$
 $
-  [ ] Firewall             Partial off after restart$
+  [ ] Firewall             Partial ~ off after restart$
 $
   ufw ----------------------------------------------------------$
 $
@@ -86,7 +86,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107moff after restart␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ off after restart␛[m$
 $
   ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

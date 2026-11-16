@@ -144,9 +144,9 @@ func TestGlyphsCells(t *testing.T) {
 	}
 }
 
-// widestSetLine is the widest line of a set, in cells: SSH Auth's "Not
-// Configured password auth on" from the value column.
-var widestSetLine = theme.ValueCol + len("Not Configured password auth on")
+// widestSetLine is the widest line of a set, in cells: the risk row's
+// "Moderate ~ medium security" from the value column.
+var widestSetLine = theme.ValueCol + len("Moderate ~ medium security")
 
 // TestGlyphsSideBySide checks the sets' layout in plain mode: as many side
 // by side as the width holds, widestSetLine cells each and sideGap

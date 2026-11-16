@@ -40,6 +40,21 @@ func (s StatusState) String() string {
 	return unknown
 }
 
+// ReviewWord is a Not Configured status row's word (the maintainer,
+// 2026-11-15; docs/engine/gallery-menu-layout.md §8): the row asks to be
+// looked at. hardn check, the JSON and the Markdown report keep "Not
+// Configured" (String).
+const ReviewWord = "Review"
+
+// rowWord is the state's word on a status row: String's, but ReviewWord
+// for Not Configured.
+func (s StatusState) rowWord() string {
+	if s == StatusNotConfigured {
+		return ReviewWord
+	}
+	return s.String()
+}
+
 // statusStates is every status state.
 var statusStates = [...]StatusState{StatusUnknown, StatusConfigured, StatusNotConfigured, StatusPartial, StatusNotApplicable}
 
@@ -91,15 +106,21 @@ func (s StatusState) style(t theme.StatusStyles) lipgloss.Style {
 //
 //	0 2   6                    27
 //	  [+] SSH Port             + non-default (2230)
-//	  [ ] AppArmor             Not Configured
+//	  [ ] Firewall             Review ~ no ufw
+//	  [-] AppArmor             Alpine default
 //
 // The state's glyph is centred in the marker column (DEV-020), the label
-// starts at theme.LabelCol, and the state's word at theme.ValueCol, with
-// the detail one cell after it in text.faint. A Configured row with a
+// starts at theme.LabelCol, and the state's word (rowWord: "Review" for
+// Not Configured) at theme.ValueCol, then DetailMark, "~", and the detail,
+// both in text.faint, so the word and the detail are not read as one
+// phrase (the maintainer, 2026-11-15; docs/engine/gallery-menu-layout.md
+// §8). A Configured row with a
 // detail shows ConfiguredSign, "+", in place of its word (the maintainer,
-// 2026-11-14; docs/engine/gallery-menu-layout.md): the rows that need work
-// keep their words and are the loud ones. A Configured row with no detail
-// keeps the word, and so does one with KeepWord or a Word. The glyph and
+// 2026-11-14; docs/engine/gallery-menu-layout.md), with no DetailMark: a
+// sign is no word. A Not Applicable row with a detail shows the detail
+// alone, in text.faint. A row with no detail shows its word alone. A row
+// with KeepWord, or one that shows its Word, is the word and the detail
+// one cell after it, as before. The glyph and
 // the word, or the sign, take the state's colour, so the state never rests
 // on colour alone: Partial shares Not Configured's glyph, and its colour
 // and word tell it (the maintainer, 2026-10-21), so neither shows Word. A
@@ -117,7 +138,7 @@ func (s StatusState) style(t theme.StatusStyles) lipgloss.Style {
 // under the column numbers:
 //
 //	0 2   6                    27
-//	  [ ] Auto Updates         Not Configured no unattended-upgrades
+//	  [ ] Auto Updates         Review ~ no unattended-upgrades
 //	                             ~ Up 182 days, no updates
 //
 // The main menu draws the risk level's factors so, under the rows they are
@@ -152,9 +173,10 @@ type StatusRow struct {
 	Detail string
 	// Lines are drawn under the row, in order; empty ones are skipped.
 	Lines []StatusLine
-	// KeepWord keeps a Configured row's word where it would show
-	// ConfiguredSign: hardn check's rows, which are read off a terminal
-	// too.
+	// KeepWord draws the row as hardn check prints it, which is read off
+	// a terminal too: the state's own word (String: "Configured", "Not
+	// Configured", "Not Applicable"), then the detail one cell after it,
+	// with no ConfiguredSign, ReviewWord or DetailMark.
 	KeepWord bool
 	// Info draws the row as a fact with no state: Glyphs.Bullet as its
 	// mark, in Status.Line, no state word, Detail at the value column in
@@ -167,6 +189,11 @@ type StatusRow struct {
 
 // ConfiguredSign stands for "Configured" before a Configured row's detail.
 const ConfiguredSign = "+"
+
+// DetailMark stands between a status row's state word and its detail, a
+// space either side: "Review ~ no ufw", "Partial ~ root key-only" (the
+// maintainer, 2026-11-15). Never after ConfiguredSign.
+const DetailMark = "~"
 
 // LineMark opens a line under a status row, and LineIndent is how far in
 // from the row's value the line starts: under the detail of a row with
@@ -198,17 +225,26 @@ func (vm StatusRow) Render(c Ctx) string {
 		label = c.truncate(label, theme.LabelWidth-1)
 	}
 	own := c.text(vm.Word)
-	word := own
-	if word == "" || vm.State.sharesGlyph(c.Theme.Glyphs) {
+	word, ownShown := own, own != "" && !vm.State.sharesGlyph(c.Theme.Glyphs)
+	switch {
+	case ownShown:
+	case vm.KeepWord:
 		word = vm.State.String()
+	default:
+		word = vm.State.rowWord()
 	}
 	detail := c.text(vm.Detail)
-	if vm.State == StatusConfigured && detail != "" && own == "" && !vm.KeepWord {
-		word = ConfiguredSign
-	}
 	value := line{{word, state}}
-	if detail != "" {
+	switch {
+	case detail == "":
+	case vm.KeepWord || ownShown:
 		value = append(value, gap(1), span{detail, t.Detail})
+	case vm.State == StatusConfigured:
+		value = line{{ConfiguredSign, state}, gap(1), {detail, t.Detail}}
+	case vm.State == StatusNotApplicable:
+		value = line{{detail, t.Detail}}
+	default:
+		value = append(value, gap(1), span{DetailMark + " " + detail, t.Detail})
 	}
 	head := marker(vm.State.glyph(c.Theme.Glyphs), state)
 	if vm.Info {

@@ -20,7 +20,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ ssh blocked␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m5 items applied␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
@@ -63,7 +63,7 @@ $
 $
   [+] User                 + non-root, sudo$
   [+] SSH                  + key-only, no root, port 2230$
-  [ ] Firewall             Partial ssh blocked$
+  [ ] Firewall             Partial ~ ssh blocked$
   [+] Kernel               + 5 items applied$
   [+] Auto Updates         + unattended-upgrades$
   [+] AppArmor             + 7 profiles enforced$
@@ -112,7 +112,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ ssh blocked␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m5 items applied␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$

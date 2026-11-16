@@ -346,7 +346,7 @@ func TestCheckError(t *testing.T) {
 	if code := run(context.Background(), nil, testEnv(sys, &out, &errOut)); code != exitOK {
 		t.Fatalf("exit %d: %s", code, errOut.String())
 	}
-	if !strings.Contains(menuOf(out.String()), "AppArmor             Unknown can't read") {
+	if !strings.Contains(menuOf(out.String()), "AppArmor             Unknown ~ can't read") {
 		t.Errorf("main menu:\n%s", menuOf(out.String()))
 	}
 	row := strings.Join(section(out.String(), "row apparmor.enforce"), "\n")

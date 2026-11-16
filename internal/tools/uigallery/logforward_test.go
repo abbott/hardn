@@ -27,24 +27,24 @@ func TestLogForwardMocks(t *testing.T) {
 		mock      string
 		has, lack []string
 	}{
-		{"off", []string{"Not Configured not forwarding", "Server               None", "1) Set servers          192.0.2.50:514 TCP"}, []string{"Stop forwarding", "Set by"}},
+		{"off", []string{"Review ~ not forwarding", "Server               None", "1) Set servers          192.0.2.50:514 TCP"}, []string{"Stop forwarding", "Set by"}},
 		{"no-server", []string{"hardn.yml            No server", "1) Set servers          No server in hardn.yml"}, []string{"Unavailable"}},
 		{"tcp", []string{"+ 192.0.2.50:514 TCP", "[+] Server               192.0.2.50:514 TCP Open",
 			"File                 /etc/rsyslog.d/60-hardn-forward.conf", "Set by               hardn", "1) Stop forwarding      Undo hardn's change"}, []string{"Set servers", "Protocol", "Connection", "not encrypted"}},
-		{"tcp-down", []string{"Partial server unreachable", "[ ] Server               192.0.2.50:514 TCP unreachable"}, []string{"Open"}},
+		{"tcp-down", []string{"Partial ~ server unreachable", "[ ] Server               192.0.2.50:514 TCP unreachable"}, []string{"Open"}},
 		{"udp", []string{"[ ] Server               192.0.2.50:514 UDP losses unseen"}, []string{"Connection", "not encrypted"}},
 		{"tls", []string{"[+] Server               logs.example.net:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem"}, []string{"not encrypted"}},
 		// The design's screen (design-syslog-servers.md §2.4).
 		{"several", []string{"[+] Syslog               + 3 servers", "[+] Server               logs.example.net:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem\n" +
 			"  [+] Server               192.0.2.51:514 TCP Open\n  [ ] Server               192.0.2.52:514 UDP losses unseen\n", "hardn.yml            3 servers\n", "1) Stop forwarding"}, []string{"Set servers", "differs"}},
-		{"several-down", []string{"[ ] Syslog               Partial 1 of 3 unreachable", "[+] Server               logs.example.net:6514 TLS Open", "[ ] Server               192.0.2.51:514 TCP unreachable",
+		{"several-down", []string{"[ ] Syslog               Partial ~ 1 of 3 unreachable", "[+] Server               logs.example.net:6514 TLS Open", "[ ] Server               192.0.2.51:514 TCP unreachable",
 			"[ ] Server               192.0.2.52:514 UDP losses unseen", "hardn.yml            3 servers\n"}, []string{"Set servers"}},
-		{"several-differ", []string{"Partial not hardn.yml's servers", "hardn.yml            3 servers differs", "1) Set servers          3 servers", "2) Stop forwarding"}, nil},
+		{"several-differ", []string{"Partial ~ not hardn.yml's servers", "hardn.yml            3 servers differs", "1) Set servers          3 servers", "2) Stop forwarding"}, nil},
 		{"long-name", []string{"[+] Server\n      syslog-collector.prod.example.com:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem",
 			"hardn.yml\n      syslog-collector.prod.example.com:6514 TLS\n"}, nil},
-		{"names", []string{"Partial 1 of 2 unreachable", "logs-a.example.net:514 TCP 1 of 2 open", "logs-b.example.net:514 TCP 1 of 2 open"}, []string{"Open"}},
+		{"names", []string{"Partial ~ 1 of 2 unreachable", "logs-a.example.net:514 TCP 1 of 2 open", "logs-b.example.net:514 TCP 1 of 2 open"}, []string{"Open"}},
 		{"foreign", []string{"+ 192.0.2.50:514 TCP", "File                 /etc/rsyslog.d/50-remote.conf", "Set by               Not hardn", "1) Set servers          Set outside hardn", "Unavailable"}, []string{"Stop forwarding"}},
-		{"mismatch", []string{"Partial not hardn.yml's servers", "hardn.yml            192.0.2.60:514 TCP differs", "1) Set servers          192.0.2.60:514 TCP", "2) Stop forwarding"}, nil},
+		{"mismatch", []string{"Partial ~ not hardn.yml's servers", "hardn.yml            192.0.2.60:514 TCP differs", "1) Set servers          192.0.2.60:514 TCP", "2) Stop forwarding"}, nil},
 		{"journald", []string{"Logger               journald alone no syslog forwarder", "1) Set servers          Installs rsyslog"}, []string{"Set by"}},
 		{"alpine", []string{"Logger               busybox syslogd", "File                 /etc/conf.d/syslog", "192.0.2.50:514 UDP losses unseen"}, []string{"Connection"}},
 		{"alpine-several", []string{"+ 2 servers", "[ ] Server               192.0.2.51:514 UDP losses unseen\n  [ ] Server               192.0.2.52:514 UDP losses unseen", "File                 /etc/conf.d/syslog",

@@ -27,17 +27,17 @@ At the baseline, nothing applied:$
 $
 Applied, then 3 fell below:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m3 to set␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ 3 unset␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 Never applied:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m6 to set␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;231;70;105mReview␛[m ␛[38;2;86;91;107m~ 6 unset␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 In a container:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107min a container␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;86;91;107min a container␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 $
@@ -67,17 +67,17 @@ At the baseline, nothing applied:$
 $
 Applied, then 3 fell below:$
   [+] Firewall             + deny policy$
-  [ ] Kernel               Partial 3 to set$
+  [ ] Kernel               Partial ~ 3 unset$
   [+] Auto Updates         + unattended-upgrades$
 $
 Never applied:$
   [+] Firewall             + deny policy$
-  [ ] Kernel               Not Configured 6 to set$
+  [ ] Kernel               Review ~ 6 unset$
   [+] Auto Updates         + unattended-upgrades$
 $
 In a container:$
   [+] Firewall             + deny policy$
-  [-] Kernel               Not Applicable in a container$
+  [-] Kernel               in a container$
   [+] Auto Updates         + unattended-upgrades$
 $
 $
@@ -118,7 +118,7 @@ Applied, then 3 fell below:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m3 to set␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ 3 unset␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
@@ -126,7 +126,7 @@ Never applied:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m6 to set␛[m$
+      ␛[38;2;231;70;105mReview␛[m ␛[38;2;86;91;107m~ 6 unset␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
@@ -134,7 +134,7 @@ In a container:$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mKernel␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107min a container␛[m$
+      ␛[38;2;86;91;107min a container␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
@@ -165,17 +165,17 @@ At the baseline, nothing applied:$
 $
 Applied, then 3 fell below:$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m3 to set␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m~ 3 unset␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 Never applied:$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m6 to set␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;231;70;105mReview␛[m ␛[38;2;86;91;107m~ 6 unset␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 In a container:$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
-  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107min a container␛[m$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;86;91;107min a container␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
 $
 $

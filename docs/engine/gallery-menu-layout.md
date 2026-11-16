@@ -6,13 +6,15 @@
 
 **Since 2026-11-15 the three SSH controls are one row, "SSH", and item 2 is "SSH" (§7).** The drawing below is the menu since then; §3 to §6 are the record of 2026-11-14 and keep "SSH Login" and "SSH Port".
 
+**Since 2026-11-15 a Not Configured row says "Review", a state word and its detail have "~" between them, and a Not Applicable row shows its detail alone (§8).** §3 to §7 and "On hosts" keep the rows as they were then.
+
 On a Debian 12 host with everything configured, with no colour:
 
 ```
   [*] Risk Level           Low ~ strong security
 
   [+] User                 + non-root, sudo
-                             ~ No password to become root
+                             ~ passwordless sudo
   [+] SSH                  + key-only, no root, port 2230
   [+] Firewall             + deny policy
   [+] Kernel               + 6 items applied
@@ -57,7 +59,7 @@ Each mock is a set of reports, written in the mock and not read from a host, dra
 | `menu` | The whole menu on the configured host: the text above (`TestMenuLayoutMenu`, cell for cell) |
 | `mixed` | Partial, Not Configured, Unknown and Not Applicable rows beside Configured ones, with colour and without |
 | `ssh` | The one SSH row (§7): 21 cases of login, auth and port |
-| `kernel` | The Kernel row: 6 items applied, 1 item, baseline default, 3 to set, never applied, in a container |
+| `kernel` | The Kernel row: 6 items applied, 1 item, baseline default, 3 unset, never applied, in a container |
 | `problems` | DNS, NTP and Syslog: no row, one row, all three, no value, not read |
 | `long-detail` | Details of 35 and 40 cells after "+" |
 | `config-menu` | Main menu 8: hardn.yml, DNS, NTP, Syslog |
@@ -426,6 +428,68 @@ The gallery: `menu-layout ssh` draws 21 cases (`mlSSHCases`, `TestMenuLayoutSSH`
 - **Login and auth off alike** is still cut, as in v0.10.1: "Not Configured root allowed, passw...".
 - **The README's screenshot** is older than this menu.
 - **Read, not run**: on `syslog` (Debian 13, aarch64), 2026-11-15, read-only: `sshd -T` has `permitrootlogin without-password`, `passwordauthentication no`, `kbdinteractiveauthentication no` and `port 22`, with `ssh.service` active. By the rules above its row is "Partial root key-only" with "~ Default port (22)" under it. hardn was not run there.
+
+## 8. "Review", and "~" before the detail (2026-11-15)
+
+`next/review-word`, cut from main at v0.10.3's notes. **Adopted and built. Not run on a Linux host.**
+
+The maintainer decided, from this mock:
+
+```
+  ▽ User            + non-root, doas
+                      ~ passwordless doas
+  ▽ SSH             + key-only, root locked, port 2230
+  ○ Firewall        Review ~ no ufw
+  ○ Kernel          Review ~ 6 unset
+  ○ Auto Updates    Review ~ no apk-cron
+  - AppArmor        Alpine default
+```
+
+and wrote: '"Review" is better. and i want to avoid combining the attention word (e.g., "Review") with the surfaced factor words (e.g., "no ufw")'.
+
+### 8.1 What was adopted
+
+- **R1. A Not Configured row's word is "Review"**, in the same colour.
+- **R2. "~" between a state word and its detail**, a space either side, the "~" and the detail in the detail's colour: "Review ~ no ufw". A word with no detail has no "~".
+- **R3. A Not Applicable row shows its detail alone**, in the detail's colour: "Alpine default", "in a container", "set by the host", "uses SELinux", "no SSH server", "updated by hand". With no detail it keeps "Not Applicable".
+- **R4. Three details in the rows' own words**: "no ufw" for "ufw not installed"; "6 unset" for "6 to set"; under the User row, "passwordless sudo" or "passwordless doas" for "No password to become root".
+- **R5. Elsewhere nothing changes**: `hardn check`, the JSON, the Markdown report, Run All's rows, refusals, logs, the risk level.
+
+### 8.2 Built
+
+| | Where | Tests |
+| --- | --- | --- |
+| R1 to R3 | `pkg/ui/component/status.go` (`StatusRow.Render`, `ReviewWord`, `DetailMark`); `StatusState.String` keeps "Not Configured" for the report; `KeepWord` keeps `hardn check`'s form whole | `TestLayout` (the mark, Not Applicable alone, `KeepWord` in every state), `TestStatusStates` |
+| R4 | `pkg/output/status.go` (`rowWords`, `passwordless`), on the main menu's rows (`StatusViewOf`) and a screen's own (`StatusRowOf`), not the report's (`ReportRows`) | `TestRowWords`, `TestFactorLines` (sudo, doas), `TestPasswordlessTool` |
+
+Split so that only the rows change:
+
+- **"ufw not installed"** is the control's detail still (`firewall.DetailNoUFW`, now a constant: `hardn check`, the JSON, the report, and the test in `checkFirewalld`). The rows map it to "no ufw".
+- **"%d to set"** is the control's still (`kernelsettings.DetailToSet`). The rows map it to "%d unset".
+- **"No password to become root"** is the factor's text still (`risk.Assess`, the report's Risk section). The line under the User row maps it.
+- **The state's word**: `StatusState.String` is the report's "Not Configured"; the rows' word is separate.
+
+256 goldens changed. Every changed line was sorted by a script: a "Review" row, a "~" after Partial or Unknown, a Not Applicable detail alone, or the User row's line. None was anything else. `hardn check`'s goldens did not change.
+
+### 8.3 Choices made where the decision was silent
+
+1. **"~" after every state word**, Partial and Unknown too: "Partial ~ root key-only", "Unknown ~ can't read". Never after "+", a mark and no word.
+2. **A row that shows its own word** (Figma's "2230/tcp non-default") keeps its form, with no "~".
+3. **sudo or doas is the tool each `USERS_NOPASSWD` finding names** ("alice: doas without password"), and "passwordless sudo, doas" where both do. The row's detail names the first tool that grants root, which may be one that asks a password (sudo with a password, doas `nopass`), so it is read only where no finding names a tool; where it names neither, "passwordless sudo".
+4. **"Maybe no password to become root"** is unchanged.
+5. **The glyphs gallery draws the new form**, since its current set is checked against `StatusRow`.
+
+### 8.4 What a host now shows differently
+
+- Review rows have 28 cells for a detail, where "Not Configured" left 22: "Review ~ starts at boot, not running" now fits.
+- **Partial and Unknown rows have 27 cells, two fewer**, and two details that fitted are now cut at 64 columns and wider, **from choice 1 of §8.3, not from the maintainer's mock: for him to keep or change**: "Partial ~ match block allows passw..." (passwords, 28 cells) and "Unknown ~ port: socket and sshd di..." (28). "can't tell if root key works" (28) would be too; no mock draws it.
+- Still cut: "Review ~ root allowed, password au..." (login and auth off alike; Proxmox VE as installed).
+- §7.6's two "+" rows are unchanged, cut by one cell.
+
+### 8.5 Not verified
+
+- **Nothing ran on Linux.**
+- "~ Counted as not configured" is unchanged. Under "Unknown ~ can't read" it reads as before. No row says "Not Configured" any more, so the line now names a state the menu calls "Review".
 
 ## On hosts
 

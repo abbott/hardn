@@ -283,12 +283,20 @@ func TestLayout(t *testing.T) {
 			"  [+] Kernel               Configured"},
 		{"status: KeepWord keeps a Configured row's word", StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)", KeepWord: true}, from, false,
 			"  [+] SSH Port             Configured non-default (2230)"},
-		{"status: no other state takes a sign", StatusList{Rows: []StatusRow{
+		{"status: KeepWord keeps every state's word, and no mark before the detail", StatusList{Rows: []StatusRow{
+			{Label: "a", State: StatusNotConfigured, Detail: "x", KeepWord: true}, {Label: "b", State: StatusPartial, Detail: "x", KeepWord: true},
+			{Label: "c", State: StatusNotApplicable, Detail: "x", KeepWord: true}, {Label: "d", State: StatusNotConfigured, KeepWord: true},
+		}}, from, false,
+			"  [ ] a                    Not Configured x\n  [ ] b                    Partial x\n" +
+				"  [-] c                    Not Applicable x\n  [ ] d                    Not Configured"},
+		// A state word, "~", the detail (the maintainer, 2026-11-15): Not
+		// Configured is "Review", and Not Applicable its detail alone.
+		{"status: a word, the mark, the detail; Not Applicable its detail alone", StatusList{Rows: []StatusRow{
 			{Label: "a", State: StatusNotConfigured, Detail: "x"}, {Label: "b", State: StatusPartial, Detail: "x"},
 			{Label: "c", State: StatusNotApplicable, Detail: "x"}, {Label: "d", Detail: "x"},
 		}}, from, false,
-			"  [ ] a                    Not Configured x\n  [ ] b                    Partial x\n" +
-				"  [-] c                    Not Applicable x\n  [?] d                    Unknown x"},
+			"  [ ] a                    Review ~ x\n  [ ] b                    Partial ~ x\n" +
+				"  [-] c                    x\n  [?] d                    Unknown ~ x"},
 		// An Info row: the bullet, no state word, the value; the problem a
 		// line under it, or the row's value itself.
 		{"status: an info row has the bullet and no state word", StatusRow{Label: "Syslog", Info: true, Detail: "192.0.2.50:514 TCP",
@@ -302,7 +310,7 @@ func TestLayout(t *testing.T) {
 			{Label: "a", State: StatusNotConfigured}, {Label: "b", State: StatusPartial},
 			{Label: "c", State: StatusNotApplicable}, {Label: "d", State: StatusState(9)},
 		}}, from, false,
-			"  [ ] a                    Not Configured\n  [ ] b                    Partial\n" +
+			"  [ ] a                    Review\n  [ ] b                    Partial\n" +
 				"  [-] c                    Not Applicable\n  [?] d                    Unknown"},
 		{"status: Word replaces the state's word", StatusRow{Label: "SSH Port", State: StatusConfigured, Word: " 2230/tcp ", Detail: "non-default"}, from, false,
 			"  [+] SSH Port             2230/tcp non-default"},
@@ -310,7 +318,7 @@ func TestLayout(t *testing.T) {
 			{Label: "Firewall", State: StatusPartial, Word: "Enabled", Detail: "no rules"},
 			{Label: "Firewall", State: StatusNotConfigured, Word: "Enabled", Detail: "no rules"},
 		}}, from, false,
-			"  [ ] Firewall             Partial no rules\n  [ ] Firewall             Not Configured no rules"},
+			"  [ ] Firewall             Partial ~ no rules\n  [ ] Firewall             Review ~ no rules"},
 		{"status: a long label is cut beside the value", StatusRow{Label: "Unattended Upgrades Mail Reports", State: StatusConfigured}, from, true,
 			"   ⛛  Unattended Upgrades… Configured"},
 		{"status: a cut label drops the spaces before the ellipsis", StatusRow{Label: "Security Updates Mail", State: StatusConfigured}, from, false,
@@ -329,8 +337,8 @@ func TestLayout(t *testing.T) {
 			"   ⛛  User                 + non-root, sudo\n" +
 				"                             ~ Second root account\n                             ~ Maybe no password to become root"},
 		{"status: lines under the stacked value, at its indent", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
-			Lines: []StatusLine{{Text: "No password to become root", Warn: true}}}, below, false,
-			"  [+] User\n      + non-root, sudo\n        ~ No password to become root"},
+			Lines: []StatusLine{{Text: "passwordless sudo", Warn: true}}}, below, false,
+			"  [+] User\n      + non-root, sudo\n        ~ passwordless sudo"},
 		{"status: a long line is cut at the content width, not wrapped", StatusRow{Label: "SSH Port", State: StatusConfigured,
 			Lines: []StatusLine{{Text: strings.Repeat("x", 60)}}}, from, false,
 			"  [+] SSH Port             Configured\n" + strings.Repeat(" ", theme.ValueCol+LineIndent) + "~ " +
@@ -343,8 +351,8 @@ func TestLayout(t *testing.T) {
 			{Label: "AppArmor", Detail: "can't read", Lines: []StatusLine{{Text: "Counted as not configured"}}},
 			{Label: "Auto Updates", State: StatusNotConfigured},
 		}}, from, false,
-			"  [?] AppArmor             Unknown can't read\n                             ~ Counted as not configured\n" +
-				"  [ ] Auto Updates         Not Configured"},
+			"  [?] AppArmor             Unknown ~ can't read\n                             ~ Counted as not configured\n" +
+				"  [ ] Auto Updates         Review"},
 		{"divider: fills the bar width", Divider{}, 120, false, strings.Repeat("-", maxWidth(Divider{}, 120))},
 		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("╌", 60)},
 		{"mode: live at the value column", ModeIndicator{}, from, false,
@@ -857,15 +865,16 @@ func TestStatusStates(t *testing.T) {
 	st, g := c.Theme.Status, c.Theme.Glyphs
 	tests := []struct {
 		state       StatusState
-		glyph, word string
+		glyph, word string // the row's word
+		name        string // String's, hardn check's and the report's
 		style       lipgloss.Style
 	}{
-		{StatusConfigured, g.Configured, "Configured", st.Configured},
-		{StatusNotConfigured, g.NotConfigured, "Not Configured", st.NotConfigured},
-		{StatusPartial, g.Partial, "Partial", st.Partial},
-		{StatusNotApplicable, g.NotApplicable, "Not Applicable", st.NotApplicable},
-		{StatusUnknown, g.Unknown, "Unknown", st.Unknown},
-		{StatusState(-1), g.Unknown, "Unknown", st.Unknown},
+		{StatusConfigured, g.Configured, "Configured", "Configured", st.Configured},
+		{StatusNotConfigured, g.NotConfigured, "Review", "Not Configured", st.NotConfigured},
+		{StatusPartial, g.Partial, "Partial", "Partial", st.Partial},
+		{StatusNotApplicable, g.NotApplicable, "Not Applicable", "Not Applicable", st.NotApplicable},
+		{StatusUnknown, g.Unknown, "Unknown", "Unknown", st.Unknown},
+		{StatusState(-1), g.Unknown, "Unknown", "Unknown", st.Unknown},
 	}
 	shown := map[string]bool{}
 	for _, tt := range tests {
@@ -875,8 +884,8 @@ func TestStatusStates(t *testing.T) {
 				t.Errorf("state %d: got %q, want it to hold %q", tt.state, got, want)
 			}
 		}
-		if tt.state.String() != tt.word {
-			t.Errorf("state %d: String() = %q, want %q", tt.state, tt.state.String(), tt.word)
+		if tt.state.String() != tt.name {
+			t.Errorf("state %d: String() = %q, want %q", tt.state, tt.state.String(), tt.name)
 		}
 		shown[tt.glyph+" "+tt.word] = true
 	}

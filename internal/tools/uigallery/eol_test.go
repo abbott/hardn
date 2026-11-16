@@ -47,7 +47,7 @@ func TestEOLMocks(t *testing.T) {
 			t.Errorf("%s: mock %s, %v", tt.mock, m.name, m.platform().Support)
 		}
 		out := ansi.Strip(m.view().Render(c))
-		if !strings.Contains(out, "Not Configured\n\n"+tt.notice+"\n\n----") {
+		if !strings.Contains(out, "Review\n\n"+tt.notice+"\n\n----") {
 			t.Errorf("%s:\n%s\nwant\n%s", tt.mock, out, tt.notice)
 		}
 		if n := strings.Count(out, "Warning:"); n != strings.Count(tt.notice, "Warning:") {

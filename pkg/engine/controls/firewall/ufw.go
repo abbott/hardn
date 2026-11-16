@@ -19,6 +19,11 @@ import (
 // codeUFWUnknown is ufw's FindingUnknown as steps.UFWFinding codes it.
 var codeUFWUnknown = steps.FindingCode("UFW", ufw.FindingUnknown.String())
 
+// DetailNoUFW is the row's detail where ufw is not installed: hardn
+// check's, the JSON's and the report's. The status rows say "no ufw"
+// (pkg/output).
+const DetailNoUFW = "ufw not installed"
+
 // checkUFW is the row off Proxmox VE, from ufw.Read: not installed and
 // inactive are NotConfigured; active, the default incoming policy and the
 // SSH listeners decide (ufw.Check over ufw.Needs). An SSH listener ufw
@@ -44,7 +49,7 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	case err != nil:
 		return engine.Status{State: engine.Unknown, Detail: "can't read"}, err
 	case !st.Installed:
-		return engine.Status{State: engine.NotConfigured, Detail: "ufw not installed", Evidence: []string{"ufw: not installed"}}, nil
+		return engine.Status{State: engine.NotConfigured, Detail: DetailNoUFW, Evidence: []string{"ufw: not installed"}}, nil
 	}
 	out := engine.Status{Evidence: ufwEvidence(st)}
 	if !st.Status.Known || len(st.Status.Bad) > 0 {

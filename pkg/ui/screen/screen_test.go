@@ -567,8 +567,8 @@ func TestCompactForm(t *testing.T) {
   [+] SSH                  + key-only, no root, port 2230
   [+] Firewall             + deny policy
   [+] Kernel               + 6 items applied
-  [ ] Auto Updates         Not Configured
-  [ ] AppArmor             Not Configured
+  [ ] Auto Updates         Review
+  [ ] AppArmor             Review
 
   Select an option         Mode Live
    1) User                  7) Backup
@@ -636,14 +636,14 @@ func TestAlert(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
 	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH"
 	vm := cveAlertFixture()
-	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "AppArmor             Not Configured\n\n"+alert+"\n\n----") {
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "AppArmor             Review\n\n"+alert+"\n\n----") {
 		t.Errorf("main menu with an alert:\n%s\nwant the rows, a blank line, the alert, a blank line, then the divider:\n%s", out, alert)
 	}
-	if out := ansi.Strip(vm.render(c, true)); !strings.Contains(out, "AppArmor             Not Configured\n\n"+alert+"\n\n----") {
+	if out := ansi.Strip(vm.render(c, true)); !strings.Contains(out, "AppArmor             Review\n\n"+alert+"\n\n----") {
 		t.Errorf("main menu with an alert, the compact form allowed, no terminal:\n%s", out)
 	}
 	short := ansi.Strip(vm.form(c, true))
-	if !strings.Contains(short, "AppArmor             Not Configured\n\n"+alert+"\n\n  Select an option") {
+	if !strings.Contains(short, "AppArmor             Review\n\n"+alert+"\n\n  Select an option") {
 		t.Errorf("compact form with an alert:\n%s\nwant the alert after the rows, then the heading", short)
 	}
 	moved := vm
@@ -681,14 +681,14 @@ func TestNotice(t *testing.T) {
 	notice := "   # Warning: Alpine 3.22 support ends 2027-05-01\n   # Upgrade to Alpine 3.24."
 	vm := MainMenuFixture()
 	vm.Notice = soon.Alert()
-	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Not Configured\n\n"+notice+"\n\n----") {
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Review\n\n"+notice+"\n\n----") {
 		t.Errorf("main menu with a notice:\n%s", out)
 	}
 	vm.Alert = cveAlertFixture().Alert
-	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Not Configured\n\n"+alert+"\n\n"+notice+"\n\n----") {
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Review\n\n"+alert+"\n\n"+notice+"\n\n----") {
 		t.Errorf("main menu with an alert and a notice:\n%s", out)
 	}
-	if out := ansi.Strip(vm.form(c, true)); !strings.Contains(out, "Not Configured\n\n"+alert+"\n\n"+notice+"\n\n  Select an option") {
+	if out := ansi.Strip(vm.form(c, true)); !strings.Contains(out, "Review\n\n"+alert+"\n\n"+notice+"\n\n  Select an option") {
 		t.Errorf("compact form with an alert and a notice:\n%s", out)
 	}
 	for _, tt := range []struct {
@@ -939,7 +939,7 @@ func TestMainMenuInfo(t *testing.T) {
 		{Label: "NTP", Info: true, Detail: "No time service", Problem: true},
 		{Label: "Syslog", Info: true, Detail: "192.0.2.50:514 TCP", Lines: []component.StatusLine{{Text: "Unreachable", Warn: true}}},
 	}}
-	const rows = "  [ ] AppArmor             Not Configured\n\n   -  NTP                  No time service\n" +
+	const rows = "  [ ] AppArmor             Review\n\n   -  NTP                  No time service\n" +
 		"   -  Syslog               192.0.2.50:514 TCP\n                             ~ Unreachable\n\n"
 	for _, short := range []bool{false, true} {
 		got := ansi.Strip(join(vm.blocks(c, short)...)) + "\n\n"

@@ -264,7 +264,7 @@ func TestSetThenStop(t *testing.T) {
 	}
 	want := []string{"1) Set servers", "Every message the host logs goes to the server, as it is logged.", "Write hardn's forwarding file", "$ rsyslogd -N1",
 		"Forward logs to 192.0.2.50? [y/N, 0 or q]:", "+ 192.0.2.50:514 TCP", "1) Stop forwarding", "Logs stay on the host alone. rsyslog stays installed.",
-		"Delete hardn's forwarding file", "Stop forwarding logs? [y/N, 0 or q]:", "Not Configured not forwarding"}
+		"Delete hardn's forwarding file", "Stop forwarding logs? [y/N, 0 or q]:", "Review ~ not forwarding"}
 	at, out := 0, flat(p.out)
 	for _, w := range want {
 		i := strings.Index(out[at:], flat(w))
@@ -295,7 +295,7 @@ func TestSetSeveral(t *testing.T) {
 		"Server 192.0.2.50:514 TCP", "Server 192.0.2.52:514 UDP losses unseen", "Write hardn's forwarding file",
 		"+ target=\"192.0.2.50\" port=\"514\"", "+ target=\"192.0.2.52\" port=\"514\"", "$ rsyslogd -N1",
 		"Forward logs to 2 servers? [y/N, 0 or q]:", "+ 2 servers", "Server 192.0.2.50:514 TCP Open", "Server 192.0.2.52:514 UDP losses unseen",
-		"hardn.yml 2 servers", "1) Stop forwarding", "Stop forwarding logs? [y/N, 0 or q]:", "Not Configured not forwarding"}
+		"hardn.yml 2 servers", "1) Stop forwarding", "Stop forwarding logs? [y/N, 0 or q]:", "Review ~ not forwarding"}
 	at, out := 0, flat(p.out)
 	for _, w := range want {
 		i := strings.Index(out[at:], flat(w))

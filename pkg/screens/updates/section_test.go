@@ -60,7 +60,7 @@ func TestSectionRows(t *testing.T) {
 			m := dnfHost(t, true)
 			m.units["is-enabled "+dnfauto.InstallTimer] = "enabled"
 			return m
-		}, []string{"Partial starts after restart", "Install Timer Stopped " + dnfauto.InstallTimer}, ""},
+		}, []string{"Partial ~ starts after restart", "Install Timer Stopped " + dnfauto.InstallTimer}, ""},
 		{"dnf, masked for this boot", func(t *testing.T) *model {
 			m := dnfHost(t, true)
 			m.units["is-enabled "+dnfauto.InstallTimer] = "masked-runtime"

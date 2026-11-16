@@ -266,7 +266,7 @@ func States() []State {
 	figmaHost := component.HostBlock{Hostname: "BOS-SAN-L01", Address: "192.0.2.10", Uptime: uptime}
 	// The lines under a status row: a cost hardn established, in
 	// status.warn, and one that rests on what it could not establish.
-	noPassword := component.StatusLine{Text: "No password to become root", Warn: true}
+	noPassword := component.StatusLine{Text: "passwordless sudo", Warn: true}
 	countedOff := component.StatusLine{Text: "Counted as not configured"}
 	// figmaSSH is Figma's SSH Configuration details (02-SSH_LOGIN), with
 	// alice as the allowed user.

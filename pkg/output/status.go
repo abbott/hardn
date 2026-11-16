@@ -6,7 +6,10 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -110,14 +113,18 @@ func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 			at[rw.ID] = i
 		default:
 			at[rw.ID] = len(v.Status.Rows)
-			v.Status.Rows = append(v.Status.Rows, rowOf(rw, first))
+			v.Status.Rows = append(v.Status.Rows, rowWords(rw.ID, rowOf(rw, first)))
 		}
 	}
 	for _, f := range l.Factors {
 		if i, ok := at[f.Control]; ok {
 			// The SSH controls share a row: a line more than one has
 			// ("Counted as not configured") is said once.
-			if line := (component.StatusLine{Text: f.Detail, Warn: f.Established}); !slices.Contains(v.Status.Rows[i].Lines, line) {
+			text := f.Detail
+			if f.Kind == risk.KindNoPassword && f.Established {
+				text = passwordless(first[f.Control].Status.Findings, v.Status.Rows[i].Detail)
+			}
+			if line := (component.StatusLine{Text: text, Warn: f.Established}); !slices.Contains(v.Status.Rows[i].Lines, line) {
 				v.Status.Rows[i].Lines = append(v.Status.Rows[i].Lines, line)
 			}
 		}
@@ -340,9 +347,68 @@ func infoRow(r engine.Report) (component.StatusRow, bool) {
 // StatusRowOf is report r's row: its title, its state's glyph and word,
 // its detail; Unknown when the check failed. A screen draws its own
 // control's row with it (pkg/screens/screenkit). It is pure.
-func StatusRowOf(r engine.Report) component.StatusRow { return statusRow(r) }
+func StatusRowOf(r engine.Report) component.StatusRow { return rowWords(r.Control, statusRow(r)) }
 
-// statusRow is StatusRowOf.
+// The status rows' own words for a control's detail (the maintainer,
+// 2026-11-15; gallery-menu-layout.md §8). hardn check, the JSON, the
+// Markdown report and Run All keep the control's.
+const (
+	rowNoUFW        = "no ufw"        // firewall.DetailNoUFW, "ufw not installed"
+	rowUnset        = "%d unset"      // kernelsettings.DetailToSet, "%d to set"
+	rowPasswordless = "passwordless " // then sudo, doas or both: the factor "No password to become root"
+)
+
+// rowWords is the control id's row with its detail in the status rows'
+// words, where they have their own; any other row is as it was.
+func rowWords(id string, row component.StatusRow) component.StatusRow {
+	var n int
+	switch {
+	case id == firewall.ID && row.Detail == firewall.DetailNoUFW:
+		row.Detail = rowNoUFW
+	case id == kernelsettings.ID:
+		if _, err := fmt.Sscanf(row.Detail, kernelsettings.DetailToSet, &n); err == nil && fmt.Sprintf(kernelsettings.DetailToSet, n) == row.Detail {
+			row.Detail = fmt.Sprintf(rowUnset, n)
+		}
+	}
+	return row
+}
+
+// passwordless is the line under the User row for a grant with no
+// password: "passwordless sudo", "passwordless doas", or "passwordless
+// sudo, doas". The tool is the one each USERS_NOPASSWD finding names
+// ("alice: doas without password"), since the row's detail names the
+// first tool that grants root, which may be one that asks a password.
+// Where no finding names one, the tool the row's detail names
+// ("non-root, doas"), else sudo.
+func passwordless(fs []engine.Finding, detail string) string {
+	var sudo, doas bool
+	for _, f := range fs {
+		if f.Code != users.CodeNoPassword {
+			continue
+		}
+		_, grant, _ := strings.Cut(f.Detail, ": ")
+		switch tool, _, _ := strings.Cut(grant, " "); tool {
+		case "sudo":
+			sudo = true
+		case "doas":
+			doas = true
+		}
+	}
+	if !sudo && !doas {
+		doas = slices.Contains(strings.FieldsFunc(detail, func(r rune) bool { return r == ',' || r == ' ' }), "doas")
+		sudo = !doas
+	}
+	switch {
+	case sudo && doas:
+		return rowPasswordless + "sudo, doas"
+	case doas:
+		return rowPasswordless + "doas"
+	}
+	return rowPasswordless + "sudo"
+}
+
+// statusRow is r's row in the control's own words: the Markdown report's
+// (ReportRows), and StatusRowOf's before rowWords.
 func statusRow(r engine.Report) component.StatusRow {
 	st := r.Status.State
 	if r.Err != nil {

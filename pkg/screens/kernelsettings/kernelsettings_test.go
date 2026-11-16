@@ -154,7 +154,7 @@ func TestApplyThenRemove(t *testing.T) {
 	if p.err != nil || p.unread != 0 || len(p.runs) != 2 {
 		t.Fatalf("Run = %v, %d unread, %d runs:\n%s", p.err, p.unread, len(p.runs), p.out)
 	}
-	for _, w := range []string{"Not Configured 4 to set", "ICMP redirects       1 accepted, hardn sets 0", "1) Apply settings       Set 4 settings",
+	for _, w := range []string{"Review ~ 4 unset", "ICMP redirects       1 accepted, hardn sets 0", "1) Apply settings       Set 4 settings",
 		"Apply kernel settings? [y/N, 0 or q]:", ctl.NoticeApply[:40], "gdb -p", "+net.ipv6.conf.*.accept_redirects = 0", "+# before: net.ipv6.conf.eth0.accept_redirects = 1",
 		"$ sysctl -w kernel.yama.ptrace_scope=1", "+ 4 items applied", "ICMP redirects       0 ignored", "File                 " + khost.File,
 		"1) Remove settings      Undo hardn's change", "Remove hardn's kernel settings? [y/N, 0 or q]:", ctl.NoticeRemove,
@@ -217,7 +217,7 @@ func TestUnavailable(t *testing.T) {
 	m = newModel(rocky)
 	m.facts.Container.Detected = detect.Yes
 	p = play(m, false, "1", "0")
-	if p.err != nil || !strings.Contains(p.out, "Not Applicable in a container") || !strings.Contains(p.out, "In a container: hardn sets none of these.") || strings.Contains(p.out, "hardn sets 0") {
+	if p.err != nil || !strings.Contains(p.out, "in a container") || !strings.Contains(p.out, "In a container: hardn sets none of these.") || strings.Contains(p.out, "hardn sets 0") {
 		t.Errorf("a container: %v\n%s", p.err, p.out)
 	}
 }
