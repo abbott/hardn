@@ -76,7 +76,9 @@ var bom = []byte("\xef\xbb\xbf")
 // quoting; a list in brackets stays in brackets; a block list keeps the
 // items to keeps, each with its lines and comments, and its new items take
 // its dash, indent and quoting (a removed or replaced item's comments go
-// with it; the comment lines before its first item stay); a list the file
+// with it; the comment lines before its first item stay; an item kept in
+// its place whose fields alone change is edited as a mapping, its comments
+// kept, a removed field's line going with its comment); a list the file
 // has as nothing or [] takes the file's list style; a mapping is edited at
 // the key that changed. Nothing changed: a copy of original.
 //

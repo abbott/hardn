@@ -23,9 +23,9 @@ You can create a configuration file in several ways:
 
 On first run, `hardn` will offer to create a default configuration file interactively if no existing config is found.
 
-Say yes and it asks seven things: a username, the SSH port, automatic updates, an SSH key, an NTP server, a syslog server, and last "Check for new hardn releases, once a day? [Y/n]:", Enter yes. The file it writes holds `checkReleases` either way.
+Say yes and it asks seven things: a username, the SSH port, automatic updates, an SSH key, an NTP server, a syslog server (then its protocol), and last "Check for new hardn releases, once a day? [Y/n]:", Enter yes. The file it writes holds `checkReleases` either way.
 
-The NTP and syslog questions take one server each, and Enter skips them. The syslog server is `host` or `host:port`: TCP, port 514 unless given. An answer hardn can't set, such as an IPv6 address, is refused and asked again. The answers only fill [`ntpServers`](#ntp) and [`syslogServers`](#syslog): Run All sets them, or Set servers on each screen. On Alpine's default logger a TCP server is refused when it is set: use `protocol: udp`. At the main menu, say no and it asks that one question next, when it is due: see [`checkReleases`](#checkreleases-new-releases).
+The NTP and syslog questions take one server each, and Enter skips them. The syslog server is `host` or `host:port`, port 514 (6514 for TLS) unless given. Its protocol is asked next: udp, tcp or tls, Enter tcp; tls asks a CA file and is refused without one. An answer hardn can't set, such as an IPv6 address, is refused and asked again. The answers only fill [`ntpServers`](#ntp) and [`syslogServers`](#syslog): Run All sets them, or Set servers on each screen. On Alpine's default logger a TCP server is refused when it is set: answer udp. At the main menu, say no and it asks that one question next, when it is due: see [`checkReleases`](#checkreleases-new-releases).
 
 ### 2. Manual Creation
 
@@ -54,11 +54,12 @@ If you decline, hardn goes on with its defaults and writes no hardn.yml. A live 
 
 - **It edits** `username`, `sshKeys`, `sshPort`, `disableRootSSH`, `enableUfwSshPolicy`, `configureDns`, `syslogServers`, `ntpServers`, `kernel`, `confirmTimeout`, `checkReleases` and `enableUnattendedUpgrades`.
 - **Lists take one entry a save:** Add or Remove. An SSH key is shown by type, comment and fingerprint. A syslog server asks its address, protocol, port and, for TLS, its CA file.
+- **Change protocol** changes one syslog server's protocol. A port left at the default follows the new protocol's; another port is kept.
 - **It only saves.** A line after the save says where the key acts: Run All, NTP Settings or Syslog Settings. Saving `sshPort` never changes sshd: change the port under `2) SSH`.
 - **Other keys keep their own screen:** `nameservers` (DNS Settings), the firewall's lists (Firewall), `enableBackups` and `backupPath` (Backup). `dryRun`, `adminNoPassword` and `sshConfigFile` are edited by hand.
 - **`-u` and `-n` are never saved.** In a dry run the lines are shown and nothing is written.
 - **With no hardn.yml there is nothing to edit:** start hardn again to create one.
-- **On Alpine,** where the logger is busybox syslogd, a TCP or TLS syslog server gets a line saying it is UDP only.
+- **On Alpine,** where the logger is busybox syslogd, a TCP or TLS syslog server gets a line saying it is UDP only, and to use Change protocol.
 
 ## Environment Variable
 

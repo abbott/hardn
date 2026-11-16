@@ -328,8 +328,8 @@ func alpine(t *testing.T, yml string) (*hostfake.System, *config.Config, detect.
 // the logger is not read.
 func TestLoggerNote(t *testing.T) {
 	// The line, as a row draws it: it wraps.
-	const note = "busybox syslogd is UDP only. Under Edit a setting, remove\n      the server and add it with udp."
-	const said = "# Warning\n# busybox syslogd is UDP only. Under Edit a setting, remove the\n# server and add it with udp.\n"
+	const note = "busybox syslogd is UDP only. Change protocol under Edit a\n      setting."
+	const said = "# Warning\n# busybox syslogd is UDP only. Change protocol under Edit a\n# setting.\n"
 	const tcp, udp = "syslogServers:\n  - server: 192.0.2.50\n", "syslogServers:\n  - server: 192.0.2.50\n    protocol: udp\n"
 	facts := func(f detect.Facts) func(*configscreen.Options) {
 		return func(o *configscreen.Options) { o.Facts = f }
@@ -402,5 +402,78 @@ func TestEditKeysAreTheScreens(t *testing.T) {
 		if strings.Contains(menu, k) {
 			t.Errorf("%s in the editor's menu:\n%s", k, menu)
 		}
+	}
+}
+
+// TestEditChangeProtocol: syslogServers' Change protocol. The server picked
+// by number; its protocol asked with the current as the default; a port that
+// was the default follows the new protocol's, an explicit one is kept and not
+// asked; tls asks the CA file; a refused answer is asked again; the same
+// protocol changes nothing; only that server's lines change, the file's
+// comments kept, those of the changed server too; under -n only the plan
+// is shown.
+func TestEditChangeProtocol(t *testing.T) {
+	const two = "# site\nsyslogServers:\n  - server: 192.0.2.50 # first\n  - server: logs.example.net # second\n    port: 1514\nsshPort: 2222\n"
+	for _, tt := range []struct {
+		name  string
+		yml   string
+		lines []string
+		file  string
+		saves int
+		want  []string
+	}{
+		{"tcp to udp, the port follows", two, []string{"1", "udp", "", "y"},
+			"# site\nsyslogServers:\n  - server: 192.0.2.50 # first\n    protocol: udp\n  - server: logs.example.net # second\n    port: 1514\nsshPort: 2222\n", 1,
+			[]string{"   1. Select a server\n", "   2. Enter protocol [tcp] [0 or q]: udp\n", "   3. Enter port [514] [0 or q]: ", "   -  Server               192.0.2.50:514 UDP\n"}},
+		{"an explicit port kept", two, []string{"2", "udp", "y"},
+			"# site\nsyslogServers:\n  - server: 192.0.2.50 # first\n  - server: logs.example.net # second\n    port: 1514\n    protocol: udp\nsshPort: 2222\n", 1,
+			[]string{"   -  Server               logs.example.net:1514 UDP\n"}},
+		{"to tls, the CA file", two, []string{"2", "tls", "/etc/ssl/ca.pem", "y"},
+			"# site\nsyslogServers:\n  - server: 192.0.2.50 # first\n  - server: logs.example.net # second\n    port: 1514\n    protocol: tls\n    caFile: /etc/ssl/ca.pem\nsshPort: 2222\n", 1,
+			[]string{"   3. Enter CA file [0 or q]: /etc/ssl/ca.pem", "   -  Server               logs.example.net:1514 TLS\n"}},
+		{"udp back to tcp", "syslogServers:\n  - server: 192.0.2.50\n    protocol: udp\n", []string{"1", "tcp", "", "y"},
+			"syslogServers:\n  - server: 192.0.2.50\n", 1, []string{"   2. Enter protocol [udp] [0 or q]: tcp\n"}},
+		{"a default port to tls, the port then the CA file",
+			"syslogServers:\n  - server: a.example.net\n  # backup site\n  - server: logs.example.net # second\n    port: 514 # p\n",
+			[]string{"2", "tls", "", "/etc/ssl/ca.pem", "y"},
+			"syslogServers:\n  - server: a.example.net\n  # backup site\n  - server: logs.example.net # second\n    protocol: tls\n    caFile: /etc/ssl/ca.pem\n", 1,
+			[]string{"   3. Enter port [6514] [0 or q]: \n", "   4. Enter CA file [0 or q]: /etc/ssl/ca.pem", "   -  Server               logs.example.net:6514 TLS\n"}},
+		{"tls to udp, the CA file cleared, the port back to 514",
+			"syslogServers:\n  - server: a.example.net\n  # backup site\n  - server: logs.example.net # second\n    protocol: tls # t\n    caFile: /etc/ssl/ca.pem\n",
+			[]string{"2", "udp", "", "y"},
+			"syslogServers:\n  - server: a.example.net\n  # backup site\n  - server: logs.example.net # second\n    protocol: udp # t\n", 1,
+			[]string{"   3. Enter port [514] [0 or q]: \n", "   -  Server               logs.example.net:514 UDP\n"}},
+		{"the same protocol", two, []string{"1", ""}, two, 0, []string{"  Nothing needs changing.\n"}},
+		{"refused, then given", two, []string{"1", "relp", "tls", "UDP", "udp", "", "y"},
+			"# site\nsyslogServers:\n  - server: 192.0.2.50 # first\n    protocol: udp\n  - server: logs.example.net # second\n    port: 1514\nsshPort: 2222\n", 1,
+			[]string{"  (x) Not udp, tcp or tls\n", "  (x) TLS needs the server's name, as its certificate has it\n"}},
+	} {
+		h, cfg := site(t, tt.yml)
+		p := edit(h, cfg, nil, append(append([]string{"1", "7", "3"}, tt.lines...), "q")...)
+		if !errors.Is(p.err, nav.ErrQuit) || p.unread != 0 {
+			t.Errorf("%s: Run = %v, %d unread", tt.name, p.err, p.unread)
+		}
+		if got := file(t, h); got != tt.file {
+			t.Errorf("%s: the file is\n%s\nwant\n%s\n%s", tt.name, got, tt.file, p.out)
+		}
+		if n := strings.Count(p.out, done); n != tt.saves {
+			t.Errorf("%s: %d saves, want %d:\n%s", tt.name, n, tt.saves, p.out)
+		}
+		has(t, tt.name, p.out, tt.want...)
+	}
+
+	// Under -n the change is planned and not written.
+	h, cfg := site(t, two)
+	cfg.ResolveDryRun(true, true)
+	p := edit(h, cfg, func(o *configscreen.Options) { o.DryRun = true }, "1", "7", "3", "1", "udp", "", "q")
+	if got := file(t, h); got != two || strings.Contains(p.out, "[y/N") {
+		t.Errorf("-n: file\n%s\n%s", got, p.out)
+	}
+	has(t, "-n", p.out, "      +    protocol: udp\n")
+
+	// No Change protocol with no server.
+	h, cfg = site(t, "username: george\n")
+	if p := edit(h, cfg, nil, "1", "7", "q"); strings.Contains(p.out, "Change protocol") {
+		t.Errorf("Change protocol with no server:\n%s", p.out)
 	}
 }
