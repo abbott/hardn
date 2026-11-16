@@ -90,7 +90,7 @@ func TestSSHAlert(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
 	unfixed := sshTestDebian
 	unfixed.Unfixed = true
-	alert := "  [ ] SSH                  Partial root key-only\n                             ~ Default port (22)\n\n   # Warning: CVE-2026-123158\n   # Select option: 5) Upgrade openssh\n\n  SSH Configuration "
+	alert := "  [ ] SSH                  Partial ~ root key-only\n                             ~ Default port (22)\n\n   # Warning: CVE-2026-123158\n   # Select option: 5) Upgrade openssh\n\n  SSH Configuration "
 	vm := unfixed.SubMenu()
 	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, alert) {
 		t.Errorf("SSH Login, sshd unfixed:\n%s\nwant\n%s", out, alert)

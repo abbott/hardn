@@ -100,7 +100,7 @@ var wantStatuses = map[string]wantStatus{
 	"fresh": {rows: [8]string{rootOnly, rootKeyOnly, passwordOn, port22, "not-configured: ufw not installed", kernel5, noUnattend, "configured: 7 profiles enforced"},
 		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},
 	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, rootKeyOnly, "configured: key-only auth", port22, ufwInactive, kernel5, unattendOn, ubuntuAA},
-		level: "Moderate ≈ medium security", score: "57.5", lines: []string{"User: No password to become root"}, bar: ubuntuBar, uptime: threeDays,
+		level: "Moderate ≈ medium security", score: "57.5", lines: []string{"User: passwordless sudo"}, bar: ubuntuBar, uptime: threeDays,
 		finds: map[string]string{"users.admin": "USERS_NOPASSWD"}},
 	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, ufwInactive, kernel5, unattendOn, ubuntuAA},
 		level: "High ≈ weak security", score: "42.5", bar: ubuntuBar, uptime: threeDays},
@@ -243,8 +243,11 @@ func TestStatusHosts(t *testing.T) {
 				if i >= 2 {
 					rp = st.reports[i+2] // after SSH Auth and SSH Port
 				}
-				if i == 1 && r.Label != output.SSHRow || i != 1 && (r.Label != rp.Title || r.Detail != rp.Status.Detail) {
-					t.Errorf("main menu row %d: %+v, want %s %q", i, r, rp.Title, rp.Status.Detail)
+				// The status rows' own words for two of the controls' details
+				// (gallery-menu-layout.md §8).
+				detail := strings.NewReplacer(" to set", " unset", "ufw not installed", "no ufw").Replace(rp.Status.Detail)
+				if i == 1 && r.Label != output.SSHRow || i != 1 && (r.Label != rp.Title || r.Detail != detail) {
+					t.Errorf("main menu row %d: %+v, want %s %q", i, r, rp.Title, detail)
 				}
 			}
 			f := st.facts

@@ -49,7 +49,7 @@ const CompactMainMenu = false
 //	  [*] Risk Level           Moderate ~ medium security
 //
 //	  [+] User                 + non-root, sudo
-//	  [ ] Auto Updates         Not Configured
+//	  [ ] Auto Updates         Review
 //
 //	----------------------------------------------------------------
 //
@@ -98,7 +98,7 @@ const CompactMainMenu = false
 //
 //	  [*] Risk Level           Moderate ~ medium security
 //	  [+] User                 + non-root, sudo
-//	  [ ] Auto Updates         Not Configured
+//	  [ ] Auto Updates         Review
 //
 //	  Select an option         Mode Live
 //	   1) User                  6) Run All
@@ -293,7 +293,7 @@ const CVEUnfixed = "CVE-2026-123158"
 // column 5, as the maintainer drew it (2026-11-08; DEV-075). Here with no
 // colour and ASCII glyphs:
 //
-//	  [-] AppArmor             Not Applicable Alpine default
+//	  [-] AppArmor             Alpine default
 //
 //	   # Warning: CVE-2026-123158
 //	   # Upgrade openssh.

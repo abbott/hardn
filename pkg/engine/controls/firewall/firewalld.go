@@ -36,7 +36,7 @@ func checkFirewalld(ctx context.Context, sys host.System, f detect.Facts) (engin
 		return engine.Status{State: engine.Unknown, Detail: "can't read"}, err
 	case st.Installed == detect.No:
 		out, err := checkUFW(ctx, sys, f)
-		if err == nil && out.Detail == "ufw not installed" {
+		if err == nil && out.Detail == DetailNoUFW {
 			out.Detail, out.Evidence = DetailNoFirewall, []string{"firewalld.service: not found", "ufw: not installed"}
 		}
 		return out, err

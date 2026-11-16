@@ -144,9 +144,9 @@ Synthetic hosts, each row's state as its check would report it; uptime 3 days an
 | every row Configured, ufw inactive and set to start at boot, its saved rules refusing SSH (Not Configured "enabled, not running") | 80 | 10 | 70 | Moderate; *Firewall*: "~ SSH may be blocked after restart" |
 | the same, a reboot pending | 80 | 20 | 60 | Moderate; *Firewall*: "~ SSH may be blocked after restart"; *host*: "~ Reboot pending" |
 | every row Configured, Auto Updates Partial "off after restart" with `apt-daily-upgrade.timer` "enabled-runtime" (`UPDATES_SCHEDULE_UNKNOWN`), upgrades and lists running now; up 182 days | 85 | 10 | 75 | Low; *Auto Updates*: "~ Can't tell if fully on", "~ Up 182 days"; no finding (`TestUpdatesFromTheCheck`, the check's own row) |
-| every row Configured, bob's `NOPASSWD: ALL` read (`USERS_NOPASSWD`) | 100 | 5 | 95 | Low; *User*: "~ No password to become root" |
+| every row Configured, bob's `NOPASSWD: ALL` read (`USERS_NOPASSWD`) | 100 | 5 | 95 | Low; *User*: "~ passwordless sudo" |
 | the same grant on a continued line, by an alias or in a list, which the User row does not read (`USERS_RULE_NOT_READ`) | 100 | 5 | 95 | Low; *User*: "~ Maybe no password to become root": **never above the one above** (`TestUsersFromTheCheck`, the check's own row) |
-| bob's `ALL=(ALL:ALL) NOPASSWD: ALL` in `/etc/sudoers.d/10-bob`, then hardn's own `bob ALL=(ALL) ALL` (`USERS_NOPASSWD`: the first still decides `sudo -u root -g bob`) | 100 | 5 | 95 | Low; *User*: "~ No password to become root" (`TestUsersFromTheCheck`) |
+| bob's `ALL=(ALL:ALL) NOPASSWD: ALL` in `/etc/sudoers.d/10-bob`, then hardn's own `bob ALL=(ALL) ALL` (`USERS_NOPASSWD`: the first still decides `sudo -u root -g bob`) | 100 | 5 | 95 | Low; *User*: "~ passwordless sudo" (`TestUsersFromTheCheck`) |
 | a container: AppArmor and Kernel Not Applicable, the rest Configured | 85 of 85 | 0 | 100 | Minimal |
 | the same, SSH on 22 | 80 of 85 | 0 | 94.1 | Low (Not Applicable raises the other rows' share) |
 | a Proxmox VE node: root only, pve-firewall disabled, root key-only (Proxmox), key-only auth, port 22 (its baseline), AppArmor enforcing, no unattended-upgrades, Kernel never applied; up 41 days | 0 + 0 + 15 + 20 + 5 + 10 + 0 + 0 = 50 | 10 | 40 | High; *Auto Updates*: "~ Up 41 days, no updates". **Since slice 7 decision 7 no node reports this**: Auto Updates is Not Applicable on Proxmox VE ("updated by hand"), so the same node earns 50 of 85 (of 90 until 2026-11-14), costs nothing and scores 58.8, Moderate, with no line; the row is kept as `TestAssess` pins it, a report given, not read. The gallery's `pve9` scores 17.6 for the same reason (18.8 until 2026-11-14, 5 before; [gallery-status.md](gallery-status.md) §5) |
@@ -178,13 +178,15 @@ Synthetic hosts, each row's state as its check would report it; uptime 3 days an
 
 *Since 2026-11-15* SSH Login, SSH Auth and SSH Port are one row on the main menu, SSH ([gallery-menu-layout.md](gallery-menu-layout.md) §7): the three weights, 15, 20 and 5, the forced levels and the factors are unchanged, and each control's lines are under that row, a line they share once. The row's own "~ Default port (22)" is no factor and costs nothing more than the port's 5.
 
+*Since 2026-11-15* the main menu draws the User row's "No password to become root" as "passwordless sudo", "passwordless doas" or "passwordless sudo, doas", by the tool each `USERS_NOPASSWD` finding names ([gallery-menu-layout.md](gallery-menu-layout.md) §8); the factor's own text, in §5 and in the report, is unchanged.
+
 *Since 2026-11-14* each line starts with "~ " in place of "- ", two cells in from the value column, and SSH Auth's lines are under the SSH Login row, which SSH Auth is drawn in; a line both controls have ("Counted as not configured") is under it once. Kernel has no line but "Counted as not configured".
 
 | Row | The host | Line | Colour | Cells |
 |---|---|---|---|---|
 | User | a second uid 0 account (`USERS_UID0`) | Second root account | `status.warn` | 19 |
 | User | an account with an empty password (`USERS_EMPTY_PASSWORD`) | Empty password | `status.warn` | 14 |
-| User | an account that may log in becomes root without a password (`USERS_NOPASSWD`) | No password to become root | `status.warn` | 26 |
+| User | an account that may log in becomes root without a password (`USERS_NOPASSWD`) | passwordless sudo; "passwordless doas", or "passwordless sudo, doas", by the tool the finding names (the factor's text is "No password to become root") | `status.warn` | 17, 17, 23 |
 | User | a grant of such an account the row does not establish (`USERS_RULE_NOT_READ`, the row not Unknown) | Maybe no password to become root | `text.muted` | 32 |
 | Firewall | ufw inactive, enabled at boot, its saved rules not letting SSH through from everywhere (`UFW_SSH_NOT_ALLOWED_AT_START`) | SSH may be blocked after restart | `status.warn`, for every verdict at start but OK, a rule not read included (§8 (f)) | 32 |
 | Firewall | the firewall's SSH check not made (`FIREWALL_SSH_UNCHECKED`, not with the lockout) | Can't tell if it blocks SSH | `text.muted` | 27 |

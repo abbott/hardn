@@ -45,7 +45,7 @@ func mlDraw(t *testing.T, name string) string {
 const mlMenuText = `   ⛬  Risk Level           Low ≈ strong security
 
    ⛛  User                 + non-root, sudo
-                             ~ No password to become root
+                             ~ passwordless sudo
    ⛛  SSH                  + key-only, no root, port 2230
    ⛛  Firewall             + deny policy
    ⛛  Kernel               + 6 items applied
@@ -93,12 +93,12 @@ func TestMenuLayoutMenu(t *testing.T) {
 func TestMenuLayoutMixed(t *testing.T) {
 	draw := mlDraw(t, "mixed")
 	for _, want := range []string{
-		"  [+] User                 + non-root, sudo\n                             ~ No password to become root\n",
-		"  [ ] SSH                  Not Configured password auth on\n  [?] Firewall",
-		"  [?] Firewall             Unknown can't read\n                             ~ Counted as not configured\n",
-		"  [ ] Kernel               Partial 1 set outside hardn\n",
-		"  [ ] Auto Updates         Not Configured no unattended-upgrades\n",
-		"  [-] AppArmor             Not Applicable set by the host\n",
+		"  [+] User                 + non-root, sudo\n                             ~ passwordless sudo\n",
+		"  [ ] SSH                  Review ~ password auth on\n  [?] Firewall",
+		"  [?] Firewall             Unknown ~ can't read\n                             ~ Counted as not configured\n",
+		"  [ ] Kernel               Partial ~ 1 set outside hardn\n",
+		"  [ ] Auto Updates         Review ~ no unattended-upgrades\n",
+		"  [-] AppArmor             set by the host\n",
 	} {
 		if !strings.Contains(draw, want) {
 			t.Errorf("no %q in\n%s", want, draw)
@@ -116,26 +116,26 @@ func TestMenuLayoutSSH(t *testing.T) {
 	draw := mlDraw(t, "ssh") + "\n\n"
 	wants := []string{
 		"All three configured:\n  [+] SSH                  + key-only, no root, port 2230\n",
-		"The port left on 22:\n  [ ] SSH                  Partial default port (22)\n",
-		"Root by key, port 22:\n  [ ] SSH                  Partial root key-only\n                             ~ Default port (22)\n",
-		"Passwords on, port 22:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n",
-		"Passwords on, port 2230:\n  [ ] SSH                  Not Configured password auth on\n",
-		"Root may log in, port 22:\n  [ ] SSH                  Not Configured root allowed\n                             ~ Default port (22)\n",
-		"Login and auth off, one worse:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n",
-		"Login and auth off alike:\n  [ ] SSH                  Not Configured root allowed, passw...\n                             ~ Default port (22)\n",
-		"A long detail:\n  [ ] SSH                  Partial match block allows passwords\n",
-		"Ports 22 and 2230:\n  [ ] SSH                  Partial ports 22 and 2230\n",
-		"Root by key, ports 22 and 2230:\n  [ ] SSH                  Partial root key-only\n                             ~ Ports 22 and 2230\n",
+		"The port left on 22:\n  [ ] SSH                  Partial ~ default port (22)\n",
+		"Root by key, port 22:\n  [ ] SSH                  Partial ~ root key-only\n                             ~ Default port (22)\n",
+		"Passwords on, port 22:\n  [ ] SSH                  Review ~ password auth on\n                             ~ Default port (22)\n",
+		"Passwords on, port 2230:\n  [ ] SSH                  Review ~ password auth on\n",
+		"Root may log in, port 22:\n  [ ] SSH                  Review ~ root allowed\n                             ~ Default port (22)\n",
+		"Login and auth off, one worse:\n  [ ] SSH                  Review ~ password auth on\n                             ~ Default port (22)\n",
+		"Login and auth off alike:\n  [ ] SSH                  Review ~ root allowed, password au...\n                             ~ Default port (22)\n",
+		"A long detail:\n  [ ] SSH                  Partial ~ match block allows passw...\n",
+		"Ports 22 and 2230:\n  [ ] SSH                  Partial ~ ports 22 and 2230\n",
+		"Root by key, ports 22 and 2230:\n  [ ] SSH                  Partial ~ root key-only\n                             ~ Ports 22 and 2230\n",
 		"Two ports, neither 22:\n  [+] SSH                  + key-only, no root, 2 ports\n",
 		"Key and password:\n  [+] SSH                  + key+password, no root, port 2230\n",
-		"The port not read:\n  [?] SSH                  Unknown port: not listening on 2230\n                             ~ Counted as not configured\n",
-		"Passwords on, the port not read:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Counted as not configured\n",
-		"Passwords on, root not read, port 22:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n                             ~ Counted as not configured\n",
-		"sshd not read:\n  [?] SSH                  Unknown can't read\n                             ~ Counted as not configured\n",
-		"No SSH server:\n  [-] SSH                  Not Applicable no SSH server\n",
+		"The port not read:\n  [?] SSH                  Unknown ~ port: not listening on 2230\n                             ~ Counted as not configured\n",
+		"Passwords on, the port not read:\n  [ ] SSH                  Review ~ password auth on\n                             ~ Counted as not configured\n",
+		"Passwords on, root not read, port 22:\n  [ ] SSH                  Review ~ password auth on\n                             ~ Default port (22)\n                             ~ Counted as not configured\n",
+		"sshd not read:\n  [?] SSH                  Unknown ~ can't read\n                             ~ Counted as not configured\n",
+		"No SSH server:\n  [-] SSH                  no SSH server\n",
 		"Proxmox VE, all three configured:\n  [+] SSH                  + key-only, root key-only, port 22\n",
-		"Proxmox VE as installed:\n  [ ] SSH                  Not Configured root allowed, passw...\n",
-		"Proxmox VE, off port 22:\n  [ ] SSH                  Partial port 2230, not 22\n",
+		"Proxmox VE as installed:\n  [ ] SSH                  Review ~ root allowed, password au...\n",
+		"Proxmox VE, off port 22:\n  [ ] SSH                  Partial ~ port 2230, not 22\n",
 	}
 	if len(wants) != len(mlSSHCases) {
 		t.Fatalf("%d cases, %d wanted", len(mlSSHCases), len(wants))
@@ -156,8 +156,8 @@ func TestMenuLayoutSSH(t *testing.T) {
 // Auto Updates.
 func TestMenuLayoutKernel(t *testing.T) {
 	draw := mlDraw(t, "kernel")
-	for _, want := range []string{"+ 6 items applied\n", "+ 1 item applied\n", "+ baseline default\n", "Partial 3 to set\n", "Not Configured 6 to set\n",
-		"  [-] Kernel               Not Applicable in a container\n",
+	for _, want := range []string{"+ 6 items applied\n", "+ 1 item applied\n", "+ baseline default\n", "Partial ~ 3 unset\n", "Review ~ 6 unset\n",
+		"  [-] Kernel               in a container\n",
 		"  [+] Firewall             + deny policy\n  [+] Kernel               + 6 items applied\n  [+] Auto Updates         + unattended-upgrades\n"} {
 		if !strings.Contains(draw, want) {
 			t.Errorf("no %q in\n%s", want, draw)
@@ -210,7 +210,7 @@ func TestMenuLayoutLong(t *testing.T) {
 // the Configuration group's items.
 func TestMenuLayoutHosts(t *testing.T) {
 	for name, want := range map[string][]string{
-		"el":          {"   3) Firewall             Manage firewalld, port listening\n", "   5) Auto Updates         Enable automatic updates\n", "  [-] AppArmor             Not Applicable uses SELinux\n"},
+		"el":          {"   3) Firewall             Manage firewalld, port listening\n", "   5) Auto Updates         Enable automatic updates\n", "  [-] AppArmor             uses SELinux\n"},
 		"pve":         {"   3) Firewall             View pve-firewall\n", "   5) Auto Updates         Configure automatic updates\n", "  [+] Kernel               + 4 items applied\n"},
 		"config-menu": {"   1) hardn.yml ", "   2) DNS Settings         Configure nameservers\n", "   3) NTP Settings ", "   4) Syslog Settings ", "[0-4 or q]"},
 	} {

@@ -48,25 +48,25 @@ const (
 func TestSSHHosts(t *testing.T) {
 	type want struct{ row, under, root, pass, ports string }
 	wants := map[string]want{
-		"debian13":         {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"ubuntu2604":       {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"alpine323":        {"Partial default port (22)", "", "Locked", "Off", "22"},
+		"debian13":         {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"ubuntu2604":       {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"alpine323":        {"Partial ~ default port (22)", "", "Locked", "Off", "22"},
 		"hardened":         {"+ key-only, no root, port 2230", "", "Disallowed", "Off", "2230"},
-		"password-login":   {"Not Configured password auth on", "~ Default port (22)", "Key only", "On", "22"},
-		"password-session": {"Not Configured password auth on", "~ Default port (22)", "Key only", "On", "22"},
-		"root-session":     {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"legacy-v032":      {"Unknown port: socket and sshd differ", "~ Counted as not configured", "Disallowed", "Off", "22, 2230"},
-		"legacy-main":      {"Partial default port (22)", "", "Disallowed", "Off", "22"}, // by AuthenticationMethods
-		"include-other":    {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"match-allows":     {"Partial match block allows root, m...", "~ Default port (22)", "Key only", "Off", "22"},
-		"allow-users":      {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"pve9":             {"Not Configured root allowed, passw...", "", "Allowed", "On", "22"},
-		"ufw-restricted":   {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"confirm-window":   {"Partial root key-only", "~ Ports 22 and 2230", "Key only", "Off", "22, 2230"},
-		"not-read":         {"Unknown can't read", "~ Counted as not configured", "Can't read", "Can't read", "Can't read"},
-		"nopam-locked":     {"Partial default port (22)", "", "Locked", "Off", "22"},
-		"rsa-small":        {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
-		"admin-no-sudo":    {"Partial root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"password-login":   {"Review ~ password auth on", "~ Default port (22)", "Key only", "On", "22"},
+		"password-session": {"Review ~ password auth on", "~ Default port (22)", "Key only", "On", "22"},
+		"root-session":     {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"legacy-v032":      {"Unknown ~ port: socket and sshd di...", "~ Counted as not configured", "Disallowed", "Off", "22, 2230"},
+		"legacy-main":      {"Partial ~ default port (22)", "", "Disallowed", "Off", "22"}, // by AuthenticationMethods
+		"include-other":    {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"match-allows":     {"Partial ~ match block allows root,...", "~ Default port (22)", "Key only", "Off", "22"},
+		"allow-users":      {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"pve9":             {"Review ~ root allowed, password au...", "", "Allowed", "On", "22"},
+		"ufw-restricted":   {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"confirm-window":   {"Partial ~ root key-only", "~ Ports 22 and 2230", "Key only", "Off", "22, 2230"},
+		"not-read":         {"Unknown ~ can't read", "~ Counted as not configured", "Can't read", "Can't read", "Can't read"},
+		"nopam-locked":     {"Partial ~ default port (22)", "", "Locked", "Off", "22"},
+		"rsa-small":        {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
+		"admin-no-sudo":    {"Partial ~ root key-only", "~ Default port (22)", "Key only", "Off", "22"},
 	}
 	if len(wants) != len(sshHosts) {
 		t.Fatalf("%d hosts, %d wanted", len(sshHosts), len(wants))
@@ -229,7 +229,7 @@ func TestNoHostKeys(t *testing.T) {
 		for _, dryRun := range []bool{false, true} {
 			h := ready(t, host)
 			p := play(h, dryRun, "0")
-			if got := line(p.out, true, "SSH"); got != "SSH Unknown sshd off, no host keys" {
+			if got := line(p.out, true, "SSH"); got != "SSH Unknown ~ sshd off, no host keys" {
 				t.Errorf("%s: the SSH row %q, want sshd off, no host keys", host, got)
 			}
 			checkHost(t, host, h)

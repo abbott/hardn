@@ -123,7 +123,7 @@ func ksHosts() []ksHost {
 	alpine := func(boot bool) *fakeHost { return ksOn(alpine323Platform, eth, boot, ksAlpine) }
 	with := func(h *fakeHost, edit func(*fakeHost)) *fakeHost { edit(h); return h }
 	return []ksHost{
-		{name: "default", label: "Rocky Linux 10", about: "4 to set", host: rocky,
+		{name: "default", label: "Rocky Linux 10", about: "4 unset", host: rocky,
 			note: hostFQDN + " runs Rocky Linux 10, its values rocky10-test-110's of 2026-11-14: four rows are below the baseline, each with its weakest value, what that means and what hardn sets. Forwarding is shown and never set."},
 		{name: "configured", label: "Set by hardn", about: "Configured", host: func() *fakeHost { return ksApplied(rocky()) },
 			note: hostFQDN + " after Apply settings: every row at the baseline, hardn's file named, and the one item undoes it."},

@@ -248,21 +248,28 @@ func riskRow(c component.Ctx) string {
 
 // row draws r as StatusRow draws it, with the set's glyph and colour for
 // its state: the label cut to the label column when the row does not
-// stack, the state's word in the state's colour, or "+" for a Configured
-// row with a detail, the detail one cell after it in Status.Detail.
+// stack, the state's word in the state's colour ("Review" for Not
+// Configured), then "~" and the detail in Status.Detail; "+" for a
+// Configured row with a detail; a Not Applicable row's detail alone.
 func (s glyphSet) row(c component.Ctx, r component.StatusRow) string {
 	glyph, p, labelPaint := s.look(c, r.State)
 	label := r.Label
 	if termWidth(c.Env) >= theme.StackBelow {
 		label = cut(c, label, theme.LabelWidth-1)
 	}
-	word := r.State.String()
-	if r.State == component.StatusConfigured && r.Detail != "" {
-		word = component.ConfiguredSign
+	word, detail := r.State.String(), c.Theme.Status.Detail.Render
+	if r.State == component.StatusNotConfigured {
+		word = component.ReviewWord
 	}
 	value := []piece{{word, p}}
-	if r.Detail != "" {
-		value = append(value, pad(1), piece{r.Detail, c.Theme.Status.Detail.Render})
+	switch {
+	case r.Detail == "":
+	case r.State == component.StatusConfigured:
+		value = []piece{{component.ConfiguredSign, p}, pad(1), {r.Detail, detail}}
+	case r.State == component.StatusNotApplicable:
+		value = []piece{{r.Detail, detail}}
+	default:
+		value = append(value, pad(1), piece{component.DetailMark + " " + r.Detail, detail})
 	}
 	return gridRow(c, append(markerTo(glyph, p), piece{label, labelPaint}), value)
 }

@@ -16,11 +16,11 @@ $
    \x1b[38;5;204m⛬\x1b[m  \x1b[1;38;5;251mRisk Level\x1b[m           \x1b[38;5;204mHigh\x1b[m \x1b[38;5;59m≈ weak security\x1b[m$
 $
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mUser\x1b[m                 \x1b[38;5;78m+\x1b[m \x1b[38;5;59mnon-root, sudo\x1b[m$
-   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mSSH\x1b[m                  \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mpassword auth on\x1b[m$
+   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mSSH\x1b[m                  \x1b[38;5;204mReview\x1b[m \x1b[38;5;59m~ password auth on\x1b[m$
                              \x1b[38;5;179m~ Default port (22)\x1b[m$
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;78m+\x1b[m \x1b[38;5;59mdeny policy\x1b[m$
-   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mKernel\x1b[m               \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59m5 to set\x1b[m$
-   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
+   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mKernel\x1b[m               \x1b[38;5;204mReview\x1b[m \x1b[38;5;59m~ 5 unset\x1b[m$
+   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mReview\x1b[m \x1b[38;5;59m~ no unattended-upgrades\x1b[m$
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mAppArmor\x1b[m             \x1b[38;5;78m+\x1b[m \x1b[38;5;59m7 profiles enforced\x1b[m$
 $
 \x1b[38;5;234m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌\x1b[m$

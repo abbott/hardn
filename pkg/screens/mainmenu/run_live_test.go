@@ -589,7 +589,7 @@ func TestKernelSettingsRow(t *testing.T) {
 	if i < 1 || i+1 >= len(rows) || rows[i-1].Label != "Firewall" || rows[i+1].Label != "Auto Updates" {
 		t.Fatalf("the Kernel row at %d of %+v", i, rows)
 	}
-	if row := rows[i]; row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
+	if row := rows[i]; row.State != component.StatusNotConfigured || row.Detail != "2 unset" {
 		t.Errorf("the Kernel row %+v", row)
 	}
 }

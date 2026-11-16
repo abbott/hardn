@@ -17,7 +17,7 @@ const (
 	// upgradeAlert is the alert over the section, pointing to item 5 (the
 	// maintainer's words, 2026-11-08), the one SSH row, with no line of the CVE's (2026-11-09), flat as shows
 	// compares it.
-	upgradeAlert = "SSH Partial default port (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
+	upgradeAlert = "SSH Partial ~ default port (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
 )
 
 // TestUpgradeItem: item 5 is offered on Alpine where sshd lacks

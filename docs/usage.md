@@ -32,11 +32,11 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 ```
   [+] User                 + non-root, sudo
-                             ~ No password to become root
-  [ ] SSH                  Not Configured password auth on
+                             ~ passwordless sudo
+  [ ] SSH                  Review ~ password auth on
                              ~ Default port (22)
   [+] Firewall             + deny policy
-  [ ] Kernel               Not Configured 6 to set
+  [ ] Kernel               Review ~ 6 unset
   [+] Auto Updates         + unattended-upgrades
   [+] AppArmor             + 10 profiles enforced
 
@@ -44,14 +44,17 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
                              ~ Unreachable
 ```
 
-- **`+` means Configured.** A row that needs work keeps its word: Partial, Not Configured, Not Applicable or Unknown. The same on every screen's own row. `hardn check`, the JSON and the Markdown report keep the word "Configured".
+- **`+` means Configured.**
+- **Review** means not configured: the row needs work. Partial and Unknown keep their words. After the word, `~` and what hardn found: `Review ~ no ufw`.
+- **A row that doesn't apply shows why alone**: `Alpine default`, `in a container`.
+- The same on every screen's own row. `hardn check`, the JSON and the Markdown report keep the words "Configured", "Not Configured" and "Not Applicable".
 - **A line starting with `~`** under a row says what else lowers the risk level, or what hardn could not read.
 - **SSH** is root login, password login and the port in one row.
   - All three set: `+ key-only, no root, port 2230`.
-  - Only the port left on 22: `Partial default port (22)`.
+  - Only the port left on 22: `Partial ~ default port (22)`.
   - Root or password login not set: the worse of the two and what is off, with `~ Default port (22)` under it where the port is 22.
   - `hardn check`, the JSON and the report keep the three controls, `ssh.login`, `ssh.auth` and `ssh.port`.
-- **Kernel** is on every host: "6 to set", "6 items applied" once hardn's file sets them, "baseline default" where the host met the baseline as it was, and Not Applicable in a container. It counts 5 points of the [risk level](engine/risk.md).
+- **Kernel** is on every host: "6 unset", "6 items applied" once hardn's file sets them, "baseline default" where the host met the baseline as it was, and "in a container" there. It counts 5 points of the [risk level](engine/risk.md).
 - **DNS, NTP and Syslog have a row only with a problem**, under the others: the host's value, and the problem under it. For example nameservers that are not `hardn.yml`'s, a clock not in sync, or a syslog server that is unreachable. No time service, and no log forwarding, are a problem only where `hardn.yml` names servers for it. These rows never change the risk level.
 
 ### Syslog Settings

@@ -274,7 +274,7 @@ func mlMocks() []listMock {
 				out = append(out, mlBlock{label: k.label + ":", reports: []engine.Report{k.login, k.auth, k.port}})
 			}
 			return out
-		}), note: "Adopted 2026-11-15: one SSH row for SSH Login, SSH Auth and SSH Port. All three configured: auth, login, port. Login and auth configured, the port on 22: Partial, no line. Login and auth not both configured: their state and detail, and the port on 22 a line under the row. The Proxmox VE words, \"ports\", \"2 ports\", \"port:\" and \"not 22\" are proposed. One row is cut: login and auth off alike."},
+		}), note: "Adopted 2026-11-15: one SSH row for SSH Login, SSH Auth and SSH Port. All three configured: auth, login, port. Login and auth configured, the port on 22: Partial, no line. Login and auth not both configured: their state and detail, and the port on 22 a line under the row. The Proxmox VE words, \"ports\", \"2 ports\", \"port:\" and \"not 22\" are proposed. Two rows are cut: login and auth off alike, and a Match block allowing passwords."},
 		{name: "kernel", draw: blocks(func() []mlBlock {
 			var out []mlBlock
 			for _, k := range []struct {

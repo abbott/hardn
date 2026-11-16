@@ -145,7 +145,7 @@ type StatusStyles struct {
 	// something hardn could not establish: "- Counted as not configured".
 	Line lipgloss.Style
 	// LineWarn is a line under the row, bullet and text, for a cost hardn
-	// established: "- No password to become root".
+	// established: "~ passwordless sudo".
 	LineWarn lipgloss.Style
 }
 

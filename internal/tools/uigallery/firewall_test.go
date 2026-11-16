@@ -181,7 +181,7 @@ func TestFirewallHosts(t *testing.T) {
 		refused error // errors.Is the plan's; ErrBlocks through BlockError
 		risky   bool
 	}{
-		{host: "debian13", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall},
+		{host: "debian13", state: component.StatusNotConfigured, detail: "no ufw", first: firewall.ItemInstall},
 		{host: "ubuntu2604", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, risky: true},
 		{host: "active22", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
 		{host: "hardened", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
@@ -195,9 +195,9 @@ func TestFirewallHosts(t *testing.T) {
 		{host: "edit-2230", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
 		{host: "moved-2230", state: component.StatusUnknown, detail: "ssh config not in effect", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
 		{host: "denied", state: component.StatusPartial, detail: "ssh blocked", first: firewall.ItemEnable, refused: firewall.ErrRefused},
-		{host: "alpine324", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall},
-		{host: "alpine-stock", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall, refused: packages.ErrNotInRepos},
-		{host: "alpine-lxc", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall, refused: packages.ErrNotInRepos},
+		{host: "alpine324", state: component.StatusNotConfigured, detail: "no ufw", first: firewall.ItemInstall},
+		{host: "alpine-stock", state: component.StatusNotConfigured, detail: "no ufw", first: firewall.ItemInstall, refused: packages.ErrNotInRepos},
+		{host: "alpine-lxc", state: component.StatusNotConfigured, detail: "no ufw", first: firewall.ItemInstall, refused: packages.ErrNotInRepos},
 		{host: "alpine-runlevel", state: component.StatusPartial, detail: "off after restart", first: firewall.ItemEnable},
 		{host: "unit-off", state: component.StatusPartial, detail: "off after restart", first: firewall.ItemEnable},
 		{host: "pve9", state: component.StatusNotConfigured, detail: "disabled", first: firewall.ItemNone},
