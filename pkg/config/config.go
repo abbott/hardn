@@ -102,10 +102,10 @@ type Config struct {
 	KernelSettings bool `yaml:"kernel,omitempty"`
 
 	// Feature Toggles
-	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
-	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
-	ConfigureDns             bool `yaml:"configureDns"`
-	DisableRootSSH           bool `yaml:"disableRootSSH"`
+	EnableAutoUpdates  bool `yaml:"enableAutoUpdates"`
+	EnableUfwSshPolicy bool `yaml:"enableUfwSshPolicy"`
+	ConfigureDns       bool `yaml:"configureDns"`
+	DisableRootSSH     bool `yaml:"disableRootSSH"`
 
 	// loaded is what the YAML said beyond the fields: permitRootLogin's
 	// string value and the deprecated forms read, and the path LoadConfig
@@ -137,10 +137,10 @@ func DefaultConfig() *Config {
 		UfwAppProfiles: []UfwAppProfile{},
 
 		// Feature Toggles
-		EnableUnattendedUpgrades: false,
-		EnableUfwSshPolicy:       false,
-		ConfigureDns:             false,
-		DisableRootSSH:           false,
+		EnableAutoUpdates:  false,
+		EnableUfwSshPolicy: false,
+		ConfigureDns:       false,
+		DisableRootSSH:     false,
 	}
 }
 
@@ -465,7 +465,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 		fmt.Fprint(stdout(), "Enable automatic security updates? [y/N]: ")
 		autoUpdates := readAnswer()
 		autoUpdates = strings.TrimSpace(strings.ToLower(autoUpdates))
-		config.EnableUnattendedUpgrades = (autoUpdates == "y" || autoUpdates == "yes")
+		config.EnableAutoUpdates = (autoUpdates == "y" || autoUpdates == "yes")
 
 		// Ask for SSH key
 		fmt.Fprint(stdout(), "Add SSH public key (optional, press Enter to skip): ")

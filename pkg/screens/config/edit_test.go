@@ -128,7 +128,7 @@ func TestEditSaves(t *testing.T) {
 		{"configureDns", "disableRootSSH: true\nenableUfwSshPolicy: true\nconfigureDns: true\n", []string{"6", "y"}, "disableRootSSH: true\nenableUfwSshPolicy: true\nconfigureDns: false\n", 1,
 			[]string{"  Save configureDns: false? [y/N, 0 or q]: y", "\n  Run All applies it.\n", "   6) configureDns         false\n"}},
 		{"checkReleases", "username: george\n", []string{"11", "y"}, "username: george\ncheckReleases: true\n", 1, []string{"\n  From the next start.\n"}},
-		{"enableUnattendedUpgrades", "username: george\n", []string{"12", "y"}, "username: george\nenableUnattendedUpgrades: true\n", 1, []string{"\n  Run All applies it.\n"}},
+		{"enableAutoUpdates", "username: george\n", []string{"12", "y"}, "username: george\nenableAutoUpdates: true\n", 1, []string{"\n  Run All applies it.\n"}},
 		{"sshPort, its comment kept", "username: george\nsshPort: 2222 # moved\ndisableRootSSH: true\n", []string{"3", "2022", "y"},
 			"username: george\nsshPort: 2022 # moved\ndisableRootSSH: true\n", 1,
 			[]string{"  Enter SSH port [2222] [0 or q]: 2022\n", "      -sshPort: 2222 # moved\n      +sshPort: 2022 # moved\n", "  Save sshPort? [y/N, 0 or q]: y",

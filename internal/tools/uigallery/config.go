@@ -72,7 +72,7 @@ func configTypical() string {
 	return "username: george\nsshKeys:\n  - \"" + synthKey(1, "george@laptop-1") + "\"\n" +
 		"sshPort: 2222\ndisableRootSSH: true\n" +
 		"enableUfwSshPolicy: true\nufwAppProfiles:\n  - name: tailscale\n    title: Tailscale\n    description: Mesh VPN\n    ports: [\"41641/udp\"]\n" +
-		"configureDns: true\nnameservers:\n  - 1.1.1.1\n  - 1.0.0.1\nenableUnattendedUpgrades: true\n"
+		"configureDns: true\nnameservers:\n  - 1.1.1.1\n  - 1.0.0.1\nenableAutoUpdates: true\n"
 }
 
 // configUnusedYML is configTypical with keys nothing reads. permitRootLogin is

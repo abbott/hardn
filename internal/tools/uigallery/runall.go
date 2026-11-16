@@ -62,13 +62,13 @@ func raYMLFor(user string, seed byte, port int) string {
 		fmt.Sprintf("sshPort: %d\n", port) +
 		"nameservers:\n  - \"" + dnsList[0] + "\"\n  - \"" + dnsList[1] + "\"\n" +
 		"enableBackups: true\nbackupPath: /var/backups/hardn\n" +
-		"enableUnattendedUpgrades: true\nenableUfwSshPolicy: true\nconfigureDns: true\ndisableRootSSH: true\n"
+		"enableAutoUpdates: true\nenableUfwSshPolicy: true\nconfigureDns: true\ndisableRootSSH: true\n"
 }
 
 // raDefaultYML is hardn.yml as origin/main's SaveConfig writes it with no
 // answer given: the defaults, which ask Run All for nothing.
 const raDefaultYML = "username: \"\"\nsshKeys: []\nsshPort: 22\nnameservers: []\nenableBackups: true\nbackupPath: /var/backups/hardn\n" +
-	"enableUnattendedUpgrades: false\nenableUfwSshPolicy: false\nconfigureDns: false\ndisableRootSSH: false\n"
+	"enableAutoUpdates: false\nenableUfwSshPolicy: false\nconfigureDns: false\ndisableRootSSH: false\n"
 
 // raResolved writes resolv.conf listing dnsList, as Configure DNS leaves
 // it on Debian 13 (fakeHost.dnsConfigured, hardn.yml left as it is).
@@ -83,7 +83,7 @@ func raHosts() []raHost {
 		deb = hostFQDN + " runs Debian 13. "
 		ubu = hostFQDN + " runs Ubuntu 26.04. "
 		alp = hostFQDN + " runs Alpine 3.23 (OpenRC). "
-		yml = "hardn.yml: george with a key, port 22, two nameservers, backups on, and enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and disableRootSSH true. "
+		yml = "hardn.yml: george with a key, port 22, two nameservers, backups on, and enableAutoUpdates, enableUfwSshPolicy, configureDns and disableRootSSH true. "
 	)
 	return []raHost{
 		{name: "debian13", label: "Debian 13", about: "The VM's shape", host: raDebian13,

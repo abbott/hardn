@@ -237,7 +237,7 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
-// nameservers; enableUnattendedUpgrades true, on (never off);
+// nameservers; enableAutoUpdates true, on (never off);
 // syslogServers, Set servers (never Stop forwarding); ntpServers,
 // Set servers (never Remove servers); kernel true, Apply settings
 // (never Remove settings). SSH Auth asks
@@ -283,7 +283,7 @@ func Asked(in Input, id string) Ask {
 		}
 		return Ask{Control: dnsctl.Nameservers{Config: cfg}, Words: fmt.Sprintf("Set %d nameservers", len(cfg.Nameservers))}
 	case updates.ID:
-		if !cfg.EnableUnattendedUpgrades {
+		if !cfg.EnableAutoUpdates {
 			return Ask{}
 		}
 		return Ask{Control: updates.Auto{Action: updates.AutoOn, Records: in.Revert, Version: in.Version}, Words: "Turn on"}

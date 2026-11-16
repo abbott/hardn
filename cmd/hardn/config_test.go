@@ -52,8 +52,7 @@ const configReport = `# Configuration ##########################################
 
   Auto Updates -------------------------------------------------
 
-   -  enableUnattendedUpgrades
-      false (default)
+   -  enableAutoUpdates    false (default)
 
   Syslog -------------------------------------------------------
 

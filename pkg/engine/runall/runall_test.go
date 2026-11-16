@@ -198,7 +198,7 @@ func TestAsked(t *testing.T) {
 	key := synthKey(1, "george@laptop-1")
 	full := func() *config.Config {
 		return &config.Config{Username: "george", SshKeys: []string{key}, SshPort: 2230, EnableUfwSshPolicy: true, ConfigureDns: true,
-			Nameservers: nameservers, DisableRootSSH: true, EnableUnattendedUpgrades: true}
+			Nameservers: nameservers, DisableRootSSH: true, EnableAutoUpdates: true}
 	}
 	debian := detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}
 	pve := detect.Facts{Platform: detect.Platform{Distro: detect.DistroProxmox}}
@@ -230,7 +230,7 @@ func TestAsked(t *testing.T) {
 		{"configureDns false", dnsctl.ID, debian, func(c *config.Config) { c.ConfigureDns = false }, nil, "", 0},
 		{"no nameservers", dnsctl.ID, debian, func(c *config.Config) { c.Nameservers = nil }, nil, "", 0},
 		{"updates on", updates.ID, debian, nil, updates.Auto{Action: updates.AutoOn, Records: records, Version: "v0.4.0"}, "Turn on", 0},
-		{"enableUnattendedUpgrades false", updates.ID, debian, func(c *config.Config) { c.EnableUnattendedUpgrades = false }, nil, "", 0},
+		{"enableAutoUpdates false", updates.ID, debian, func(c *config.Config) { c.EnableAutoUpdates = false }, nil, "", 0},
 		{"ssh auth", ssh.Auth{}.ID(), debian, nil, nil, "", 0},
 		{"apparmor", apparmor.ID, debian, nil, nil, "", 0},
 		{"backup", backupctl.ID, debian, nil, nil, "", 0},
@@ -412,7 +412,7 @@ func TestNoHostKeys(t *testing.T) {
 // apk-cron's install is in the one plan.
 func TestAutoUpdatesAlpine(t *testing.T) {
 	h := newHost(t, "alpine323")
-	h.cfg.EnableUnattendedUpgrades = true
+	h.cfg.EnableAutoUpdates = true
 	h.AddFile(alpine.InitScript, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
 	h.AddSymlink(alpine.RunlevelLink, alpine.InitScript)
 	r := h.read(t, "alpine323")
@@ -423,14 +423,14 @@ func TestAutoUpdatesAlpine(t *testing.T) {
 }
 
 // TestAutoUpdatesRocky: on Rocky Linux, where hardn.yml asks for updates
-// (enableUnattendedUpgrades), the Auto Updates row plans dnf-automatic on,
+// (enableAutoUpdates), the Auto Updates row plans dnf-automatic on,
 // as it plans unattended-upgrades on elsewhere (el-updates.md §1.4):
 // dnf-automatic's install is in the one plan.
 func TestAutoUpdatesRocky(t *testing.T) {
 	p := debian13()
 	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
 	p.facts.SSH.SSHDUnits = true
-	h := withYML(t, vm(p), "enableUnattendedUpgrades: true\n")
+	h := withYML(t, vm(p), "enableAutoUpdates: true\n")
 	r := h.read(t, "rocky")
 	rw, _ := r.Row(updates.ID)
 	if c, ok := rw.Control.(updates.Auto); rw.Kind != runall.Planned || rw.Words != "Turn on" || !ok || c.Action != updates.AutoOn {

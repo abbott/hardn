@@ -53,7 +53,7 @@ var configGroups = []struct {
 	{"SSH", []string{"sshPort", "disableRootSSH", "sshConfigFile"}},
 	{"Firewall", []string{"enableUfwSshPolicy", "ufwAppProfiles", "ufwTrustedInterfaces"}},
 	{"DNS", []string{"configureDns", "nameservers"}},
-	{"Auto Updates", []string{"enableUnattendedUpgrades"}},
+	{"Auto Updates", []string{"enableAutoUpdates"}},
 	{"Syslog", []string{"syslogServers"}},
 	{"NTP", []string{"ntpServers"}},
 	{"Kernel", []string{"kernel"}},

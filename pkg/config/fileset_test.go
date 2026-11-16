@@ -13,8 +13,9 @@ import (
 
 // TestFileSets: a key is the file's where the file gives it a value. A key
 // left out or null keeps the default and is not set; an empty string and an
-// empty list are values; disableRoot sets disableRootSSH, unless the file
-// has disableRootSSH too, null included, which shadows it; the defaults,
+// empty list are values; an old name sets its new one (disableRoot,
+// disableRootSSH), unless the file has the new name too, null included,
+// which shadows it; the defaults,
 // read from no file, set nothing.
 func TestFileSets(t *testing.T) {
 	if DefaultConfig().FileSets("sshPort") {
@@ -30,6 +31,10 @@ func TestFileSets(t *testing.T) {
 		{"disableRoot:\n", map[string]bool{"disableRootSSH": false}},
 		{"disableRoot: true\ndisableRootSSH: false\n", map[string]bool{"disableRootSSH": true}},
 		{"disableRoot: true\ndisableRootSSH:\n", map[string]bool{"disableRootSSH": false}},
+		{"enableUnattendedUpgrades: true\n", map[string]bool{"enableAutoUpdates": true, "disableRootSSH": false}},
+		{"enableUnattendedUpgrades: true\nenableAutoUpdates:\n", map[string]bool{"enableAutoUpdates": false}},
+		{"base: &b {enableUnattendedUpgrades: true}\n<<: *b\n", map[string]bool{"enableAutoUpdates": true}},
+		{"base: &b {enableAutoUpdates: ~}\n<<: *b\nenableUnattendedUpgrades: true\n", map[string]bool{"enableAutoUpdates": false}},
 		{"base: &b [192.0.2.53]\nnameservers: *b\n", map[string]bool{"nameservers": true}},
 		{"", map[string]bool{"username": false}},
 	} {

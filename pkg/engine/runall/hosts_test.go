@@ -42,20 +42,20 @@ var nameservers = []string{"192.0.2.54", "2001:db8::54"}
 
 // askYML is hardn.yml asking user with the key of seed, sshPort port, the
 // two nameservers, backups on, and enableUfwSshPolicy, configureDns and
-// disableRootSSH true; enableUnattendedUpgrades as updates says.
+// disableRootSSH true; enableAutoUpdates as updates says.
 func askYML(user string, seed byte, port int, updates bool) string {
 	return "username: " + user + "\nsshKeys:\n  - \"" + synthKey(seed, user+"@laptop-1") + "\"\n" +
 		fmt.Sprintf("sshPort: %d\n", port) +
 		"nameservers:\n  - \"" + nameservers[0] + "\"\n  - \"" + nameservers[1] + "\"\n" +
 		"enableBackups: true\nbackupPath: /var/backups/hardn\n" +
-		fmt.Sprintf("enableUnattendedUpgrades: %v\n", updates) +
+		fmt.Sprintf("enableAutoUpdates: %v\n", updates) +
 		"enableUfwSshPolicy: true\nconfigureDns: true\ndisableRootSSH: true\n"
 }
 
 // defaultYML is hardn.yml as origin/main's SaveConfig writes it with no
 // answer given: it asks Run All for nothing.
 const defaultYML = "username: \"\"\nsshKeys: []\nsshPort: 22\nnameservers: []\nenableBackups: true\nbackupPath: /var/backups/hardn\n" +
-	"enableUnattendedUpgrades: false\nenableUfwSshPolicy: false\nconfigureDns: false\ndisableRootSSH: false\n"
+	"enableAutoUpdates: false\nenableUfwSshPolicy: false\nconfigureDns: false\ndisableRootSSH: false\n"
 
 // runHost is a host with its hardn.yml as loaded.
 type runHost struct {

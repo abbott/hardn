@@ -47,7 +47,7 @@ func runChange(id, title, target string, argv, undo []string, risk engine.RiskCl
 // file deleted while it holds hardn's bytes and no other file keeps
 // updates on without it, and nothing else. Off counts only what the record
 // says hardn did. Then in.Config saved as given (steps.PlanSave) where its
-// enableUnattendedUpgrades is not the file's: the caller sets it false
+// enableAutoUpdates is not the file's: the caller sets it false
 // where the loaded hardn.yml says true; and the record deleted.
 // notes are what stays and why, for the review.
 func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r Reading) (cs []engine.Change, notes []Note, err error) {
@@ -97,14 +97,14 @@ func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r R
 	return cs, notes, nil
 }
 
-// settingChanged reports whether cfg's enableUnattendedUpgrades is not the
+// settingChanged reports whether cfg's enableAutoUpdates is not the
 // one hardn.yml at its path gives, or whether the file cannot be read
 // there, so that steps.PlanSave says why it cannot be saved. cfg is saved
 // as given, so that the save's config.Save records the bytes it wrote in
 // it, as screenkit.Adopt reads them.
 func settingChanged(ctx context.Context, sys host.System, cfg *config.Config) bool {
 	loaded, err := config.Read(ctx, sys, cfg.Path())
-	return err != nil || loaded.EnableUnattendedUpgrades != cfg.EnableUnattendedUpgrades
+	return err != nil || loaded.EnableAutoUpdates != cfg.EnableAutoUpdates
 }
 
 // offReadBack is off's read-back after its last step: the check; updates

@@ -24,7 +24,7 @@
   "SyslogServers": null,
   "NTPServers": null,
   "KernelSettings": false,
-  "EnableUnattendedUpgrades": false,
+  "EnableAutoUpdates": false,
   "EnableUfwSshPolicy": false,
   "ConfigureDns": false,
   "DisableRootSSH": true

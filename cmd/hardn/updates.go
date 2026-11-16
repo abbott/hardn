@@ -37,7 +37,7 @@ var updatesRun = updatesscreen.Run
 // facts detected once per visit, through the one line reader every prompt
 // shares and stdout's render environment; each change on an engine with
 // engineOptions, assembled for this visit from c as it is now; c, the
-// configuration the main menu holds, whose enableUnattendedUpgrades an
+// configuration the main menu holds, whose enableAutoUpdates an
 // off saves false where it says true, the screen adopting the save into c
 // as runBackupScreen's does, so that the main menu, and the next screens'
 // saves, take hardn.yml as saved; a dry run when c says so as the item is

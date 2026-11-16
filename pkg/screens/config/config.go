@@ -195,11 +195,11 @@ func texts(cfg *config.Config) map[string]string {
 		"sshPort": strconv.Itoa(cfg.SshPort), "disableRootSSH": strconv.FormatBool(cfg.DisableRootSSH), "sshConfigFile": cfg.SshConfigFile,
 		"enableUfwSshPolicy": strconv.FormatBool(cfg.EnableUfwSshPolicy), "ufwAppProfiles": profiles, "ufwTrustedInterfaces": list(cfg.UfwTrustedInterfaces),
 		"configureDns": strconv.FormatBool(cfg.ConfigureDns), "nameservers": list(cfg.Nameservers),
-		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
-		"syslogServers":            logServers(cfg),
-		"ntpServers":               timeServers(cfg),
-		"kernel":                   strconv.FormatBool(cfg.KernelSettings),
-		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
+		"enableAutoUpdates": strconv.FormatBool(cfg.EnableAutoUpdates),
+		"syslogServers":     logServers(cfg),
+		"ntpServers":        timeServers(cfg),
+		"kernel":            strconv.FormatBool(cfg.KernelSettings),
+		"enableBackups":     strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
 		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout, "checkReleases": strconv.FormatBool(cfg.CheckReleases),
 	}
 }

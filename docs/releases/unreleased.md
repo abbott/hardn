@@ -12,5 +12,6 @@
 
 ## Changed
 
+- **`enableUnattendedUpgrades` is now `enableAutoUpdates`**; the old name is still read, with a warning.
 - **The release check defaults to yes.** "Check for new hardn releases, once a day? [Y/n]:": Enter is yes, wherever it is asked. n or no is no; another answer is taken as no, and hardn says so.
 - **Manage User's sudo or doas row reads "Enabled, passwordless"** for a rule that asks no password. It was "Enabled, No password to ask for".

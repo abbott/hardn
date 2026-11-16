@@ -15,9 +15,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by key,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPermitRootLogin yes; no ufw. hardn.yml: george with a key,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. hardn runs from root's login.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport 22, two nameservers, backups on, and enableAutoUpdates,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUfwSshPolicy, configureDns and disableRootSSH true.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn runs from root's login.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -213,9 +213,9 @@ $
 # Info: runall/pve9$
 # web-01.example.net is a Proxmox VE 9 node: root alone, by key,$
 # PermitRootLogin yes; no ufw. hardn.yml: george with a key,$
-# port 22, two nameservers, backups on, and$
-# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
-# disableRootSSH true. hardn runs from root's login.$
+# port 22, two nameservers, backups on, and enableAutoUpdates,$
+# enableUfwSshPolicy, configureDns and disableRootSSH true.$
+# hardn runs from root's login.$
 $
 # Run All ######################################################$
 $
@@ -413,8 +413,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkey, PermitRootLogin yes; no ufw. hardn.yml: george with a␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkey, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true. hardn runs from root's login.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. hardn runs from root's login.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -52,7 +52,7 @@ If you decline, hardn goes on with its defaults and writes no hardn.yml. A live 
 
 `8) Configuration`, then `1) hardn.yml`, then `1) Edit a setting` changes one key at a time. hardn checks what you type and asks again if it can't be used, shows the lines that would change, and asks before saving. The rest of the file and its comments stay, and the file is backed up first.
 
-- **It edits** `username`, `sshKeys`, `sshPort`, `disableRootSSH`, `enableUfwSshPolicy`, `configureDns`, `syslogServers`, `ntpServers`, `kernel`, `confirmTimeout`, `checkReleases` and `enableUnattendedUpgrades`.
+- **It edits** `username`, `sshKeys`, `sshPort`, `disableRootSSH`, `enableUfwSshPolicy`, `configureDns`, `syslogServers`, `ntpServers`, `kernel`, `confirmTimeout`, `checkReleases` and `enableAutoUpdates`.
 - **Lists take one entry a save:** Add or Remove. An SSH key is shown by type, comment and fingerprint. A syslog server asks its address, protocol, port and, for TLS, its CA file.
 - **Change protocol** changes one syslog server's protocol. A port left at the default follows the new protocol's; another port is kept.
 - **It only saves.** A line after the save says where the key acts: Run All, NTP Settings or Syslog Settings. Saving `sshPort` never changes sshd: change the port under `2) SSH`.
@@ -319,7 +319,7 @@ What differs by distribution: [platforms.md](platforms.md#kernel).
 ### Feature Toggles
 
 ```yaml
-enableUnattendedUpgrades: false     # Run All: true turns automatic updates on
+enableAutoUpdates: false            # Run All: true turns automatic updates on
 enableUfwSshPolicy: false           # Run All: true enables the firewall
 configureDns: false                 # Run All: true sets the nameservers
 disableRootSSH: false               # Run All: true turns root login off
@@ -334,7 +334,8 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`disableRoot`**, its old name, is read as `disableRootSSH`, with a warning that it is deprecated. Rename it.
 - **`enableUfwSshPolicy: true`:** enables the firewall. On Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux the firewall is left to the Firewall screen.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
-- **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
+- **`enableAutoUpdates: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
+- **`enableUnattendedUpgrades`**, its old name, is read as `enableAutoUpdates`, with a warning. Rename it.
 - **`syslogServers`:** sends the host's logs to them, as Syslog Settings' Set servers. With none the row is not listed. Run All never stops forwarding.
 - **`ntpServers`:** sets them on the host's time service, as NTP Settings' Set servers. With none the row is not listed. Run All never removes them.
 - **`kernel: true`:** sets the kernel settings below hardn's baseline, as Kernel Settings' Apply settings. When false the row is not listed, and in a container never. Run All never removes them.
@@ -346,7 +347,7 @@ A change that is refused, doesn't apply or has nothing to change is skipped, and
 
 **`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
 
-The main menu's Auto Updates (5) reads the host, never `enableUnattendedUpgrades`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
+The main menu's Auto Updates (5) reads the host, never `enableAutoUpdates`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableAutoUpdates: false` where hardn.yml says true, so Run All doesn't turn them back on.
 
 ### Firewall Configuration with UFW Application Profiles
 
@@ -397,7 +398,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 
 1. **System Hardening**: For production servers, enable all security features:
    ```yaml
-   enableUnattendedUpgrades: true
+   enableAutoUpdates: true
    enableUfwSshPolicy: true
    configureDns: true
    ```

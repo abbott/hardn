@@ -19,7 +19,7 @@ import (
 //	   1) username             george
 //	   2) sshKeys              1 key
 //	   ...
-//	  12) enableUnattendedUpgrades  false
+//	  12) enableAutoUpdates    false
 //
 //	   0) Return
 //
@@ -52,10 +52,10 @@ const (
 
 // configEditKeys are the keys Configuration edits, in the menu's order
 // (decision 1 (a)): the keys no other screen saves, checkReleases, and
-// enableUnattendedUpgrades, whose true no screen saves.
+// enableAutoUpdates, whose true no screen saves.
 var configEditKeys = []string{
 	"username", "sshKeys", "sshPort", "disableRootSSH", "enableUfwSshPolicy", "configureDns",
-	"syslogServers", "ntpServers", "kernel", "confirmTimeout", "checkReleases", "enableUnattendedUpgrades",
+	"syslogServers", "ntpServers", "kernel", "confirmTimeout", "checkReleases", "enableAutoUpdates",
 }
 
 // configListWords are a list key's words: its section, its rows' key, and

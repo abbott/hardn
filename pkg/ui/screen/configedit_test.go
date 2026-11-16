@@ -20,7 +20,7 @@ func TestConfigEdit(t *testing.T) {
 	sub := ConfigEdit{Values: values}.SubMenu()
 	out := strings.Join(drawn(sub.Render(plainAt(24, false))), "\n")
 	for _, want := range []string{"# Edit a setting ###", "   1) username             Not set\n", "   3) sshPort              2222\n",
-		"  12) enableUnattendedUpgrades  false\n", "   0) Return", "[0-12 or q]:"} {
+		"  12) enableAutoUpdates    false\n", "   0) Return", "[0-12 or q]:"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("no %q in:\n%s", want, out)
 		}

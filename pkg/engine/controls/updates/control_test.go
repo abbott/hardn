@@ -446,31 +446,53 @@ func TestOffApt(t *testing.T) {
 	})
 }
 
-// TestOffSave: off saves enableUnattendedUpgrades false where the loaded
+// TestOffSave: off saves enableAutoUpdates false where the loaded
 // hardn.yml says true (decision 2), and only there: the caller sets it
 // false in the configuration it plans with, which is saved as given.
 func TestOffSave(t *testing.T) {
 	for _, on := range []bool{true, false} {
 		m := debianOff(t).applied(updates.AutoOn)
-		yml := "# hardn's configuration (web-01.example.net)\nusername: alice\nenableUnattendedUpgrades: " + map[bool]string{true: "true", false: "false"}[on] + "\n"
+		yml := "# hardn's configuration (web-01.example.net)\nusername: alice\nenableAutoUpdates: " + map[bool]string{true: "true", false: "false"}[on] + "\n"
 		m.f.AddFile(hardnYML, []byte(yml), 0o600, 0, 0)
 		cfg, err := config.Read(context.Background(), m.f, hardnYML)
 		if err != nil {
 			t.Fatal(err)
 		}
-		cfg.EnableUnattendedUpgrades = false
+		cfg.EnableAutoUpdates = false
 		got, err := m.apply(updates.AutoOff, cfg)
 		if err != nil {
 			t.Fatal(err)
 		}
 		saved := slices.Contains(got, updates.ChangeSave)
 		data, _ := content(t, m, hardnYML)
-		if saved != on || !strings.Contains(data, "enableUnattendedUpgrades: false") {
+		if saved != on || !strings.Contains(data, "enableAutoUpdates: false") {
 			t.Errorf("hardn.yml true %v: changes %q, file %q", on, got, data)
 		}
 		if !cfg.LoadedFrom([]byte(data)) { // saved as given: it records the bytes written
 			t.Errorf("hardn.yml true %v: the configuration planned with does not record the file", on)
 		}
+	}
+}
+
+// TestOffSaveOldName: off saves enableAutoUpdates false where hardn.yml
+// says true by its old name, enableUnattendedUpgrades, which stays,
+// shadowed.
+func TestOffSaveOldName(t *testing.T) {
+	m := debianOff(t).applied(updates.AutoOn)
+	m.f.AddFile(hardnYML, []byte("username: alice\nenableUnattendedUpgrades: true\n"), 0o600, 0, 0)
+	cfg, err := config.Read(context.Background(), m.f, hardnYML)
+	if err != nil || !cfg.EnableAutoUpdates {
+		t.Fatalf("read: %v, on %t", err, cfg != nil && cfg.EnableAutoUpdates)
+	}
+	cfg.EnableAutoUpdates = false
+	got, err := m.apply(updates.AutoOff, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, _ := content(t, m, hardnYML)
+	back, err := config.Read(context.Background(), m.f, hardnYML)
+	if !slices.Contains(got, updates.ChangeSave) || err != nil || back.EnableAutoUpdates || !strings.Contains(data, "enableAutoUpdates: false") {
+		t.Errorf("changes %q, file %q, read back: %v", got, data, err)
 	}
 }
 

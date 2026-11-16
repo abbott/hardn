@@ -150,13 +150,13 @@ func TestSSHItem(t *testing.T) {
 // TestUpdatesItem: the main menu's 5 runs the Auto Updates screen
 // cmd/hardn sets (Options.Updates), as TestKernelItem's 4 runs the Kernel Settings screen, and
 // maps what it returns the same way (refactor plan slice 7, unit (d));
-// the main menu holds enableUnattendedUpgrades as the screen's off saved
+// the main menu holds enableAutoUpdates as the screen's off saved
 // it.
 func TestUpdatesItem(t *testing.T) {
 	testScreenItem(t, screenItem{
 		key: "5", name: "UPDATES", set: setUpdates,
-		edit:   func(c *config.Config) { c.EnableUnattendedUpgrades = false },
-		edited: func(c *config.Config) bool { return !c.EnableUnattendedUpgrades },
+		edit:   func(c *config.Config) { c.EnableAutoUpdates = false },
+		edited: func(c *config.Config) bool { return !c.EnableAutoUpdates },
 	})
 }
 

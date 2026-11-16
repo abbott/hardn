@@ -78,18 +78,18 @@ const (
 // confirmTimeout acts at once.
 var acts = map[string]string{
 	"username": actsRunAll, "sshKeys": actsRunAll, "disableRootSSH": actsRunAll, "enableUfwSshPolicy": actsRunAll,
-	"configureDns": actsRunAll, "kernel": actsRunAll, "enableUnattendedUpgrades": actsRunAll,
+	"configureDns": actsRunAll, "kernel": actsRunAll, "enableAutoUpdates": actsRunAll,
 	"ntpServers": actsNTP, "syslogServers": actsSyslog, "sshPort": actsPort, "checkReleases": actsStart,
 }
 
 // toggles are the yes/no keys, each with its field of the configuration.
 var toggles = map[string]func(*config.Config) *bool{
-	"disableRootSSH":           func(c *config.Config) *bool { return &c.DisableRootSSH },
-	"enableUfwSshPolicy":       func(c *config.Config) *bool { return &c.EnableUfwSshPolicy },
-	"configureDns":             func(c *config.Config) *bool { return &c.ConfigureDns },
-	"kernel":                   func(c *config.Config) *bool { return &c.KernelSettings },
-	"checkReleases":            func(c *config.Config) *bool { return &c.CheckReleases },
-	"enableUnattendedUpgrades": func(c *config.Config) *bool { return &c.EnableUnattendedUpgrades },
+	"disableRootSSH":     func(c *config.Config) *bool { return &c.DisableRootSSH },
+	"enableUfwSshPolicy": func(c *config.Config) *bool { return &c.EnableUfwSshPolicy },
+	"configureDns":       func(c *config.Config) *bool { return &c.ConfigureDns },
+	"kernel":             func(c *config.Config) *bool { return &c.KernelSettings },
+	"checkReleases":      func(c *config.Config) *bool { return &c.CheckReleases },
+	"enableAutoUpdates":  func(c *config.Config) *bool { return &c.EnableAutoUpdates },
 }
 
 // saveID is the save's change, and saveControl the control that plans it:

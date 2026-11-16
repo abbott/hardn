@@ -17,7 +17,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
 $
@@ -167,7 +167,7 @@ $
 # keys, sudo by cloud-init) and alice, ufw allowing 22,$
 # unattended-upgrades on by the package. hardn.yml: george with$
 # a key, port 22, two nameservers, backups on, and$
-# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
+# enableAutoUpdates, enableUfwSshPolicy, configureDns and$
 # disableRootSSH true. george logged in by key, hardn through$
 # sudo.$
 $
@@ -318,8 +318,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true. george logged in by key, hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough sudo.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -492,7 +492,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
 $
@@ -642,7 +642,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
 $
@@ -792,7 +792,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableAutoUpdates, enableUfwSshPolicy, configureDns and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
 $
