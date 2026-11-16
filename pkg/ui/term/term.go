@@ -113,6 +113,17 @@ func (e Env) Writer(w io.Writer) io.Writer {
 	return &colorprofile.Writer{Forward: w, Profile: e.Profile}
 }
 
+// Stream is the stream w forwards to where w is a Writer's, and w itself
+// otherwise: what Clear writes to where only Writer's is at hand. A
+// Writer at NoTTY strips the clear's cursor home, and a terminal with
+// TERM unset is at NoTTY and not Plain (Resolve).
+func Stream(w io.Writer) io.Writer {
+	if cw, ok := w.(*colorprofile.Writer); ok && cw.Forward != nil {
+		return cw.Forward
+	}
+	return w
+}
+
 // ClearSequence is what Clear writes on a terminal whose height it does not
 // know (Env.HeightMeasured false): the cursor home, then the screen erased.
 const ClearSequence = "\x1b[H\x1b[2J"
@@ -123,7 +134,11 @@ const cursorHome = "\x1b[H"
 // Clear starts a fresh screen on the terminal w is drawn on when e is not
 // Plain, and writes nothing when it is: off a terminal (a pipe, a file, a
 // journal) the sequence is noise (legacy-left.md §3, decision 4 (a)). w is
-// the stream itself, not Writer's: a clear is no colour to downsample.
+// the stream itself, not Writer's: a clear is no colour to downsample, and
+// Writer's strips it at NoTTY (Stream). Its callers: the main menu, as
+// hardn starts and ends and as each item's screen opens and returns
+// (mainmenu's clearTop), and a sub-menu as it opens and as the user goes
+// back from it (nav.Prompter.Open).
 //
 // On a terminal whose height it measured it writes Height-1 newlines and
 // then the cursor home. A newline scrolls only once the cursor is on the

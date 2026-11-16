@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io/fs"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -27,6 +28,8 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -475,5 +478,36 @@ func TestEditChangeProtocol(t *testing.T) {
 	h, cfg = site(t, "username: george\n")
 	if p := edit(h, cfg, nil, "1", "7", "q"); strings.Contains(p.out, "Change protocol") {
 		t.Errorf("Change protocol with no server:\n%s", p.out)
+	}
+}
+
+// sgr matches an SGR sequence.
+var sgr = regexp.MustCompile("\x1b\\[[0-9;]*m")
+
+// TestEditClears: on a terminal "Edit a setting" (1) opens on a cleared
+// screen and 0 from it clears again, each drawing then on row 3
+// (theme.TopRows); sshPort's question, left with 0, comes under it, no
+// clear (nav.Prompter.Sub).
+func TestEditClears(t *testing.T) {
+	h, cfg := site(t, "username: george\n")
+	env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24, Environ: []string{"TERM=xterm-256color", "LANG=C"}})
+	p := edit(h, cfg, func(o *configscreen.Options) {
+		o.Prompter.Ctx = component.NewCtx(env)
+		o.Prompter.Out = env.Writer(term.Stream(o.Prompter.Out))
+	}, "1", "3", "0", "0", "0")
+	var clear strings.Builder
+	_ = env.Clear(&clear)
+	parts := strings.Split(sgr.ReplaceAllString(strings.ReplaceAll(p.out, clear.String(), "<clear>"), ""), "<clear>")
+	if p.err != nil || len(parts) != 3 {
+		t.Fatalf("Run() = %v, %d clears; want nil, 2:\n%s", p.err, len(parts)-1, p.out)
+	}
+	top := strings.Repeat("\n", theme.TopRows)
+	for i, title := range []string{"Edit a setting", "Configuration"} {
+		if got := parts[i+1]; !strings.HasPrefix(got, top) || !strings.HasPrefix(strings.TrimLeft(got, "\n"), "# "+title) {
+			t.Errorf("after clear %d: %q; want %d blank lines, then %s", i+1, got[:min(len(got), 60)], theme.TopRows, title)
+		}
+	}
+	if !strings.Contains(parts[1], "sshPort") || strings.Count(parts[1], "Option [") != 2 {
+		t.Errorf("Edit a setting: want its question under it, then it again, no clear:\n%s", parts[1])
 	}
 }

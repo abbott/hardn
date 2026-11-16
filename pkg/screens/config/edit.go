@@ -151,10 +151,10 @@ func LoggerNote(ctx context.Context, sys host.System, f detect.Facts, cfg *confi
 }
 
 // keys is "Edit a setting": the keys and their values, until the user goes
-// back.
+// back; a sub-menu, on a cleared screen (nav.Prompter.Sub).
 func (r *runner) keys(ctx context.Context) error {
 	p := r.o.Prompter
-	return p.Run(func() nav.Screen {
+	return p.Sub(func() nav.Screen {
 		values := texts(r.o.Config)
 		for k, v := range values {
 			values[k] = logview.Safe(v)
@@ -281,10 +281,10 @@ func (r *runner) ran(run output.Run) {
 }
 
 // list is a list key's screen: its entries, Add and Remove, until the user
-// goes back; one entry a save.
+// goes back, a sub-menu (nav.Prompter.Sub); one entry a save.
 func (r *runner) list(ctx context.Context, key string) error {
 	p := r.o.Prompter
-	return p.Run(func() nav.Screen {
+	return p.Sub(func() nav.Screen {
 		cfg := r.o.Config
 		v := screen.ConfigList{Key: key, Entries: entries(cfg, key)}
 		if key == "syslogServers" {

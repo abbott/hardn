@@ -14,7 +14,8 @@ import (
 
 // TestScreenGoldens pins the screen on every host of usrHosts, opened and
 // left with 0, on the core set: its drawn rows, its words and its items;
-// and on debian13 the user list, george's screen and george's keys. The
+// and on debian13 the user list, george's screen, george's keys and
+// Account Review, each a sub-menu cleared on open and on 0. The
 // files are testdata/golden/screen/<host>.golden.
 func TestScreenGoldens(t *testing.T) {
 	type golden struct {
@@ -26,7 +27,7 @@ func TestScreenGoldens(t *testing.T) {
 		all = append(all, golden{name, name, []string{"0"}})
 	}
 	all = append(all, golden{"select", "debian13", []string{"1", "0", "0"}}, golden{"manage", "debian13", []string{"1", "1", "0", "0", "0"}},
-		golden{"keys", "debian13", []string{"1", "1", "3", "0", "0", "0", "0"}})
+		golden{"keys", "debian13", []string{"1", "1", "3", "0", "0", "0", "0"}}, golden{"review", "debian13", []string{"3", "0", "0"}})
 	for _, g := range all {
 		uitest.Golden(t, "screen/"+g.name, uitest.Core(), func(env term.Env) string {
 			h := newHost(t, g.host)

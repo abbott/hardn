@@ -58,7 +58,7 @@ func withReaderScreens(m mainmenu.Options, c *config.Config, found config.Found)
 // and stdout's render environment, as on each visit.
 func readerPrompter() nav.Prompter {
 	env := stdoutEnv()
-	return nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)}
+	return nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv}
 }
 
 // readerFacts are the facts for one reading, each command under details.Read's bounds.
@@ -118,7 +118,7 @@ func runConfigScreen(ctx context.Context, c *config.Config, found config.Found) 
 	}
 	env := stdoutEnv()
 	return configRun(ctx, configscreen.Options{
-		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv},
 		Config:       c,
 		Found:        found,
 		System:       sys,

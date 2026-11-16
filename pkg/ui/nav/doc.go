@@ -89,4 +89,16 @@
 // the writer around stdout. It writes only to that writer and reads only
 // through that reader; the reader discards typeahead before each prompt
 // on a terminal (prompt.Reader.Ask).
+//
+// # Clears
+//
+// Run never clears: what an action wrote stays above the menu drawn
+// again (brief 1C: never wipe a result). A sub-menu is opened with Sub
+// (or Open), which clears the screen on a terminal as the sub-menu opens
+// and again as the user goes back from it with 0, so that each menu
+// starts at the top, theme.TopRows blank rows above it, as the main
+// menu's items do (the maintainer, 2026-11-16). A question flow and its
+// result come under the menu that started them; q clears nothing here.
+// Each clear measures the terminal through Prompter.Terminal when set,
+// so that it fits a window resized since the screen opened.
 package nav

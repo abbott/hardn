@@ -428,8 +428,8 @@ func lockoutRun(m backup.Manifest) bool {
 	})
 }
 
-// restoreRun is one run's screen as hardn draws it, with the mock's item
-// 1, Restore, refused for a run of SSH or firewall files (lockoutRun).
+// restoreRun is one run's screen as hardn draws it, a sub-menu on a
+// cleared screen, with the mock's item 1, Restore, refused for a run of SSH or firewall files (lockoutRun).
 func (s *session) restoreRun(ctx context.Context, h *fakeHost, cfg *config.Config, m backup.Manifest, v screen.BackupRun) error {
 	vm := v.SubMenu()
 	vm.Heading = "Select an option"
@@ -439,7 +439,7 @@ func (s *session) restoreRun(ctx context.Context, h *fakeHost, cfg *config.Confi
 		action = s.say(component.Message{Kind: component.MessageWarn, Text: lockoutRestore})
 	}
 	menu := nav.Menu{Exit: vm.Menu.Exit, Options: []nav.Option{{Item: vm.Menu.Items[0], Action: action}}}
-	return s.p.Run(func() nav.Screen { return vm.Screen(s.p.Ctx, menu) })
+	return s.p.Sub(func() nav.Screen { return vm.Screen(s.p.Ctx, menu) })
 }
 
 // restore is the restore of run m (P-19), through the flow: the review;

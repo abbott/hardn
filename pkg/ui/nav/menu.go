@@ -9,6 +9,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
+	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
@@ -181,7 +182,9 @@ type Screen struct {
 // line under Above, then theme.PromptGap blank lines; then it asks (Choose)
 // and runs the option's Action. The next round draws the screen again
 // under what the action wrote, clearing nothing (brief 1C: never wipe a
-// result). A line the prompt refuses does not draw the screen again.
+// result); only a sub-menu, run with Sub, clears, as it opens and as the
+// user goes back from it. A line the prompt refuses does not draw the
+// screen again.
 //
 // Once any prompt has been asked (prompt.Reader.Asked), something stands
 // above the drawing: the answer that opened this menu, for a sub-menu, or
@@ -191,7 +194,8 @@ type Screen struct {
 // run, with nothing above it, starts at once. An action starts on the
 // line under the answer that chose it, so one that writes, such as a
 // result Message or a flow's first step, writes theme.SectionGap blank
-// lines first, as Run does; a sub-menu's Run does so itself.
+// lines first, as Run does; a sub-menu's Run does so itself, under the
+// clear Sub writes.
 //
 // Run returns nil when the user goes back with 0: the caller returns
 // to the screen above, and at the top level exits. It returns ErrQuit
@@ -240,4 +244,51 @@ func (p Prompter) Run(draw func() Screen) error {
 			return err
 		}
 	}
+}
+
+// Sub runs a sub-menu, an action of another menu that shows a menu of its
+// own: Run(draw) from a cleared screen (Open), so that the sub-menu, and
+// the menu it came from once the user goes back with 0, starts at the top
+// of the screen, as the main menu's items do (the maintainer,
+// 2026-11-16). A question flow and its result are no sub-menu: they come
+// under the menu that started them, and Run's redraw after an action
+// clears nothing.
+func (p Prompter) Sub(draw func() Screen) error {
+	return p.Open(func() error { return p.Run(draw) })
+}
+
+// Open runs run, a sub-menu's screen, from a cleared screen on a terminal
+// (clearTop), and clears again when it returns nil or ErrBack, the user
+// gone back, so that the menu above is drawn again at the top; it returns
+// what run returned. ErrQuit and any other error clear nothing: the main
+// menu's end clears for q. Off a terminal (term.Env.Plain) nothing is
+// cleared. Use Sub where run is a Run of its own.
+func (p Prompter) Open(run func() error) error {
+	p.clearTop()
+	err := run()
+	if err == nil || errors.Is(err, ErrBack) {
+		p.clearTop()
+	}
+	return err
+}
+
+// clearTop clears the screen (term.Env.Clear) on the stream Out forwards
+// to (term.Stream), then writes the blank lines that leave theme.TopRows
+// of them above the next drawing, less the theme.SectionGap Run writes
+// itself once a prompt has been asked. It measures the terminal through
+// Terminal when set. On a Plain Env it writes nothing.
+func (p Prompter) clearTop() {
+	env := p.Ctx.Env
+	if p.Terminal != nil {
+		env = p.Terminal()
+	}
+	if env.Plain {
+		return
+	}
+	own := 0
+	if p.In != nil && p.In.Asked() {
+		own = theme.SectionGap
+	}
+	_ = env.Clear(term.Stream(p.Out))
+	_, _ = io.WriteString(p.Out, strings.Repeat("\n", max(0, theme.TopRows-own)))
 }

@@ -43,9 +43,9 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 		create = r.refuse(h.err)
 	}
 	return sub.Screen(r.o.Prompter.Ctx, bind(sub.Menu.Exit, sub.Menu.Items, map[string]func() error{
-		screen.UsersManageItem: func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawSelect(ctx) }) },
+		screen.UsersManageItem: func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawSelect(ctx) }) },
 		screen.UsersCreateItem: create,
-		screen.UsersReviewItem: func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawReview(ctx) }) },
+		screen.UsersReviewItem: func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawReview(ctx) }) },
 	}))
 }
 
@@ -74,7 +74,7 @@ func (r *runner) drawSelect(ctx context.Context) nav.Screen {
 	for i, u := range h.Users {
 		name := u.Name
 		view.Names = append(view.Names, name)
-		actions[fmt.Sprint(i+1)] = func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawManage(ctx, name) }) }
+		actions[fmt.Sprint(i+1)] = func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawManage(ctx, name) }) }
 	}
 	sub := view.SubMenu()
 	return sub.Screen(r.o.Prompter.Ctx, bind(sub.Menu.Exit, sub.Menu.Items, actions))
@@ -106,7 +106,7 @@ func (r *runner) drawManage(ctx context.Context, name string) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, bind(sub.Menu.Exit, sub.Menu.Items, map[string]func() error{
 		screen.UsersAdminItem:    r.admin(ctx, h, u),
 		screen.UsersPasswordItem: r.password(ctx, h, u),
-		screen.UsersKeysItem:     func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawKeys(ctx, name) }) },
+		screen.UsersKeysItem:     func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawKeys(ctx, name) }) },
 	}))
 }
 
