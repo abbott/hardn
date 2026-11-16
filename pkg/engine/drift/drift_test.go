@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -13,8 +14,11 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/timesync"
+	"github.com/abbott/hardn/pkg/host/timesync/timefake"
 )
 
 // line is a difference in a test's words: its fact, its change, and what
@@ -77,7 +81,8 @@ func TestReadOnlyReads(t *testing.T) {
 			cmd := strings.Join(argv, " ")
 			ok := false
 			for _, q := range []string{"sshd -T", "visudo -c", "ss -H", "ufw status verbose", "systemctl is-", "firewall-cmd --state", "firewall-cmd --get-",
-				"firewall-cmd --list-all-zones", "firewall-cmd --permanent --service=ssh --get-ports", "apt-config dump", "dpkg-query --show", "rpm -q "} {
+				"firewall-cmd --list-all-zones", "firewall-cmd --permanent --service=ssh --get-ports", "apt-config dump", "dpkg-query --show", "rpm -q ",
+				"chronyc -N tracking", "timedatectl show"} {
 				ok = ok || strings.Contains(cmd, q)
 			}
 			if !ok {
@@ -163,6 +168,24 @@ func TestDifferences(t *testing.T) {
 		{name: "rsyslog's forwarding hardn can't make out", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51"} },
 			change: func(h *simHost) { h.forwards = []string{"@@:514"} },
 			want:   []string{"logs.servers changed [192.0.2.51:514 TCP] [?]"}},
+		// The NTP servers, as NTP Settings reads them: one added, removed
+		// or changed, and hardn's own.
+		{name: "an NTP server added", change: func(h *simHost) {
+			h.ntp[timesync.SourcesDir+"/site.sources"] = "server 192.0.2.10 iburst\n"
+		}, want: []string{"time.servers added [] [192.0.2.10 in site.sources]"}},
+		{name: "an NTP server removed", change: func(h *simHost) {
+			h.ntp[timesync.ChronyConfDebian] = strings.Replace(timefake.DebianConf, "pool 2.debian.pool.ntp.org iburst\n", "", 1)
+		}, want: []string{"time.servers removed [2.debian.pool.ntp.org] []"}},
+		{name: "an NTP server changed", change: func(h *simHost) {
+			h.ntp[timesync.ChronyConfDebian] = strings.Replace(timefake.DebianConf, "2.debian.pool", "0.debian.pool", 1)
+		}, want: []string{"time.servers removed [2.debian.pool.ntp.org] []", "time.servers added [] [0.debian.pool.ntp.org]"}},
+		{name: "hardn's NTP servers added", change: func(h *simHost) { h.ntp[timesync.ChronySources] = ntpSources(h.t, "192.0.2.10") },
+			want: []string{"time.servers added [] [192.0.2.10 by hardn]"}},
+		{name: "an NTP server changed on Rocky Linux", distro: "rocky", change: func(h *simHost) {
+			h.ntp[timesync.ChronyConfEL] = strings.Replace(timefake.ELConf, "2.rocky.pool.ntp.org", "time.example.net", 1)
+		}, want: []string{"time.servers removed [2.rocky.pool.ntp.org] []", "time.servers added [] [time.example.net]"}},
+		{name: "chrony's settings hardn can't make out", change: func(h *simHost) { h.ntp[timesync.ChronyConfDebian] = "server\n" },
+			want: []string{"time.servers changed [2.debian.pool.ntp.org] [?]"}},
 		{name: "a new reachable listening port", before: func(h *simHost) { h.rules = append(h.rules, "8080/tcp") },
 			change: func(h *simHost) { h.listen = append(h.listen, "0.0.0.0:8080") },
 			want:   []string{"firewall.ports added [] [8080/tcp]"}},
@@ -272,6 +295,113 @@ func TestNoSS(t *testing.T) {
 	}
 }
 
+// ntpSources is hardn's own chrony file naming servers.
+func ntpSources(t *testing.T, servers ...string) string {
+	t.Helper()
+	data, err := timesync.SourcesFile(servers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
+}
+
+// TestReadNTP: the NTP servers as each time service has them, each with
+// where it is set but for the service's own files; none with no time
+// service or in a container; not established, with why, where the
+// settings are not read.
+func TestReadNTP(t *testing.T) {
+	ntp := func(t *testing.T, h *simHost) drift.Fact {
+		t.Helper()
+		fs := h.read()
+		f := fs[len(fs)-1]
+		if f.ID != drift.TimeServers {
+			t.Fatalf("the last fact: %+v", f)
+		}
+		return f
+	}
+	for _, tc := range []struct {
+		name   string
+		change func(*simHost)
+		want   []string
+	}{
+		{"chrony", nil, []string{"2.debian.pool.ntp.org"}},
+		{"chrony, hardn's servers and DHCP's", func(h *simHost) {
+			h.ntp[timesync.ChronySources] = ntpSources(h.t, "192.0.2.10", "192.0.2.11")
+			h.ntp[timesync.ChronyDHCP+"/eth0.sources"] = "server 192.0.2.1 iburst\n"
+		}, []string{"192.0.2.1 from DHCP", "192.0.2.10 by hardn", "192.0.2.11 by hardn", "2.debian.pool.ntp.org"}},
+		{"systemd-timesyncd", func(h *simHost) {
+			h.time = &timefake.Sim{Service: "systemd-timesyncd", Synced: "deb.example", Fallback: "0.debian.pool.ntp.org", Packages: map[string]bool{"systemd-timesyncd": true}}
+			h.ntp = map[string]string{"/etc/systemd/timesyncd.conf": "[Time]\n#NTP=\n"}
+		}, []string{"0.debian.pool.ntp.org built in"}},
+		{"systemd-timesyncd, servers set", func(h *simHost) {
+			h.time = &timefake.Sim{Service: "systemd-timesyncd", Synced: "192.0.2.10", Fallback: "0.debian.pool.ntp.org", Link: "192.0.2.1", Packages: map[string]bool{"systemd-timesyncd": true}}
+			data, err := timesync.TimesyncdFile([]string{"192.0.2.10"})
+			if err != nil {
+				h.t.Fatal(err)
+			}
+			h.ntp = map[string]string{timesync.TimesyncdDropIn: string(data), "/etc/systemd/timesyncd.conf.d/10-site.conf": "[Time]\nNTP=192.0.2.20\n"}
+		}, []string{"192.0.2.1 from DHCP", "192.0.2.10 by hardn", "192.0.2.20 in 10-site.conf"}},
+		{"no time service", func(h *simHost) { h.time = &timefake.Sim{Packages: map[string]bool{}} }, []string{}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := newHost(t, "debian")
+			if tc.change != nil {
+				h.change(tc.change)
+				h.time.Read = func(name string) ([]byte, error) { return h.ReadFile(context.Background(), name) }
+			}
+			f := ntp(t, h)
+			if got := f.Items; !f.Known || !slices.Equal(append([]string{}, got...), tc.want) {
+				t.Errorf("got %+v, want %q", f, tc.want)
+			}
+		})
+	}
+	t.Run("not read", func(t *testing.T) {
+		h := newHost(t, "debian")
+		h.change(func(h *simHost) { h.ntp[timesync.ChronyConfDebian] = "server\n" })
+		if f := ntp(t, h); f.Known || len(f.Items) != 0 || !strings.Contains(f.Why, "time servers hardn can't make out") {
+			t.Errorf("%+v", f)
+		}
+	})
+
+	// busybox ntpd, on Alpine, and a container: only this fact is looked
+	// at, on a host that answers the time service's commands alone.
+	bare := func(sim *timefake.Sim, files ...string) *hostfake.System {
+		h := hostfake.New(host.Options{})
+		for i := 0; i < len(files); i += 2 {
+			h.AddFile(files[i], []byte(files[i+1]), 0o644, 0, 0)
+		}
+		sim.Read = func(name string) ([]byte, error) { return h.ReadFile(context.Background(), name) }
+		h.Handler = func(argv []string, _ []byte) hostfake.Response {
+			if r, ok := sim.Answer(argv); ok {
+				return hostfake.Response{Stdout: r.Stdout, Stderr: r.Stderr, ExitCode: r.ExitCode}
+			}
+			return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
+		}
+		return h
+	}
+	alpine := detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlpine}, Init: detect.Init{Kind: detect.OpenRC, Running: detect.Yes}}
+	inBox := detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}, Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes},
+		Container: detect.Container{Detected: detect.Yes}}
+	for _, tc := range []struct {
+		name  string
+		h     *hostfake.System
+		facts detect.Facts
+		want  []string
+	}{
+		{"busybox ntpd", bare(&timefake.Sim{Service: "ntpd", Synced: "pool.ntp.org"}, "/lib/apk/db/installed", "P:busybox\nV:1.37.0-r30\n\n",
+			timesync.ConfD, timefake.AlpineConfD), alpine, []string{"pool.ntp.org"}},
+		{"in a container", bare(&timefake.Sim{}), inBox, []string{}},
+	} {
+		fs, err := drift.Read(context.Background(), tc.h, tc.facts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if f := fs[len(fs)-1]; f.ID != drift.TimeServers || !f.Known || !slices.Equal(append([]string{}, f.Items...), tc.want) {
+			t.Errorf("%s: %+v", tc.name, f)
+		}
+	}
+}
+
 // facts are a reading made by hand: every fact established, v its value
 // or its one item.
 func facts(v string) drift.Facts {
@@ -333,8 +463,14 @@ func TestCompare(t *testing.T) {
 	}
 
 	ds, _ = drift.Compare(a, a[:len(a)-1])
-	if got := lines(ds); !slices.Equal(got, []string{"logs.servers changed [x] [?]"}) {
+	if got := lines(ds); !slices.Equal(got, []string{"time.servers changed [x] [?]"}) {
 		t.Errorf("a fact a reading lacks: %q", got)
+	}
+	changed := slices.Clone(a)
+	changed[len(a)-1].Items = []string{"y"}
+	ds, notes := drift.Compare(a[:len(a)-1], changed)
+	if len(ds) != 0 || len(notes) != 1 || notes[0].Fact != drift.TimeServers || notes[0].Title != "NTP servers" || notes[0].Why != drift.NotInBaseline {
+		t.Errorf("a fact the baseline lacks: %q, %+v", lines(ds), notes)
 	}
 
 	e1, e2 := slices.Clone(a), slices.Clone(a)
@@ -558,6 +694,53 @@ func TestBaselineRefused(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestOlderBaseline: a baseline of v0.10.0 to v0.10.3, Specs' first
+// MinFacts facts, is read, and compared in those; the NTP servers, which
+// it lacks, are a note and no difference. One with fewer facts, more, or
+// out of order is not one hardn wrote; Save writes every fact.
+func TestOlderBaseline(t *testing.T) {
+	ctx := context.Background()
+	if drift.MinFacts != 17 || len(drift.Specs) != 18 || drift.Specs[17].ID != drift.TimeServers {
+		t.Fatalf("MinFacts %d, %d specs", drift.MinFacts, len(drift.Specs))
+	}
+	plant := func(fs drift.Facts) *hostfake.System {
+		h := stateHost()
+		h.AddDir("/var/lib/hardn", 0o700, 0, 0)
+		data, err := json.Marshal(drift.Baseline{Format: drift.Format, HardnVersion: "0.10.3", Saved: saved, User: "root", Facts: fs})
+		if err != nil {
+			t.Fatal(err)
+		}
+		h.AddFile(drift.Path, data, 0o600, 0, 0)
+		return h
+	}
+	all := facts("x")
+	b, err := drift.Load(ctx, plant(all[:drift.MinFacts]), revert.Options{})
+	if err != nil || len(b.Facts) != drift.MinFacts {
+		t.Fatalf("17 facts: %v, %d", err, len(b.Facts))
+	}
+	now := slices.Clone(all)
+	now[len(now)-1].Items = []string{"y"}
+	if ds, notes := drift.Compare(b.Facts, now); len(ds) != 0 || len(notes) != 1 || notes[0].Fact != drift.TimeServers || notes[0].Why != drift.NotInBaseline {
+		t.Errorf("the NTP servers changed: %q, %+v", lines(ds), notes)
+	}
+	now[4].Value = "y"
+	if ds, notes := drift.Compare(b.Facts, now); !slices.Equal(lines(ds), []string{"ssh.rootLogin changed [x] [y]"}) || len(notes) != 1 {
+		t.Errorf("root login changed: %q, %+v", lines(ds), notes)
+	}
+	swapped := slices.Clone(all[:drift.MinFacts])
+	swapped[15], swapped[16] = swapped[16], swapped[15]
+	ntpFirst := append(drift.Facts{all[17]}, all[:16]...)
+	for name, fs := range map[string]drift.Facts{"16 facts": all[:16], "out of order": swapped, "the NTP servers in place of the syslog servers": ntpFirst,
+		"19 facts": append(slices.Clone(all), drift.Fact{ID: "x.y", Known: true})} {
+		if _, err := drift.Load(ctx, plant(fs), revert.Options{}); !errors.Is(err, drift.ErrInvalid) {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	if err := drift.Save(ctx, stateHost(), revert.Options{}, drift.Baseline{Saved: saved, Facts: all[:drift.MinFacts]}); !errors.Is(err, drift.ErrInvalid) {
+		t.Errorf("saved 17 facts: %v", err)
 	}
 }
 

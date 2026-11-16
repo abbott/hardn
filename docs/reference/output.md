@@ -188,8 +188,9 @@ The facts. A value's text and an item's form are part of the baseline's format: 
 | `dns.nameservers` | value | the nameservers in use, in their order, joined by `, ` |
 | `updates.auto` | value | `on`, `off`, `not applicable` (Proxmox VE) |
 | `logs.servers` | set | `<address>:<port> <UDP, TCP or TLS>` for each syslog server the host forwards to, hardn's or not (`192.0.2.51:514 TCP`); none on a host with journald alone. Connections are not compared |
+| `time.servers` | set | each NTP server the time service uses, as NTP Settings words it: its name, then where it is set but for the service's own files (`2.debian.pool.ntp.org`, `192.0.2.10 by hardn`, `192.0.2.1 from DHCP`, `ntp.ubuntu.com built in`, `192.0.2.20 in site.sources`); none with no time service, or in a container. The clock's state is not compared |
 
-**A fact not compared** is a finding, `CHECK_NOT_COMPARED`, `source` the fact's id, `detail` why: the listening ports on a host with no `ss` (`ss is not installed`), or on one that has it against a baseline saved without (`the baseline was saved without ss`; `--accept` saves one with them). It is no difference and changes no exit status.
+**A fact not compared** is a finding, `CHECK_NOT_COMPARED`, `source` the fact's id, `detail` why: the listening ports on a host with no `ss` (`ss is not installed`), or on one that has it against a baseline saved without (`the baseline was saved without ss`; `--accept` saves one with them); or a fact the baseline does not have, saved before hardn read it (`not in the baseline yet; hardn check --accept adds it`). It is no difference and changes no exit status.
 
 A document with two differences, its `check`:
 

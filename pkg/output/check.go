@@ -13,7 +13,8 @@ import (
 )
 
 // CodeNotCompared is the finding of a fact hardn check left out of its
-// comparison: the listening ports on a host with no ss.
+// comparison: the listening ports on a host with no ss, or a fact the
+// baseline does not have yet (drift.NotInBaseline).
 const CodeNotCompared = "CHECK_NOT_COMPARED"
 
 // Check is hardn check's part of its document, Document.Check, on that
@@ -117,21 +118,23 @@ func NewCheckRecord(r CheckRun, at time.Time) Record {
 
 // The words of hardn check's report.
 const (
-	checkSame     = "No difference from the baseline of %s."
-	checkOne      = "1 difference from the baseline of %s"
-	checkMany     = "%d differences from the baseline of %s"
-	checkSaved    = "Baseline saved: %s"
-	checkKeep     = "Run `%s check --accept` to keep the host as it is now."
-	checkNotComp  = "%s not compared: %s"
-	checkNotKnown = "not established"
-	checkNone     = "none"
-	checkStamp    = "2006-01-02 15:04 MST"
+	checkSame      = "No difference from the baseline of %s."
+	checkOne       = "1 difference from the baseline of %s"
+	checkMany      = "%d differences from the baseline of %s"
+	checkSaved     = "Baseline saved: %s"
+	checkKeep      = "Run `%s check --accept` to keep the host as it is now."
+	checkNotComp   = "%s not compared: %s"
+	checkNotInBase = "%s: not in the baseline yet; `%s check --accept` adds it."
+	checkNotKnown  = "not established"
+	checkNone      = "none"
+	checkStamp     = "2006-01-02 15:04 MST"
 )
 
 // HumanCheck renders run r for a person, at env, through pkg/ui's
 // components: a baseline saved; no difference; or the differences as one
 // warning, a line each with what it was and what it is, then how to accept
-// them. A fact not compared is said after either. Every string read from
+// them. A fact not compared is said after either, and one not in the
+// baseline yet with how to add it. Every string read from
 // the host is made safe first (logview.Safe). A run that ended with an
 // error renders as "": its caller says the error on stderr. It is pure.
 func HumanCheck(env term.Env, r CheckRun) string {
@@ -157,7 +160,11 @@ func HumanCheck(env term.Env, r CheckRun) string {
 		run = append(run, component.Message{Text: fmt.Sprintf(checkKeep, hardnAsRoot(r.facts()))})
 	}
 	for _, n := range r.Notes {
-		run = append(run, component.Message{Text: fmt.Sprintf(checkNotComp, n.Title, logview.Safe(n.Why))})
+		text := fmt.Sprintf(checkNotComp, n.Title, logview.Safe(n.Why))
+		if n.Why == drift.NotInBaseline {
+			text = fmt.Sprintf(checkNotInBase, n.Title, hardnAsRoot(r.facts()))
+		}
+		run = append(run, component.Message{Text: text})
 	}
 	return run.Render(component.NewCtx(env)) + "\n"
 }

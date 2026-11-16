@@ -199,6 +199,7 @@ Admin added: carol
 | DNS | the nameservers in use |
 | Auto updates | on or off |
 | Syslog servers | each server the host forwards its logs to, hardn's or not, with its port and protocol. Connections aren't compared |
+| NTP servers | each server the time service uses, and where it is set: by hardn, from DHCP, built in, or another file. Whether the clock is in sync isn't compared. A baseline saved by an earlier hardn doesn't have them: the result says so, and `--accept` adds them |
 
 Not compared: AppArmor, sysctl, packages, rules written straight into nftables, a cloud provider's firewall, sshd's `Match` blocks, firewalld's rich rules.
 

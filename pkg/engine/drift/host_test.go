@@ -3,7 +3,8 @@ package drift_test
 // A model of a host for the drift check's tests, on the recording fake: a
 // Debian 13 VM as hardn leaves it (ufw on and denying, 22 let in; root
 // login key-only, passwords off; george an admin with one key; automatic
-// updates on), and a Rocky Linux 10 VM on firewalld. A test changes the
+// updates on; chrony on its package's pool), and a Rocky Linux 10 VM on
+// firewalld. A test changes the
 // model as a person would change the host, and reads it again.
 
 import (
@@ -25,6 +26,8 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
+	"github.com/abbott/hardn/pkg/host/timesync/timefake"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -66,8 +69,13 @@ type simHost struct {
 	noSudoers   bool // /etc/sudoers is not readable
 	// forwards are rsyslog's lines in /etc/rsyslog.d/50-remote.conf, each
 	// "@@192.0.2.51" or "@192.0.2.52:1514"; noRsyslog: it is not installed.
-	forwards   []string
-	noRsyslog  bool
+	forwards  []string
+	noRsyslog bool
+	// time is the time service, and ntp its files, by name; a file taken
+	// out of ntp is removed.
+	time       *timefake.Sim
+	ntp        map[string]string
+	ntpWritten []string
 	unexpected []string
 }
 
@@ -101,11 +109,16 @@ func newHost(t *testing.T, distro string) *simHost {
 		Container: detect.Container{Detected: detect.No},
 		Elevation: detect.Elevation{Sudo: detect.Tool{Present: detect.Yes, Path: "/usr/bin/sudo"}, SudoFlavor: detect.SudoOriginal, Doas: detect.Tool{Present: detect.No}},
 	}
+	h.time = &timefake.Sim{Service: "chrony", Synced: "2.debian.pool.ntp.org", Packages: map[string]bool{"chrony": true}}
+	h.ntp = map[string]string{timesync.ChronyConfDebian: timefake.DebianConf}
 	if distro == "rocky" {
 		h.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
 		h.users[0].groups = []string{"wheel"}
+		h.time.Service, h.time.Synced = "chronyd", "2.rocky.pool.ntp.org"
+		h.ntp = map[string]string{timesync.ChronyConfEL: timefake.ELConf}
 	}
+	h.time.Read = func(name string) ([]byte, error) { return h.ReadFile(context.Background(), name) }
 	for _, d := range []string{"/etc", "/bin", "/usr/bin", "/usr/sbin", "/home", "/var/lib", "/run", "/run/sshd", "/etc/ssh", sshd.DropInDir, "/etc/ufw", "/etc/default"} {
 		h.AddDir(d, 0o755, 0, 0)
 	}
@@ -141,7 +154,7 @@ type setuidInfo struct{ fs.FileInfo }
 func (i setuidInfo) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetuid }
 
 // sync writes the model's files: the accounts and their keys, sudoers,
-// sshd's files, ufw's, resolv.conf.
+// sshd's files, ufw's, the time service's, resolv.conf.
 func (h *simHost) sync() {
 	admin := "sudo"
 	if h.facts.Platform.Distro.EL() {
@@ -211,6 +224,17 @@ func (h *simHost) sync() {
 	}
 	h.AddDir("/etc/rsyslog.d", 0o755, 0, 0)
 	h.AddFile("/etc/rsyslog.d/50-remote.conf", []byte(fw.String()), 0o644, 0, 0)
+
+	for _, name := range h.ntpWritten {
+		if _, ok := h.ntp[name]; !ok {
+			_ = h.Remove(context.Background(), name)
+		}
+	}
+	h.ntpWritten = nil
+	for name, text := range h.ntp {
+		h.AddFile(name, []byte(text), 0o644, 0, 0)
+		h.ntpWritten = append(h.ntpWritten, name)
+	}
 
 	var rc strings.Builder
 	for _, ns := range h.nameservers {
@@ -330,6 +354,9 @@ func (h *simHost) answer(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{Stdout: "static\n"}
 		}
 		return hostfake.Response{Stdout: "enabled\n"}
+	}
+	if r, ok := h.time.Answer(argv); ok {
+		return hostfake.Response{Stdout: r.Stdout, Stderr: r.Stderr, ExitCode: r.ExitCode}
 	}
 	h.unexpected = append(h.unexpected, cmd)
 	return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}

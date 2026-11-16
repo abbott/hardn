@@ -31,6 +31,7 @@ const (
 	Nameservers    = "dns.nameservers"
 	AutoUpdates    = "updates.auto"
 	SyslogServers  = "logs.servers"
+	TimeServers    = "time.servers"
 )
 
 // Spec is one fact hardn check reads: its id, the words a difference's line
@@ -48,7 +49,9 @@ type Spec struct {
 // Set reports whether the fact is a set.
 func (s Spec) Set() bool { return s.Item != "" }
 
-// Specs are the facts, in the order they are read, kept and reported.
+// Specs are the facts, in the order they are read, kept and reported. A
+// fact is added at the end alone: a baseline saved before has the ones
+// before it (MinFacts).
 var Specs = []Spec{
 	{Admins, "Admins", "Admin", ""},
 	{UID0, "Accounts with uid 0", "Account with uid 0", ""},
@@ -67,6 +70,7 @@ var Specs = []Spec{
 	{Nameservers, "Nameservers", "", ""},
 	{AutoUpdates, "Auto updates", "", ""},
 	{SyslogServers, "Syslog servers", "Syslog server", ""},
+	{TimeServers, "NTP servers", "NTP server", ""},
 }
 
 // Fact is one fact as read. A fact that could not be established has Known
@@ -164,9 +168,15 @@ type Note struct {
 // difference; one established on neither is none, whatever each says of
 // why. A fact either side marks NotCompared is a Note instead, with the
 // host's reason, or NoSSBaseline where the baseline alone has one. A fact
-// a reading lacks is taken as not established.
+// the baseline lacks, one added to Specs after it was saved, is a Note
+// too, NotInBaseline. A fact the host's reading lacks is taken as not
+// established.
 func Compare(base, now Facts) (diffs []Difference, notes []Note) {
 	for _, sp := range Specs {
+		if !slices.ContainsFunc(base, func(f Fact) bool { return f.ID == sp.ID }) {
+			notes = append(notes, Note{Fact: sp.ID, Title: sp.Title, Why: NotInBaseline})
+			continue
+		}
 		a, b := base.fact(sp.ID), now.fact(sp.ID)
 		if a.NotCompared || b.NotCompared {
 			why := b.Why

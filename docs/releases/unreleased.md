@@ -2,6 +2,10 @@
 
 > **Draft: every line is proposed until the maintainer approves the words.** At the release candidate this file becomes `docs/releases/v<x.y.z>.md`, the release's whole body, and this note is cut.
 
+## Added
+
+- **hardn check compares the NTP servers**; a baseline saved before is still read, and --accept adds them.
+
 ## Fixed
 
 - **Sub-menus open and close on a cleared screen**, as the main menu's items do.

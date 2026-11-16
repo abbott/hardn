@@ -71,8 +71,9 @@ func checkCmd(run func(CheckForm, error)) *cobra.Command {
 		Long: `Read the host and compare it with the baseline saved earlier: the accounts that
 can become root and their SSH keys, accounts with an empty password, sshd's
 root login, password login, ports and allowed users, the firewall and its
-rules, the listening ports the firewall lets in, the nameservers and automatic
-updates. Each difference is one line: what it was and what it is.
+rules, the listening ports the firewall lets in, the nameservers, automatic
+updates, and the syslog and NTP servers. Each difference is one line: what it
+was and what it is.
 
 It changes nothing and makes no network request. It exits 0 with no difference,
 3 with one, and 1 on an error or with no baseline, so it suits cron and CI.
