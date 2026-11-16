@@ -166,12 +166,15 @@ func (r *runner) read(ctx context.Context) reading {
 
 // keysScreen is item 6, SSH keys: the SSH Keys screen (pkg/screens/sshkeys),
 // which reads sshd's settings and the keys again on each draw and changes
-// nothing, under plan only too.
+// nothing, under plan only too. It opens and closes on a cleared screen, a
+// sub-menu (nav.Prompter.Open).
 func (r *runner) keysScreen(ctx context.Context) error {
-	return sshkeys.Run(ctx, sshkeys.Options{Prompter: r.o.Prompter, System: r.o.System,
-		Settings: func(ctx context.Context) (sshctl.KeySettings, error) {
-			return sshctl.ReadKeySettings(ctx, r.o.System, r.o.Facts)
-		}})
+	return r.o.Prompter.Open(func() error {
+		return sshkeys.Run(ctx, sshkeys.Options{Prompter: r.o.Prompter, System: r.o.System,
+			Settings: func(ctx context.Context) (sshctl.KeySettings, error) {
+				return sshctl.ReadKeySettings(ctx, r.o.System, r.o.Facts)
+			}})
+	})
 }
 
 // notRead reports whether sshd's settings are not read: sshd -T failed, or

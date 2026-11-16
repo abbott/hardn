@@ -46,6 +46,11 @@ const (
 	SectionGap = 1
 	// PromptGap is the number of blank lines before the prompt (drift D11).
 	PromptGap = 1
+	// TopRows is how many blank rows every screen keeps at the top of the
+	// terminal after a clear: two, so that one shows as a gap under a bar a
+	// terminal draws over its own top row, which hides what is written there
+	// (the maintainer, 2026-11-06; docs/engine/menu-layout.md §5).
+	TopRows = 2
 )
 
 // Width and height rules from the brief's §1A proposals, one constant per

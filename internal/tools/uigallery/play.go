@@ -622,6 +622,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := links[m.Name+"/"+it.Key]; ok {
 			action = s.open(s.mocks[to])
+			if m.Name != mainMenuMock && s.mocks[to].Screen != nil {
+				action = s.sub(action) // a sub-menu, as hardn's (nav.Prompter.Sub)
+			}
 		}
 		if to, ok := ksLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openKernel(to)
@@ -656,6 +659,12 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}
 	return out
+}
+
+// sub returns run, a sub-menu's, opened and closed on a cleared screen
+// (nav.Prompter.Open), as hardn's sub-menus are.
+func (s *session) sub(run func() error) func() error {
+	return func() error { return s.p.Open(run) }
 }
 
 // missing returns the action of an item the gallery has no screen for: it

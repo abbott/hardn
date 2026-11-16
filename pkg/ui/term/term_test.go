@@ -178,3 +178,35 @@ func TestClear(t *testing.T) {
 		})
 	}
 }
+
+// TestClearThroughWriter checks what Writer does to Clear's bytes on a
+// terminal that is not Plain, its height measured and not: at ASCII and
+// above they pass unchanged; at NoTTY, a terminal with TERM unset, the
+// cursor home and ED 2 are stripped, so a clear goes to the stream itself
+// (Stream).
+func TestClearThroughWriter(t *testing.T) {
+	for _, p := range []colorprofile.Profile{colorprofile.NoTTY, colorprofile.ASCII, colorprofile.ANSI, colorprofile.ANSI256, colorprofile.TrueColor} {
+		for _, measured := range []bool{false, true} {
+			env := Env{Width: 80, Height: 24, HeightMeasured: measured, Profile: p, TTY: true}
+			var raw, through, stream bytes.Buffer
+			_ = env.Clear(&raw)
+			_ = env.Clear(env.Writer(&through))
+			_ = env.Clear(Stream(env.Writer(&stream)))
+			if raw.Len() == 0 {
+				t.Fatalf("%v, measured %v: Clear wrote nothing", p, measured)
+			}
+			if got, want := through.String() == raw.String(), p > colorprofile.NoTTY; got != want {
+				t.Errorf("%v, measured %v: through Writer %q, unchanged %v; want unchanged %v", p, measured, through.String(), got, want)
+			}
+			if stream.String() != raw.String() {
+				t.Errorf("%v, measured %v: through Stream %q, want %q", p, measured, stream.String(), raw.String())
+			}
+		}
+	}
+	if e := Resolve(Options{}, Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24}); e.Plain || e.Profile != colorprofile.NoTTY {
+		t.Errorf("TERM unset on a terminal: Plain %v, %v; want a terminal at NoTTY", e.Plain, e.Profile)
+	}
+	if w := new(bytes.Buffer); Stream(w) != w {
+		t.Error("Stream(w) of a w that is no Writer's is not w")
+	}
+}

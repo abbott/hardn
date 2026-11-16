@@ -4,6 +4,7 @@
 
 ## Fixed
 
+- **Sub-menus open and close on a cleared screen**, as the main menu's items do.
 - **NTP Settings and Syslog Settings have Refresh**, as System Details has: it reads the host again and redraws the screen.
 - **install.sh names doas on a doas host.** Its last line says "doas hardn", and run as a user it says "doas sh". With neither sudo nor doas it says "Run hardn --help, or hardn as root".
 - **A syslog server's protocol can be changed.** hardn.yml's editor has Change protocol under `syslogServers`; a default port follows the new protocol. busybox's UDP-only line points to it.

@@ -28,9 +28,10 @@ type GroupOptions struct {
 
 // RunGroup shows the Configuration group (screen.ConfigGroup) until 0 (nil) or
 // q (nav.ErrQuit); the end of the input and Ctrl-C abort (prompt.ErrAborted).
-// Each item runs its screen, and the group is drawn again under it when that
-// returns nil or nav.ErrBack; its q, an abort or any other error ends the group
-// with it. The group reads and writes nothing itself. RunGroup returns an error
+// Each item runs its screen on a cleared screen (nav.Prompter.Open), and the
+// group is drawn again on a cleared screen when that returns nil or
+// nav.ErrBack; its q, an abort or any other error ends the group
+// with it. The group reads nothing, and writes nothing but those clears. RunGroup returns an error
 // wrapping fs.ErrInvalid, writing nothing, without a Prompter's In and Out or
 // one of the four screens.
 func RunGroup(_ context.Context, o GroupOptions) error {
@@ -46,7 +47,11 @@ func RunGroup(_ context.Context, o GroupOptions) error {
 	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
-		menu.Options = append(menu.Options, nav.Option{Item: it, Action: actions[it.Key]})
+		opt := nav.Option{Item: it}
+		if run := actions[it.Key]; run != nil {
+			opt.Action = func() error { return o.Prompter.Open(run) }
+		}
+		menu.Options = append(menu.Options, opt)
 	}
 	return o.Prompter.Run(func() nav.Screen { return sub.Screen(o.Prompter.Ctx, menu) })
 }

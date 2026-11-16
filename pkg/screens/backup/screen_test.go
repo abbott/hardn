@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -13,8 +14,11 @@ import (
 	hostbackup "github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/output"
 	backupscreen "github.com/abbott/hardn/pkg/screens/backup"
+	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // The words the tests look for: decided ones (gallery-backup.md §5, §6;
@@ -474,5 +478,29 @@ func TestRunNeeds(t *testing.T) {
 	}
 	if out.Len() > 0 || len(h.Calls()) != n {
 		t.Errorf("wrote %q, %v", out.String(), h.Calls()[n:])
+	}
+}
+
+// sgr matches a colour escape.
+var sgr = regexp.MustCompile("\x1b\\[[0-9;]*m")
+
+// TestRunsClear: Backup Runs, a sub-menu, opens on a cleared screen on a
+// terminal, a run not read said under the clear and above the list, and
+// clears again on 0, before Backup Settings is drawn again.
+func TestRunsClear(t *testing.T) {
+	h, cfg := newHost(t, hostSomeRuns)
+	env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 120, Height: 24, Environ: []string{"TERM=xterm-256color", "LANG=C"}})
+	var clear bytes.Buffer
+	_ = env.Clear(&clear)
+	var out bytes.Buffer
+	p := playWith(h, cfg, false, func(o *backupscreen.Options) {
+		o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "4", "0", "0"), false), Out: env.Writer(&out)}
+	})
+	got := sgr.ReplaceAllString(strings.ReplaceAll(out.String(), clear.String(), " <clear> "), "")
+	if w := inOrder(got, "[0-4 or q]: 4", "<clear>", "Warning Some runs can't be read: backup: ", "Backup Runs #", "[0-3 or q]: 0", "<clear>", "Backup Settings #"); w != "" || p.err != nil {
+		t.Errorf("%q not shown after what came before it (%v):\n%q", w, p.err, got)
+	}
+	if n := strings.Count(got, "<clear>"); n != 2 {
+		t.Errorf("%d clears, want 2:\n%q", n, got)
 	}
 }

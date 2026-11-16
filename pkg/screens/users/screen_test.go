@@ -883,8 +883,9 @@ func TestHeights(t *testing.T) {
 	}
 }
 
-// escapes are the terminal's SGR sequences.
-var escapes = regexp.MustCompile("\x1b\\[[0-9;]*m")
+// escapes are the terminal's SGR sequences, and a sub-menu's clear's
+// cursor home and ED 2 (nav.Prompter.Sub).
+var escapes = regexp.MustCompile("\x1b\\[[0-9;]*[mHJ]")
 
 // drawn are the heights of the screens out shows, in order: each from its
 // title bar to its prompt, which ends " or q]:", the answer echoed after.

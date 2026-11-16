@@ -211,17 +211,15 @@ func (o Options) out() io.Writer {
 	return o.Out
 }
 
-// topRows is how many blank rows every screen keeps at the top of the
-// terminal after a clear: two, so that one shows as a gap under a bar a
-// terminal draws over its own top row, which hides what is written there
-// (the maintainer, 2026-11-06; docs/engine/menu-layout.md §5).
-const topRows = 2
+// topRows is how many blank rows every clear leaves at the top
+// (theme.TopRows), as a sub-menu's clear does (nav.Prompter.Sub).
+const topRows = theme.TopRows
 
 // clearTop clears the screen on the terminal as it is now
 // (term.Env.Clear), then writes the blank lines that leave topRows of them
 // above what comes next, less own, the blank lines that writes itself
 // (navGap, or none before the shell's prompt). Off a terminal it writes
-// nothing.
+// nothing. A sub-menu's clear is nav's own, the same rule (nav.Prompter.Open).
 func (o Options) clearTop(own int) {
 	env := o.terminal()
 	if env.Plain {
@@ -282,8 +280,9 @@ func (o Options) readStatus(ctx context.Context) (screen.MainMenu, error) {
 // the clear is ED 2, and whether the terminal keeps the screen is the
 // terminal's (term.Env.Clear). Either way no result goes unseen: an item's
 // screen returns only on the user's 0 at its own prompt, drawn again under
-// any result its action wrote. q quits from the screen as
-// from the main menu (nav.ErrQuit); the end of the input, Ctrl-C and any
+// any result its action wrote. Within the screen a sub-menu clears the
+// same way as it opens and as it returns (nav.Prompter.Sub). q quits from
+// the screen as from the main menu (nav.ErrQuit); the end of the input, Ctrl-C and any
 // other error end the main menu (Run).
 func (o Options) show(run func() error, unset string) func() error {
 	return func() error {

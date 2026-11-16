@@ -226,19 +226,22 @@ func (r *runner) openRuns(h reading) func() error {
 	for i, m := range h.runs {
 		runs[i] = runView(m)
 	}
+	pr := r.o.Prompter
 	return func() error {
-		if h.runsErr != nil {
-			if err := r.say(screenkit.FullStop(fmt.Sprintf(someNotRead, oneLine(h.runsErr))))(); err != nil {
-				return err
+		return pr.Open(func() error { // the warning on the cleared screen, above the list
+			if h.runsErr != nil {
+				if err := r.say(screenkit.FullStop(fmt.Sprintf(someNotRead, oneLine(h.runsErr))))(); err != nil {
+					return err
+				}
 			}
-		}
-		return r.o.Prompter.Run(func() nav.Screen {
-			vm := screen.BackupRunsMenu(runs)
-			menu := nav.Menu{Exit: vm.Menu.Exit}
-			for i, it := range vm.Menu.Items {
-				menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return r.openRun(runs[i]) }})
-			}
-			return vm.Screen(r.o.Prompter.Ctx, menu)
+			return pr.Run(func() nav.Screen {
+				vm := screen.BackupRunsMenu(runs)
+				menu := nav.Menu{Exit: vm.Menu.Exit}
+				for i, it := range vm.Menu.Items {
+					menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return r.openRun(runs[i]) }})
+				}
+				return vm.Screen(pr.Ctx, menu)
+			})
 		})
 	}
 }
@@ -247,7 +250,7 @@ func (r *runner) openRuns(h reading) func() error {
 // list.
 func (r *runner) openRun(run screen.BackupRun) error {
 	p := r.o.Prompter
-	return p.Run(func() nav.Screen {
+	return p.Sub(func() nav.Screen {
 		vm := run.SubMenu()
 		return vm.Screen(p.Ctx, nav.Menu{Exit: vm.Menu.Exit})
 	})

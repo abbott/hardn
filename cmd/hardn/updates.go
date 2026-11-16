@@ -54,7 +54,7 @@ func runUpdatesScreen(ctx context.Context, c *config.Config, version string) err
 	}
 	env := stdoutEnv()
 	return updatesRun(ctx, updatesscreen.Options{
-		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv},
 		System:       sys,
 		Facts:        facts,
 		Config:       c,

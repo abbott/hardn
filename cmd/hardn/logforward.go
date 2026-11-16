@@ -39,7 +39,7 @@ func runLogForwardScreen(ctx context.Context, c *config.Config) error {
 	}
 	env := stdoutEnv()
 	return logForwardRun(ctx, logforwardscreen.Options{
-		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv},
 		System:       sys,
 		Facts:        facts,
 		Config:       c,

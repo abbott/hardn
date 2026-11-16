@@ -74,9 +74,9 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		}
 		return r.planned(ctx, firstAction(h.First), h.view.FirstChange(), risky(h.Plan))
 	case screen.FirewallProfilesItem:
-		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawProfiles(ctx) }) }
+		return func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawProfiles(ctx) }) }
 	case screen.FirewallInterfacesItem:
-		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawInterfaces(ctx) }) }
+		return func() error { return r.o.Prompter.Sub(func() nav.Screen { return r.drawInterfaces(ctx) }) }
 	case screen.FirewallDisableItem:
 		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange(), false)
 	case screen.FirewallLimitItem:

@@ -108,7 +108,7 @@ func runSSHScreen(ctx context.Context, c *config.Config) error {
 	o := engineOptions(ctx, sys, c)
 	env := stdoutEnv()
 	return sshscreen.Run(ctx, sshscreen.Options{
-		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv},
 		System:       sys,
 		Facts:        facts,
 		Session:      o.Session,

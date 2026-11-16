@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // The Syslog Settings screen on the simulated hosts (docs/roadmap.md, "Log
@@ -343,7 +344,9 @@ func lfReview(lh lfHost, key string) func(context.Context, component.Ctx) (strin
 // reviewOf runs a screen (run) with key typed and nothing after it, and
 // returns what it drew after first, the screen itself as it was first
 // drawn: the item's refusal, or its review, the plan and the question, left
-// unanswered. The end of the input is not an error.
+// unanswered. The end of the input is not an error. A sub-menu's clear
+// (nav.Prompter.Sub) is left out, with the blank line it adds: a listing
+// shows its screens one under another.
 func reviewOf(c component.Ctx, key, first string, run func(nav.Prompter) error) (string, error) {
 	var out bytes.Buffer
 	in := prompt.New(strings.NewReader(key+"\n"), false)
@@ -351,7 +354,13 @@ func reviewOf(c component.Ctx, key, first string, run func(nav.Prompter) error) 
 	if err != nil && !errors.Is(err, prompt.ErrAborted) && !errors.Is(err, io.EOF) {
 		return "", err
 	}
-	drawn := strings.TrimPrefix(strings.TrimLeft(out.String(), "\n"), strings.TrimLeft(first, "\n"))
+	var clear bytes.Buffer
+	_ = c.Env.Clear(&clear)
+	written := out.String()
+	if clear.Len() > 0 {
+		written = strings.ReplaceAll(written, clear.String()+strings.Repeat("\n", theme.TopRows-theme.SectionGap), "")
+	}
+	drawn := strings.TrimPrefix(strings.TrimLeft(written, "\n"), strings.TrimLeft(first, "\n"))
 	if i := strings.Index(drawn, "\n"); i >= 0 {
 		drawn = drawn[i+1:] // the prompt's line, with the key's echo
 	}

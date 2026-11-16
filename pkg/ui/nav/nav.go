@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 var (
@@ -45,7 +46,7 @@ const (
 // Prompter asks the questions of a run. It writes each prompt to Out and
 // reads the answer through In, the one line reader over stdin
 // (prompt.Stdin, which every prompt in hardn shares), and it renders
-// with Ctx. Every field is required:
+// with Ctx. Every field but Terminal is required:
 //
 //	p := nav.Prompter{
 //		Ctx: component.NewCtx(env),
@@ -56,6 +57,10 @@ type Prompter struct {
 	Ctx component.Ctx
 	In  *prompt.Reader
 	Out io.Writer
+	// Terminal is the terminal as it is now, asked at each sub-menu
+	// clear (Open), so that the clear fits a window resized since Ctx
+	// was made, as the main menu's does. Nil uses Ctx.Env.
+	Terminal func() term.Env
 }
 
 // Question is what a question prompt asks. It is asked as an

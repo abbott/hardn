@@ -107,7 +107,7 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 	ctx := context.Background()
 	sys := engineHost()
 	env := stdoutEnv()
-	p := nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)}
+	p := nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout), Terminal: stdoutEnv}
 	fe := &output.FlowEngine{Controls: controls, Config: c, LogPath: output.LegacyLogPath}
 	fe.Engine = newEngine(sys, engineOptions(ctx, sys, c))(fe.Progress)
 	var windows []*applyWindow // around the apply and what follows it alone
