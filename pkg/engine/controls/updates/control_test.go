@@ -3,6 +3,7 @@ package updates_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -493,6 +494,102 @@ func TestOffSaveOldName(t *testing.T) {
 	back, err := config.Read(context.Background(), m.f, hardnYML)
 	if !slices.Contains(got, updates.ChangeSave) || err != nil || back.EnableAutoUpdates || !strings.Contains(data, "enableAutoUpdates: false") {
 		t.Errorf("changes %q, file %q, read back: %v", got, data, err)
+	}
+}
+
+// TestOnSave: on saves enableAutoUpdates true where the loaded hardn.yml
+// says false (2026-11-16), before the record, its comments kept, on apt,
+// Alpine and dnf; as Run All plans it, the file true already, and with no
+// hardn.yml, it saves nothing.
+func TestOnSave(t *testing.T) {
+	const yml = "# hardn's configuration (web-01.example.net)\nusername: alice\nenableAutoUpdates: %t\n"
+	for _, h := range []struct {
+		name string
+		host func(*testing.T) *model
+	}{{"apt", debianOff}, {"apk", alpineHost}, {"dnf", func(t *testing.T) *model { return dnfHost(t, false) }}} {
+		for _, was := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s, hardn.yml %t", h.name, was), func(t *testing.T) {
+				m := h.host(t)
+				m.f.AddFile(hardnYML, []byte(fmt.Sprintf(yml, was)), 0o600, 0, 0)
+				cfg, err := config.Read(context.Background(), m.f, hardnYML)
+				if err != nil {
+					t.Fatal(err)
+				}
+				cfg.EnableAutoUpdates = true
+				got, err := m.apply(updates.AutoOn, cfg)
+				if err != nil {
+					t.Fatal(err)
+				}
+				data, _ := content(t, m, hardnYML)
+				saved := slices.Contains(got, updates.ChangeSave)
+				if saved == was || data != fmt.Sprintf(yml, true) || !cfg.LoadedFrom([]byte(data)) {
+					t.Errorf("changes %q, file %q", got, data)
+				}
+				if saved && (got[len(got)-2] != updates.ChangeSave || got[len(got)-1] != updates.ChangeRecord) {
+					t.Errorf("the save is not just before the record: %q", got)
+				}
+			})
+		}
+		t.Run(h.name+", no hardn.yml", func(t *testing.T) {
+			got, err := h.host(t).apply(updates.AutoOn, &config.Config{EnableAutoUpdates: true})
+			if err != nil || slices.Contains(got, updates.ChangeSave) {
+				t.Errorf("%q, %v", got, err)
+			}
+		})
+	}
+}
+
+// TestOnSaveRefused: a save refused (hardn.yml changed since it was read)
+// does not refuse on: on applies without it, and a note says hardn.yml is
+// not changed, in the refusal's words.
+func TestOnSaveRefused(t *testing.T) {
+	ctx := context.Background()
+	m := debianOff(t)
+	m.f.AddFile(hardnYML, []byte("enableAutoUpdates: false\n"), 0o600, 0, 0)
+	cfg, err := config.Read(ctx, m.f, hardnYML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.f.AddFile(hardnYML, []byte("# edited since\nenableAutoUpdates: false\n"), 0o600, 0, 0)
+	cfg.EnableAutoUpdates = true
+	notes, err := control(updates.AutoOn).Notes(ctx, m.f, engine.Input{Facts: m.facts, Config: cfg})
+	want := updates.Note{Key: "hardn.yml", Value: "Not changed", Note: hardnYML + " changed since it was read", Warn: true}
+	if err != nil || !slices.Contains(notes, want) {
+		t.Errorf("notes %+v, %v", notes, err)
+	}
+	got, err := m.apply(updates.AutoOn, cfg)
+	if err != nil || !slices.Equal(got, []string{"updates.auto/file", "updates.auto/record"}) {
+		t.Errorf("%q, %v", got, err)
+	}
+	if data, _ := content(t, m, hardnYML); data != "# edited since\nenableAutoUpdates: false\n" {
+		t.Errorf("hardn.yml %q", data)
+	}
+}
+
+// TestOnSaveUnread: hardn.yml unreadable at plan (here a directory, read
+// as EISDIR, an error PlanSave does not make a refusal) does not refuse on
+// either: on applies without the save, and the note gives the error.
+func TestOnSaveUnread(t *testing.T) {
+	ctx := context.Background()
+	m := debianOff(t)
+	m.f.AddFile(hardnYML, []byte("enableAutoUpdates: false\n"), 0o600, 0, 0)
+	cfg, err := config.Read(ctx, m.f, hardnYML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.f.Remove(ctx, hardnYML); err != nil {
+		t.Fatal(err)
+	}
+	m.f.AddDir(hardnYML, 0o700, 0, 0)
+	cfg.EnableAutoUpdates = true
+	notes, err := control(updates.AutoOn).Notes(ctx, m.f, engine.Input{Facts: m.facts, Config: cfg})
+	want := updates.Note{Key: "hardn.yml", Value: "Not changed", Note: "hardn can't save it: read " + hardnYML + ": is a directory", Warn: true}
+	if err != nil || !slices.Contains(notes, want) {
+		t.Errorf("notes %+v, %v", notes, err)
+	}
+	got, err := m.apply(updates.AutoOn, cfg)
+	if err != nil || !slices.Equal(got, []string{"updates.auto/file", "updates.auto/record"}) {
+		t.Errorf("%q, %v", got, err)
 	}
 }
 

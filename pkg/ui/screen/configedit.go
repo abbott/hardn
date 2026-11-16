@@ -52,7 +52,7 @@ const (
 
 // configEditKeys are the keys Configuration edits, in the menu's order
 // (decision 1 (a)): the keys no other screen saves, checkReleases, and
-// enableAutoUpdates, whose true no screen saves.
+// enableAutoUpdates, which Auto Updates saves only as it changes the host.
 var configEditKeys = []string{
 	"username", "sshKeys", "sshPort", "disableRootSSH", "enableUfwSshPolicy", "configureDns",
 	"syslogServers", "ntpServers", "kernel", "confirmTimeout", "checkReleases", "enableAutoUpdates",

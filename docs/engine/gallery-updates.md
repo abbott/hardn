@@ -1,5 +1,7 @@
 # Auto Updates mock (slice 7, unit (a))
 
+*Since `next/autoupdates-save` (2026-11-16): on saves `enableAutoUpdates: true` where hardn.yml says false, the mirror of decision 2's off. A save refused does not stop on: its review says hardn.yml is not changed.*
+
 *Since `next/auto-updates-key` (2026-11-16): the key is `enableAutoUpdates`, which fits the key column; the old name is still read, with a warning.*
 
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): main menu 5 reads "Enable automatic updates", and on Proxmox VE "Configure automatic updates" as before. The row weighs 15, not 20.*

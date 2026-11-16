@@ -28,13 +28,11 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// edit sets in cfg what action saves: enableAutoUpdates false at
-// off, which the control saves where the loaded hardn.yml says true; on
-// saves nothing.
+// edit sets in cfg what action saves: enableAutoUpdates true at on,
+// false at off, which the control saves where the loaded hardn.yml says
+// otherwise.
 func edit(action updatesctl.AutoAction, cfg *config.Config) {
-	if action == updatesctl.AutoOff {
-		cfg.EnableAutoUpdates = false
-	}
+	cfg.EnableAutoUpdates = action == updatesctl.AutoOn
 }
 
 // change runs the item, on or off as v draws it, through the flow

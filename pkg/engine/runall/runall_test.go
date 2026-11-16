@@ -425,7 +425,8 @@ func TestAutoUpdatesAlpine(t *testing.T) {
 // TestAutoUpdatesRocky: on Rocky Linux, where hardn.yml asks for updates
 // (enableAutoUpdates), the Auto Updates row plans dnf-automatic on,
 // as it plans unattended-upgrades on elsewhere (el-updates.md §1.4):
-// dnf-automatic's install is in the one plan.
+// dnf-automatic's install is in the one plan, and no save: hardn.yml says
+// true already.
 func TestAutoUpdatesRocky(t *testing.T) {
 	p := debian13()
 	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
@@ -438,6 +439,9 @@ func TestAutoUpdatesRocky(t *testing.T) {
 	}
 	if r.Plan == nil || !slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.ID == updates.ChangeInstall }) {
 		t.Errorf("dnf-automatic's install is not in the one plan")
+	}
+	if r.Plan != nil && slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.ID == updates.ChangeSave }) {
+		t.Errorf("the one plan saves hardn.yml: it says true already")
 	}
 	held(t, "rocky with updates", h, r)
 	checkHost(t, "rocky", h.sshHost)
@@ -468,7 +472,8 @@ func stages(p *engine.Plan) []engine.Stage {
 
 // TestCombined holds the one plan (decision 5 (a)): the engine's order,
 // accounts before the firewall before files before the reload, and its
-// risk; no plan saves hardn.yml (neither DNS's save nor a backup saver's).
+// risk; no plan saves hardn.yml (neither DNS's save, a backup saver's nor
+// Auto Updates').
 func TestCombined(t *testing.T) {
 	tests := []struct {
 		host    string
@@ -498,7 +503,7 @@ func TestCombined(t *testing.T) {
 			continue
 		}
 		for _, c := range r.Plan.Changes {
-			if c.ID == dnsctl.ChangeSave || c.ID == backupctl.ChangeSave || c.Control == backupctl.ID {
+			if c.ID == dnsctl.ChangeSave || c.ID == backupctl.ChangeSave || c.ID == updates.ChangeSave || c.Control == backupctl.ID {
 				t.Errorf("%s: the plan has %s", name, c.ID)
 			}
 		}

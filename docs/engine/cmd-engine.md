@@ -177,7 +177,7 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 ### 2.18 The main menu's 6 (`runUpdatesScreen`, `cmd/hardn`; slice 7, unit (d), `next/s7-replace`)
 
 - **The item:** 6, "Auto Updates", "Configure automatic updates", where Dry-Run was until slice 2b's unit (d).
-- **What it runs:** `pkg/screens/updates.Run` ([screen-updates.md](screen-updates.md)) with the main menu's hardn.yml as `Config`, hardn's version, zero `Records`, `NewEngine` over `engineOptions`, as §2.16. Turning updates off saves `enableAutoUpdates: false` in that file where it said true.
+- **What it runs:** `pkg/screens/updates.Run` ([screen-updates.md](screen-updates.md)) with the main menu's hardn.yml as `Config`, hardn's version, zero `Records`, `NewEngine` over `engineOptions`, as §2.16. Turning updates on saves `enableAutoUpdates: true` in that file where it said false, and off false where it said true.
 - **What it returns:** as §2.9. **Under plan only** 6 opens, the change stopping at its plan.
 
 ### 2.19 The main menu's 7 and `-r` (`runRunAllScreen`, `runAllFlag`, `cmd/hardn/runall.go`; slice 8, unit (d), `next/s8-replace`)

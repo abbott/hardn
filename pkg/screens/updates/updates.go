@@ -49,9 +49,9 @@ type Options struct {
 	// the init system and Proxmox VE; the engine establishes its own when it
 	// plans.
 	Facts detect.Facts
-	// Config is hardn.yml as loaded: off saves enableAutoUpdates
-	// false through the control's plan where it says true; nothing else is
-	// read. Nil has none.
+	// Config is hardn.yml as loaded: on saves enableAutoUpdates true and
+	// off false through the control's plan where it says otherwise; nothing
+	// else is read. Nil has none.
 	Config *config.Config
 	// NewEngine returns the engine the item plans and applies with, built as
 	// the caller builds it (engine.New over System with its options: its
@@ -107,7 +107,7 @@ func Run(ctx context.Context, o Options) error {
 	}
 	cfg := o.Config
 	if cfg == nil {
-		cfg = &config.Config{} // enableAutoUpdates false: off plans no save
+		cfg = &config.Config{} // no path: neither direction plans a save
 	}
 	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "updates screen", Prompter: o.Prompter, System: o.System, Config: cfg,
 		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: o.Ran}}

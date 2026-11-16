@@ -31,6 +31,7 @@ Required: the Prompter's In and Out, System, NewEngine. Without them `Run` retur
 ## For unit (d)
 
 - **Main menu 6** runs `Run`, labelled "Auto Updates", "Configure automatic updates" (decision 1). It passes the loaded hardn.yml, hardn's version and zero `Records`, under plan only too.
+- **On** saves `enableAutoUpdates: true` the same way where it says false (2026-11-16); a save refused leaves on planned, with a note.
 - **Off** saves `enableAutoUpdates: false` through the control's plan (`steps.PlanSave`) when the loaded hardn.yml says true. The screen sets it false in the copy the change plans with (`Controls(edited)`), and the control saves that copy as given, so `screenkit.Adopt` finds the bytes written and a later save in the same session is not refused as `CONFIG_CHANGED`. With a nil `Config` there is nothing to save.
 - **Delete or keep, and say which:** the dead `pkg/updates` (nothing imports it) and the interactive "Enable automatic security updates?" prompt (`autoUpdates`, `pkg/config/config.go:432-436`). *Done in `next/s7-replace`: `pkg/updates` deleted; the prompt kept, since it sets `enableAutoUpdates`, Run All's key, which slice 8 owns.*
 - **Run All** belongs to slice 8. It plans `AutoOn` only, never `AutoOff` (decision 2).

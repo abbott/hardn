@@ -34,7 +34,7 @@ type Timer struct {
 // from it alone.
 type Reading struct {
 	Facts  detect.Facts
-	Config *config.Config // hardn.yml as loaded; read only for off's save
+	Config *config.Config // hardn.yml as loaded; read only for the saves
 	// Status is the row's line: the check's with the record's finding,
 	// NotApplicable "updated by hand" on Proxmox VE; StatusErr the
 	// check's error.

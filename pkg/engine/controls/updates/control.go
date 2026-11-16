@@ -27,8 +27,9 @@ type AutoAction uint8
 const (
 	// AutoNone is the status list's: Plan is engine.ErrNotMigrated.
 	AutoNone AutoAction = iota
-	// AutoOn turns updates on: unattended-upgrades and hardn's apt file, or
-	// apk-cron and crond, then the record.
+	// AutoOn turns updates on: unattended-upgrades and hardn's apt file,
+	// apk-cron and crond, or dnf-automatic, saves enableAutoUpdates true
+	// where it can, then the record.
 	AutoOn
 	// AutoOff undoes what the record says hardn did, saves
 	// enableAutoUpdates false and deletes the record.
@@ -46,7 +47,8 @@ const (
 	UnattendedConfig = aptconf.PartsDir + "/50unattended-upgrades"
 	// Package is the package apt's upgrades need.
 	Package = unattended
-	// Setting is hardn.yml's key off saves as false (decision 2).
+	// Setting is hardn.yml's key off saves as false (decision 2) and on
+	// as true (2026-11-16).
 	Setting = "enableAutoUpdates"
 
 	hardnHead    = "// Written by hardn (Auto Updates).\n"
@@ -182,10 +184,11 @@ func (c Auto) Plan(ctx context.Context, sys host.System, in engine.Input) ([]eng
 	if err != nil {
 		return nil, err
 	}
+	plan := c.planOff
 	if c.Action == AutoOn {
-		return c.planOn(ctx, sys, in, r)
+		plan = c.planOn
 	}
-	cs, _, err := c.planOff(ctx, sys, in, r)
+	cs, _, err := plan(ctx, sys, in, r)
 	return cs, err
 }
 
@@ -199,10 +202,11 @@ type Note struct {
 }
 
 // Notes are the review's lines for Action's direction on the host as Plan
-// reads it: on, the jobs a stopped crond also starts (decision 6) or the
-// package's files there before its install (R2); off, what stays and why,
-// and what a rollback does (decision 5). None at AutoNone, and none where
-// the direction refuses: the refusal says why.
+// reads it: on, the jobs a stopped crond also starts (decision 6), the
+// package's files there before its install (R2) and hardn.yml not saved
+// (planOnSave); off, what stays and why, and what a rollback does
+// (decision 5). None at AutoNone, and none of off's where it refuses: the
+// refusal says why.
 func (c Auto) Notes(ctx context.Context, sys host.System, in engine.Input) ([]Note, error) {
 	r, err := c.Read(ctx, sys, in.Facts, in.Config)
 	if err != nil {
@@ -210,7 +214,12 @@ func (c Auto) Notes(ctx context.Context, sys host.System, in engine.Input) ([]No
 	}
 	switch c.Action {
 	case AutoOn:
-		return r.onNotes(), nil
+		_, notes, err := c.planOn(ctx, sys, in, r)
+		var ref *steps.Refusal
+		if errors.As(err, &ref) {
+			return r.onNotes(), nil
+		}
+		return append(r.onNotes(), notes...), err
 	case AutoOff:
 		_, notes, err := c.planOff(ctx, sys, in, r)
 		var ref *steps.Refusal
