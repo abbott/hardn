@@ -197,11 +197,14 @@ func TestLogForwardChanges(t *testing.T) {
 }
 
 // TestLogForwardSubMenu: the screen is the row, one section and the items
-// over Return.
+// and Refresh over Return.
 func TestLogForwardSubMenu(t *testing.T) {
 	vm := LogForward{Want: []LogServer{lfTestTCP}}.SubMenu()
-	if got := sectionTitles(vm); !slices.Equal(got, []string{"Forwarding"}) || vm.Title.Title != "Syslog Settings" || len(vm.Menu.Items) != 1 || vm.Menu.Exit.Label != "Return" {
+	if got := sectionTitles(vm); !slices.Equal(got, []string{"Forwarding"}) || vm.Title.Title != "Syslog Settings" || len(vm.Menu.Items) != 2 || vm.Menu.Exit.Label != "Return" {
 		t.Errorf("screen: %v, %+v", got, vm.Menu)
+	}
+	if r := vm.Menu.Items[1]; r.Key != "2" || r.Label != "Refresh" || r.Description != "Read the host again" || !Refreshes(r) || Refreshes(vm.Menu.Items[0]) {
+		t.Errorf("refresh: %+v", r)
 	}
 }
 

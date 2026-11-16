@@ -509,3 +509,26 @@ func TestMainMenuDraw(t *testing.T) {
 		t.Errorf("ended %v; the screen:\n%s\nwant the main-menu mock's, Figma's fixture with origin/main's items, in full:\n%s", ended, out, want)
 	}
 }
+
+// TestMainMenuItemsElevation pins item 1's aside to the host's elevation
+// tool: doas where hardn runs as root through doas, else sudo, and sudo
+// where the hook is unset or answers "".
+func TestMainMenuItemsElevation(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		hook func() string
+		want string
+	}{
+		{"unset", nil, "sudo, SSH keys"},
+		{"empty", func() string { return "" }, "sudo, SSH keys"},
+		{"sudo", func() string { return "sudo" }, "sudo, SSH keys"},
+		{"doas", func() string { return "doas" }, "doas, SSH keys"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &Options{Config: config.DefaultConfig(), Elevation: tc.hook}
+			if got := m.items().View().Items[0].Aside; got != tc.want {
+				t.Errorf("item 1's aside = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}

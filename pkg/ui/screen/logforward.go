@@ -365,14 +365,14 @@ func (l LogForward) MenuItems() []component.MenuItem {
 func (LogForward) Stops(it component.MenuItem) bool { return it.Label == logFwdStop }
 
 // SubMenu returns the Syslog Settings screen: the title bar; the row; the
-// section; the items; Return; "Select an option"; "Option".
+// section; the items; Refresh; Return; "Select an option"; "Option".
 func (l LogForward) SubMenu() SubMenu {
 	return SubMenu{
 		Title:    trail(logFwdTitle),
 		Status:   l.Status,
 		Sections: []Section{{Header: component.SectionHeader{Title: logFwdSection}, Rows: component.BulletList{Items: l.Rows()}}},
 		Heading:  fixtureHeading,
-		Menu:     component.Menu{Items: l.MenuItems(), Exit: returnItem()},
+		Menu:     component.Menu{Items: withRefresh(l.MenuItems()), Exit: returnItem()},
 		Prompt:   menuPrompt,
 	}
 }

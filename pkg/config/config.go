@@ -486,11 +486,12 @@ func CreateDefaultConfig(path string, config *Config) error {
 			config.SyslogServers = SyslogServers{server}
 		}
 
-		// Ask for the release check, last: its default a yes hardn's
-		// state already holds (CheckReleasesDefault).
-		def := CheckReleasesDefault != nil && CheckReleasesDefault()
-		fmt.Fprintf(stdout(), "%s ", ReleaseQuestion(def))
-		config.CheckReleases = releaseAnswer(readAnswer(), def)
+		// Ask for the release check, last: Enter is yes, the end of the
+		// input no.
+		fmt.Fprintf(stdout(), "%s ", ReleaseQuestion())
+		if line, ended := readLine(); !ended || strings.TrimSpace(line) != "" {
+			config.CheckReleases = releaseAnswer(line)
+		}
 	}
 
 	// Save config
@@ -595,30 +596,26 @@ func parseSyslogAnswer(answer string) (server SyslogServer, why string) {
 	return server, ""
 }
 
-// ReleaseQuestion is the question that turns the release check on, with
-// its default, def: no ([y/N]) unless hardn's state already holds a yes
-// (docs/engine/design-release-ask.md, decisions 4, 5 and 8).
-func ReleaseQuestion(def bool) string {
-	if def {
-		return "Check for new hardn releases, once a day? [Y/n]:"
-	}
-	return "Check for new hardn releases, once a day? [y/N]:"
+// ReleaseQuestion is the question that turns the release check on, its
+// default yes (docs/engine/design-release-ask.md, decision 4 as the
+// maintainer reversed it on 2026-11-16).
+func ReleaseQuestion() string {
+	return "Check for new hardn releases, once a day? [Y/n]:"
 }
 
-// CheckReleasesDefault, where set, reports whether hardn's state holds a
-// yes to the release question, CreateDefaultConfig's default for it then.
-// cmd/hardn sets it; nil is no.
-var CheckReleasesDefault func() bool
+// releaseTakenNo is the line for an answer that is neither yes nor no.
+const releaseTakenNo = "Taken as no."
 
-// releaseAnswer reads an answer to ReleaseQuestion: Enter is def, y or yes
-// is yes, and anything else no.
-func releaseAnswer(answer string, def bool) bool {
+// releaseAnswer reads an answer to ReleaseQuestion: Enter, y or yes is
+// yes; n or no is no; anything else no, said (releaseTakenNo).
+func releaseAnswer(answer string) bool {
 	switch strings.TrimSpace(strings.ToLower(answer)) {
-	case "":
-		return def
-	case "y", "yes":
+	case "", "y", "yes":
 		return true
+	case "n", "no":
+		return false
 	}
+	fmt.Fprintln(stdout(), releaseTakenNo)
 	return false
 }
 
@@ -627,15 +624,15 @@ func releaseAnswer(answer string, def bool) bool {
 // at the end of the input or a failed read or write, where nothing is
 // decided. Ctrl-C ends hardn, as at every prompt. The caller asks only
 // where stdin and stdout are terminals.
-func AskCheckReleases(def bool) (yes, answered bool) {
-	response, err := input().Ask(stdout(), ReleaseQuestion(def))
+func AskCheckReleases() (yes, answered bool) {
+	response, err := input().Ask(stdout(), ReleaseQuestion())
 	if errors.Is(err, prompt.ErrInterrupted) {
 		interrupted()
 	}
 	if err != nil {
 		return false, false
 	}
-	return releaseAnswer(response, def), true
+	return releaseAnswer(response), true
 }
 
 // SaveConfig saves configuration to the specified file: the whole

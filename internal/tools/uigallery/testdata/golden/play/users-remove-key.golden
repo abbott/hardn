@@ -24,7 +24,7 @@ $
 $
   ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -63,7 +63,7 @@ $
 $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -210,7 +210,7 @@ $
 $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -242,7 +242,7 @@ $
 $
   ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -309,7 +309,7 @@ $
 $
   george -------------------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password to ask for$
+  [ ] Sudo                 Enabled, passwordless$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             2 keys$
    -  Password             None$
@@ -348,7 +348,7 @@ $
 $
   User Configuration -------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password to ask for$
+  [ ] Sudo                 Enabled, passwordless$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             2 keys$
    -  Password             None$
@@ -495,7 +495,7 @@ $
 $
   User Configuration -------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password to ask for$
+  [ ] Sudo                 Enabled, passwordless$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             1 key$
    -  Password             None$
@@ -527,7 +527,7 @@ $
 $
   george -------------------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password to ask for$
+  [ ] Sudo                 Enabled, passwordless$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             1 key$
    -  Password             None$
@@ -598,7 +598,7 @@ $
   ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -648,7 +648,7 @@ $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -807,7 +807,7 @@ $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -847,7 +847,7 @@ $
   ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mpasswordless␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$

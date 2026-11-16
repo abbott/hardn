@@ -248,10 +248,15 @@ func TestLiveStatusOnHosts(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			facts, err := detect.Detect(ctx, sys) // cmd/hardn's Elevation hook, read once before the passes counted
+			if err != nil {
+				t.Fatal(err)
+			}
 			before := len(f.Calls())
 			m := liveMenu(t, plainEnv(), func(ctx context.Context) (screen.MainMenu, error) {
 				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 			}, "q")
+			m.Elevation = func() string { return facts.Elevation.Command() }
 			out, _, ended := session(t, func() { show(m) })
 			want := galleryStatus(t, name) + " \n" // off a terminal, no clear
 			if ended || out != want {

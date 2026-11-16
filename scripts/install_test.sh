@@ -188,6 +188,13 @@ fi
 exec $(real "$t") "\$@"
 EOF
 done
+# sudo and doas, only for command -v: each in its own directory, put on PATH
+# by run_install's TOOLS.
+for t in sudo doas; do
+	mkdir -p "$work/$t"
+	printf '#!/bin/sh\nexit 99\n' >"$work/$t/$t"
+	chmod 0755 "$work/$t/$t"
+done
 chmod 0755 "$stubs"/* "$work/gh/gh" "$work/sum-sha256sum/sha256sum" "$work/sum-shasum/shasum"
 
 # The fake releases.
@@ -311,18 +318,24 @@ new_case() {
 
 # run_install [VAR=value ...]: install.sh under $sh, defaults Linux x86_64,
 # root, sha256sum, no gh. SUM=shasum puts shasum on PATH in place of
-# sha256sum; GH=1 puts gh on PATH.
+# sha256sum; GH=1 puts gh on PATH. TOOLS (default sudo) are the ones of
+# sudo and doas on PATH, in order; TOOLS= puts neither.
 run_install() {
 	snapshot_before=$(cd "$root" && find . | sort)
 	sum=sha256sum
 	gh=
+	tools=sudo
 	for a in "$@"; do
 		case $a in
 		SUM=*) sum=${a#SUM=} ;;
 		GH=*) gh=${a#GH=} ;;
+		TOOLS=*) tools=${a#TOOLS=} ;;
 		esac
 	done
 	path=$stubs:$work/sum-$sum:$work/tools
+	for t in $tools; do
+		path=$path:$work/$t
+	done
 	[ -z "$gh" ] || path=$work/gh:$path
 	status=0
 	# shellcheck disable=SC2086 # $sh is "busybox sh" for busybox
@@ -479,8 +492,24 @@ $dl/v0.4.0/$asset"
 	expect_blank_end "$cdir/err"
 	expect_err "run it as root"
 	expect_err "curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
-	expect_err "doas"
+	! grep -qF doas "$cdir/err" || fail "stderr names doas with sudo on PATH"
 	expect_no_download
+	new_case "not root, doas alone"
+	run_install FAKE_UID=1000 TOOLS=doas
+	expect_nothing_installed
+	expect_err "install.sh | doas sh"
+	! grep -qF sudo "$cdir/err" || fail "stderr names sudo with doas alone"
+	new_case "not root, sudo and doas"
+	run_install FAKE_UID=1000 TOOLS="doas sudo"
+	expect_err "install.sh | sudo sh"
+	new_case "not root, neither"
+	run_install FAKE_UID=1000 TOOLS=
+	expect_nothing_installed
+	expect_err "install.sh | sudo sh"
+	expect_err "(or doas in place of sudo)"
+	new_case "not root, doas alone, HARDN_VERSION"
+	run_install FAKE_UID=1000 TOOLS=doas HARDN_VERSION=0.4.0
+	expect_err "| doas env HARDN_VERSION=0.4.0 sh"
 	new_case "not root, HARDN_VERSION"
 	run_install FAKE_UID=1000 HARDN_VERSION=0.4.0
 	expect_nothing_installed
@@ -587,6 +616,21 @@ $api max-time=5"
 	[ "$(awk 'NF { l = $0 } END { print l }' "$cdir/out")" = "Run hardn --help or sudo hardn" ] ||
 		fail "the last line doesn't say what to run"
 	expect_blank_end
+	for c in "doas:DOAS_USER=bob TOOLS=sudo:doas hardn" "sudo:SUDO_USER=bob TOOLS=doas:sudo hardn" "doas on PATH:TOOLS=doas:doas hardn" \
+		"both on PATH:TOOLS=sudo doas:sudo hardn" "neither:TOOLS=:hardn as root"; do
+		new_case "the last line, ${c%%:*}"
+		vars=${c#*:}
+		vars=${vars%%:*}
+		case $vars in
+		TOOLS=*) run_install "$vars" ;;
+		*) run_install "${vars%% *}" "${vars#* }" ;;
+		esac
+		last=$(awk 'NF { l = $0 } END { print l }' "$cdir/out")
+		case ${c##*:} in
+		"hardn as root") [ "$last" = "Run hardn --help, or hardn as root" ] || fail "last line: $last" ;;
+		*) [ "$last" = "Run hardn --help or ${c##*:}" ] || fail "last line: $last" ;;
+		esac
+	done
 	new_case "gh verifies"
 	run_install GH=1
 	expect_installed hardn-linux-amd64

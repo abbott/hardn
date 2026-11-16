@@ -173,6 +173,27 @@ release_notice() {
 	printf '\nhardn %s available (https://github.com/%s)\n' "$latest" "$REPO" || :
 }
 
+# on_path: the first of sudo and doas on PATH; nothing for neither.
+on_path() {
+	for t in sudo doas; do
+		if command -v "$t" >/dev/null 2>&1; then
+			printf '%s' "$t"
+			return
+		fi
+	done
+}
+
+# as_root: the tool this run came through, doas or sudo; else on_path's.
+as_root() {
+	if [ -n "${DOAS_USER:-}" ]; then
+		printf doas
+	elif [ -n "${SUDO_USER:-}" ]; then
+		printf sudo
+	else
+		on_path
+	fi
+}
+
 # All of it runs from the last line, so a download cut short runs nothing.
 main() {
 	look 1
@@ -207,12 +228,19 @@ main() {
 
 	# 2. Root.
 	if [ "$(id -u)" != 0 ]; then
-		if [ -n "${HARDN_VERSION:-}" ]; then
-			run="sudo env HARDN_VERSION=$HARDN_VERSION sh"
-		else
-			run="sudo sh"
+		tool=$(on_path)
+		either=
+		if [ -z "$tool" ]; then
+			tool=sudo
+			either='
+(or doas in place of sudo)'
 		fi
-		die "$(printf 'run it as root (it writes /usr/local/bin and /etc/hardn):\n  curl -fsSL %s | %s\n(or doas in place of sudo)' "$SCRIPT_URL" "$run")"
+		if [ -n "${HARDN_VERSION:-}" ]; then
+			run="$tool env HARDN_VERSION=$HARDN_VERSION sh"
+		else
+			run="$tool sh"
+		fi
+		die "$(printf 'run it as root (it writes /usr/local/bin and /etc/hardn):\n  curl -fsSL %s | %s%s' "$SCRIPT_URL" "$run" "$either")"
 	fi
 
 	# Tools.
@@ -341,7 +369,12 @@ main() {
 	# installed either way, so an interrupt from here on ends with status 0.
 	trap 'exit 0' HUP INT TERM
 	[ -z "${HARDN_VERSION:-}" ] || release_notice "$version" || :
-	printf '\n%sRun%s %shardn --help%s or %ssudo hardn%s\n\n' "$c_mute" "$c_off" "$t_ok" "$c_off" "$t_ok" "$c_off"
+	tool=$(as_root)
+	if [ -n "$tool" ]; then
+		printf '\n%sRun%s %shardn --help%s or %s%s hardn%s\n\n' "$c_mute" "$c_off" "$t_ok" "$c_off" "$t_ok" "$tool" "$c_off"
+	else
+		printf '\n%sRun%s %shardn --help%s, or %shardn%s as root\n\n' "$c_mute" "$c_off" "$t_ok" "$c_off" "$t_ok" "$c_off"
+	fi
 }
 
 main "$@"

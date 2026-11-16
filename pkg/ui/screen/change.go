@@ -1,6 +1,8 @@
 package screen
 
 import (
+	"strconv"
+
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
 )
@@ -64,3 +66,18 @@ func setUndoItems(set, undo component.MenuItem, off string, own, differs bool) [
 	}
 	return []component.MenuItem{undo}
 }
+
+// The Refresh item NTP Settings and Syslog Settings end with, as System
+// Details': the host read again and the screen drawn from it.
+const (
+	setUndoRefresh      = "Refresh"
+	setUndoRefreshAbout = "Read the host again"
+)
+
+// withRefresh is items and Refresh after them, keyed next.
+func withRefresh(items []component.MenuItem) []component.MenuItem {
+	return append(items, component.MenuItem{Key: strconv.Itoa(len(items) + 1), Label: setUndoRefresh, Description: setUndoRefreshAbout})
+}
+
+// Refreshes reports whether it, one of a screen's items, is Refresh.
+func Refreshes(it component.MenuItem) bool { return it.Label == setUndoRefresh }

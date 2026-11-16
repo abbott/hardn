@@ -138,7 +138,7 @@ func mlMenu(f detect.Facts, reports []engine.Report) screen.MainMenu {
 	}
 	v := mlView(reports)
 	vm.Risk, vm.Status, vm.Info = v.Risk, v.Status, v.Info
-	vm.Menu.Items = screen.MainMenuItems(f.Proxmox.Installed == detect.Yes, f.Platform.Distro.EL())
+	vm.Menu.Items = screen.MainMenuItems(f.Proxmox.Installed == detect.Yes, f.Platform.Distro.EL(), f.Elevation.Command())
 	return vm
 }
 

@@ -304,7 +304,10 @@ func statusConfig(ctx context.Context, sys host.System) (*config.Config, error) 
 // maps the host's, its version the mock's (output.MainMenuOf, which
 // internal/tools/p4status draws a real host's with).
 func (st hostStatus) mainMenu() screen.MainMenu {
-	return output.MainMenuOf(screen.MainMenuFixture(), st.header, st.reports, st.level)
+	m := screen.MainMenuFixture()
+	m.Menu.Items = slices.Clone(m.Menu.Items)
+	m.Menu.Items[0].Aside = st.facts.Elevation.Command() + ", SSH keys" // item 1 names the host's tool, as hardn's does
+	return output.MainMenuOf(m, st.header, st.reports, st.level)
 }
 
 // statusNote is play's note for the status hosts.

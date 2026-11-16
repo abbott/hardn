@@ -111,7 +111,10 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
 		o := nav.Option{Item: it}
-		if !it.Disabled {
+		switch {
+		case screen.Refreshes(it):
+			o.Action = func() error { return nil } // the next round reads the host again
+		case !it.Disabled:
 			action := ctl.ActionSet
 			if v.Stops(it) {
 				action = ctl.ActionStop

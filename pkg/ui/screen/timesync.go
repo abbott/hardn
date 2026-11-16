@@ -327,14 +327,14 @@ func (t TimeSync) MenuItems() []component.MenuItem {
 func (TimeSync) Removes(it component.MenuItem) bool { return it.Label == timeRemove }
 
 // SubMenu returns the NTP Settings screen: the title bar; the row; the
-// section; the items; Return; "Select an option"; "Option".
+// section; the items; Refresh; Return; "Select an option"; "Option".
 func (t TimeSync) SubMenu() SubMenu {
 	return SubMenu{
 		Title:    trail(timeTitle),
 		Status:   t.Status,
 		Sections: []Section{{Header: component.SectionHeader{Title: timeSection}, Rows: component.BulletList{Items: t.Rows()}}},
 		Heading:  fixtureHeading,
-		Menu:     component.Menu{Items: t.MenuItems(), Exit: returnItem()},
+		Menu:     component.Menu{Items: withRefresh(t.MenuItems()), Exit: returnItem()},
 		Prompt:   menuPrompt,
 	}
 }

@@ -51,6 +51,10 @@ type Options struct {
 	// item 3 reads "Manage firewalld, port listening" (el-firewalld.md
 	// §1.6); nil is never.
 	FirewallEL func() bool
+	// Elevation, asked as the main menu is drawn, is the command that runs
+	// hardn as root on the host, "sudo" or "doas" (detect.Elevation.Command),
+	// which item 1's aside names; nil, or "", is sudo.
+	Elevation func() string
 	// Kernel is the Kernel item (4): pkg/screens/kernelsettings.
 	Kernel func() error
 	// Updates is the Auto Updates item (5): pkg/screens/updates.
@@ -333,7 +337,11 @@ func (o Options) items() nav.Menu {
 		{o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)"},
 	}
 	menu := nav.Menu{Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}}
-	for i, it := range screen.MainMenuItems(o.FirewallPVE != nil && o.FirewallPVE(), o.FirewallEL != nil && o.FirewallEL()) {
+	tool := ""
+	if o.Elevation != nil {
+		tool = o.Elevation()
+	}
+	for i, it := range screen.MainMenuItems(o.FirewallPVE != nil && o.FirewallPVE(), o.FirewallEL != nil && o.FirewallEL(), tool) {
 		menu.Options = append(menu.Options, nav.Option{Item: it, Action: o.show(screens[i].run, screens[i].unset)})
 	}
 	return menu
@@ -353,5 +361,6 @@ func FirewallOf(f detect.Facts) (pve, el bool) {
 // main menu with it. It is pure.
 func MenuOf(f detect.Facts) component.Menu {
 	pve, el := FirewallOf(f)
-	return Options{FirewallPVE: func() bool { return pve }, FirewallEL: func() bool { return el }}.items().View()
+	tool := f.Elevation.Command()
+	return Options{FirewallPVE: func() bool { return pve }, FirewallEL: func() bool { return el }, Elevation: func() string { return tool }}.items().View()
 }

@@ -23,14 +23,13 @@ const (
 
 // asking is the question's test bench: the host its state and hardn.yml
 // are on, the clock, the answers to give (each "y", "n", "" for Enter, or
-// "eof"), how often it was asked, with which defaults, and what was said.
+// "eof"), how often it was asked, and what was said.
 type asking struct {
-	f        *hostfake.System
-	now      time.Time
-	answers  []string
-	asked    int
-	defaults []bool
-	out      strings.Builder
+	f       *hostfake.System
+	now     time.Time
+	answers []string
+	asked   int
+	out     strings.Builder
 }
 
 // useAsking points the question at a new bench, on a terminal, until the
@@ -44,9 +43,8 @@ func useAsking(t *testing.T, answers ...string) *asking {
 	t.Cleanup(func() { releaseAskTerminals, askCheckReleases, config.Stdout = termWas, askWas, outWas })
 	releaseAskTerminals = func() bool { return true }
 	config.Stdout = &b.out
-	askCheckReleases = func(def bool) (bool, bool) {
+	askCheckReleases = func() (bool, bool) {
 		b.asked++
-		b.defaults = append(b.defaults, def)
 		if len(b.answers) == 0 {
 			t.Fatalf("asked a %d. time, with no answer to give", b.asked)
 		}
@@ -56,7 +54,7 @@ func useAsking(t *testing.T, answers ...string) *asking {
 		case "eof":
 			return false, false
 		case "":
-			return def, true
+			return true, true // Enter is yes
 		}
 		return a == "y", true
 	}
@@ -95,14 +93,14 @@ func (b *asking) open(c *config.Config) int {
 }
 
 // TestReleaseAskNoConfig: with no hardn.yml the question is asked at the
-// first open. After a no, Enter or the end of the input: not for 14 opens,
+// first open. After a no or the end of the input: not for 14 opens,
 // at the 15th, and at the first open 30 days on. The check stays off.
 func TestReleaseAskNoConfig(t *testing.T) {
-	for _, answer := range []string{"n", "", "eof"} {
+	for _, answer := range []string{"n", "eof"} {
 		b := useAsking(t, answer, "n", "n")
 		c := config.DefaultConfig()
-		if b.open(c) != 1 || c.CheckReleases || b.state() == "" || b.defaults[0] {
-			t.Fatalf("%q: asked %d, on %t, default %v, state %q", answer, b.asked, c.CheckReleases, b.defaults, b.state())
+		if b.open(c) != 1 || c.CheckReleases || b.state() == "" {
+			t.Fatalf("%q: asked %d, on %t, state %q", answer, b.asked, c.CheckReleases, b.state())
 		}
 		for i := 1; i < version.AskOpens; i++ {
 			if b.open(config.DefaultConfig()) != 0 {
@@ -281,7 +279,7 @@ func TestReleaseAskLegacy(t *testing.T) {
 	for _, tc := range []struct {
 		answer string
 		on     bool
-	}{{"y", true}, {"n", false}, {"", false}} {
+	}{{"y", true}, {"n", false}, {"", true}} {
 		b := useAsking(t, tc.answer)
 		c := b.yml(t, legacyYML)
 		word := map[bool]string{true: "true", false: "false"}[tc.on]
@@ -292,8 +290,8 @@ func TestReleaseAskLegacy(t *testing.T) {
 		if want := legacyYML + "checkReleases: " + word + "\n"; string(yml.Data) != want {
 			t.Errorf("%q: hardn.yml is\n%s\nwant\n%s", tc.answer, yml.Data, want)
 		}
-		if want := "Saved checkReleases: " + word + " to " + ymlPath + "\n"; b.out.String() != want || !strings.Contains(b.state(), `"answer":"none"`) || b.defaults[0] {
-			t.Errorf("%q: said %q, want %q; state %q; default %v", tc.answer, b.out.String(), want, b.state(), b.defaults)
+		if want := "Saved checkReleases: " + word + " to " + ymlPath + "\n"; b.out.String() != want || !strings.Contains(b.state(), `"answer":"none"`) {
+			t.Errorf("%q: said %q, want %q; state %q", tc.answer, b.out.String(), want, b.state())
 		}
 		if m := withReleaseCheck(mainmenu.Options{}, c, "0.4.0"); (m.CheckRelease != nil) != tc.on {
 			t.Errorf("%q: the main menu's check is %t", tc.answer, m.CheckRelease != nil)
@@ -342,21 +340,18 @@ func TestReleaseAskLegacyUnanswered(t *testing.T) {
 }
 
 // TestReleaseAskLegacyAfterYes: a yes given before there was a hardn.yml
-// is the question's default once one without the key is there, where the
-// file decides: asked at once, and Enter writes true.
+// asks again at once once one without the key is there, where the file
+// decides, and Enter writes true.
 func TestReleaseAskLegacyAfterYes(t *testing.T) {
 	b := useAsking(t, "y", "")
 	b.open(config.DefaultConfig())
 	c := b.yml(t, legacyYML)
 	yml, _ := b.f.Entry(ymlPath)
-	if b.open(c) != 1 || !b.defaults[1] || !c.CheckReleases {
-		t.Fatalf("asked %d, defaults %v, on %t", b.asked, b.defaults, c.CheckReleases)
+	if b.open(c) != 1 || !c.CheckReleases {
+		t.Fatalf("asked %d, on %t", b.asked, c.CheckReleases)
 	}
 	if yml, _ = b.f.Entry(ymlPath); string(yml.Data) != legacyYML+"checkReleases: true\n" {
 		t.Errorf("hardn.yml is\n%s", yml.Data)
-	}
-	if !config.CheckReleasesDefault() {
-		t.Error("the hardn.yml questions' default is not the yes hardn's state holds")
 	}
 }
 
