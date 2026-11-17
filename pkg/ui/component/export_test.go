@@ -15,6 +15,7 @@ var (
 
 // Unexported words.
 const (
+	FrameColumn    = frameCol
 	Unknown        = unknown
 	ModeLabel      = modeLabel
 	ModeLive       = modeLive

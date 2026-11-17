@@ -30,6 +30,10 @@ type Ctx struct {
 	// not a terminal, which a file or a tool holds and no width limits
 	// (OffTerminal, DEV-067). NewCtx leaves it false, as every screen has it.
 	Whole bool
+	// inner, where above 0, is the most cells a line inside a frame may take
+	// (FramedList): width reads it, and stacked does not, so a frame narrows
+	// its rows without stacking them, which the terminal's width alone decides.
+	inner int
 }
 
 // NewCtx returns the render context for env, building its theme once.
@@ -57,12 +61,24 @@ func (c Ctx) termWidth() int {
 }
 
 // width is the content width: the terminal's, capped at
-// theme.ContentWidth under theme.CapContent.
+// theme.ContentWidth under theme.CapContent, and inside a frame at its inner
+// width (Ctx.inner).
 func (c Ctx) width() int {
+	w := c.termWidth()
 	if theme.CapContent {
-		return min(c.termWidth(), theme.ContentWidth)
+		w = min(w, theme.ContentWidth)
 	}
-	return c.termWidth()
+	if c.inner > 0 {
+		w = min(w, c.inner)
+	}
+	return w
+}
+
+// within is c inside a frame whose lines take at most n cells: its width is n
+// at most, and its rows stack as c's do.
+func (c Ctx) within(n int) Ctx {
+	c.inner = max(1, n)
+	return c
 }
 
 // barWidth is the width a bar fills: the content width under
@@ -251,7 +267,11 @@ func (c Ctx) shade(style lipgloss.Style, n int) span {
 // rule returns a run of Glyphs.Rule n cells wide in style: ╌, or - in the
 // ASCII set (DEV-072).
 func (c Ctx) rule(style lipgloss.Style, n int) span {
-	g := c.Theme.Glyphs.Rule
+	return run(c.Theme.Glyphs.Rule, style, n)
+}
+
+// run is n cells of the glyph g in style.
+func run(g string, style lipgloss.Style, n int) span {
 	return span{strings.Repeat(g, max(0, n)/lipgloss.Width(g)), style}
 }
 

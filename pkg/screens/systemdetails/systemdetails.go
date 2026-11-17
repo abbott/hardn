@@ -56,7 +56,7 @@ const (
 	noUsers     = "None but root"
 	noSudo      = "No sudo"
 	noDoas      = "No doas"
-	noLogin     = "None recorded"
+	noLogin     = output.NoLoginRecorded
 	notKnown    = "Not known"
 	cantRead    = "Can't read %s"
 	rejects     = "%s rejects %s"
@@ -64,8 +64,6 @@ const (
 	missing     = "%s is missing"
 	noLslogins  = "Not known: lslogins isn't installed"
 	notRootRow  = "Not root: %s not read"
-	fromHost    = "%s from %s"
-	onTTY       = "%s on %s"
 )
 
 // Options is what the System Details screen runs with: what cmd/hardn has when its
@@ -443,20 +441,14 @@ func loginRows(r details.Report, now time.Time) []component.KeyValue {
 	return rows
 }
 
-// loginRow is a login's row. When is the year in place of the clock, as ls does,
-// where it was not this year.
+// loginRow is a login's row, in the words the User Management screen shares
+// (output.FormatLogin).
 func loginRow(l details.Login, now time.Time) component.KeyValue {
-	when := l.At.Format("Jan 2 15:04")
-	if l.At.Year() != now.Year() {
-		when = l.At.Format("Jan 2 2006")
-	}
-	switch {
-	case l.State == details.LoginUnknown:
+	switch l.State {
+	case details.LoginUnknown:
 		return notKnownRow(l.User)
-	case l.State == details.LoginNone:
-		return component.KeyValue{Key: l.User, Value: noLogin, State: component.ValueNone}
-	case l.From == "":
-		return component.KeyValue{Key: l.User, Value: fmt.Sprintf(onTTY, when, l.TTY)}
+	case details.LoginNone:
+		return component.KeyValue{Key: l.User, Value: output.FormatLogin(l, now), State: component.ValueNone}
 	}
-	return component.KeyValue{Key: l.User, Value: fmt.Sprintf(fromHost, when, l.From)}
+	return component.KeyValue{Key: l.User, Value: output.FormatLogin(l, now)}
 }

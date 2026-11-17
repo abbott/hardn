@@ -43,6 +43,9 @@ type simUser struct {
 // control's plans run, and visudo -c rejecting the files (rejects).
 type userSim struct {
 	rejects bool
+	// logins are lslogins' answers to the screen's call (lastLoginArgv): a
+	// name's login fields after the name; any other name answers blanks.
+	logins map[string]string
 	// home is a new home's mode: login.defs' HOME_MODE, 0700 (Debian 13) or
 	// 0750 (Ubuntu 26.04); 0755 on Alpine [I: login.defs has no HOME_MODE;
 	// the VM's login home is 0755].
@@ -56,6 +59,21 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 	}
 	ctx := context.Background()
 	switch argv[0] {
+	case "lslogins": // the screen's call: a raw line per name, blanks for one with no login (vm-runs/s1/02-login.log, 08-lslogins.log); Alpine has none (01-tools.log)
+		if len(argv) == len(lastLoginArgv)+2 && slices.Equal(argv[1:len(argv)-1], lastLoginArgv) {
+			if h.openRC {
+				return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "lslogins", host.SearchPath, host.ErrNotFound)}, true
+			}
+			var b strings.Builder
+			for _, n := range strings.Split(argv[len(argv)-1], ",") {
+				if l, ok := u.logins[n]; ok {
+					b.WriteString(n + " " + l + "\n")
+				} else {
+					b.WriteString(noLoginLine(n) + "\n")
+				}
+			}
+			return hostfake.Response{Stdout: b.String()}, true
+		}
 	case "visudo": // visudo -c over a file it cannot parse: exit 1 and its line (visudo(8), EXIT VALUE)
 		if u.rejects && slices.Equal(argv, []string{"visudo", "-c"}) {
 			return hostfake.Response{ExitCode: 1, Stderr: "/etc/sudoers.d/90-cloud-init-users:4:27: syntax error\n"}, true
@@ -121,6 +139,18 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 	return hostfake.Response{}, false
 }
 
+// lastLoginArgv is how the User Management screen asks lslogins about its
+// users, whose names follow -l: wtmp left out, a raw line each.
+var lastLoginArgv = []string{"--time-format=iso", "--noheadings", "--raw", "--output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME", "--wtmp-file=/dev/null", "-l"}
+
+// usrLogins are the users hosts' last logins, before the gallery's clock
+// (galleryNow): george's over SSH that morning, alice's at the console four
+// days before; synthetic.
+var usrLogins = map[string]string{
+	"george": "2026-10-20T08:14:03+00:00 pts/0 192.0.2.10",
+	"alice":  "2026-10-16T17:42:51+00:00 tty1 ",
+}
+
 // fsMode is m as a file mode.
 func fsMode(m int) fs.FileMode { return fs.FileMode(m) }
 
@@ -183,7 +213,7 @@ func synthKey(seed byte, comment string) string {
 // too, where no sudo reads it.
 func usersOn(p platform, cloud bool, us ...simUser) *fakeHost {
 	h := statusOn(p)
-	h.users = &userSim{home: 0o700}
+	h.users = &userSim{home: 0o700, logins: usrLogins}
 	if p.socket {
 		h.users.home = 0o750
 	}

@@ -20,7 +20,7 @@ var (
 		{Key: UsersByKey, Value: "/etc/sudoers.d/90-cloud-init-users"}, UsersKeysRow(2), {Key: UsersPasswordKey, Value: "None"}}
 	usrTestAlice = []component.KeyValue{{Key: "Sudo", Value: "Enabled", State: component.ValueOK}, {Key: UsersByKey, Value: "group sudo"},
 		UsersKeysRow(0), {Key: UsersPasswordKey, Value: "Set"}}
-	usrTestTwo    = Users{Status: usrTestStatus, Tool: "sudo", Users: []UsersSection{{"george", usrTestGeorge}, {"alice", usrTestAlice}}}
+	usrTestTwo    = Users{Status: usrTestStatus, Tool: "sudo", Users: []UsersSection{{Name: "george", Rows: usrTestGeorge}, {Name: "alice", Rows: usrTestAlice}}}
 	usrTestNone   = Users{Status: component.StatusList{Rows: []component.StatusRow{{Label: "User", State: component.StatusNotConfigured, Detail: "root only"}}}}
 	usrTestManage = UsersManage{Name: "george", Rows: usrTestGeorge, Admin: true, NoPassword: true}
 	usrTestKeys   = UsersKeys{Name: "george", Keys: []component.KeyValue{{Key: "SHA256:AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE", Value: "george@laptop-1"},
@@ -30,13 +30,14 @@ var (
 // TestUsersHeights (from the gallery's, whose counts these are,
 // gallery-users.md §4): each screen at 80x24 and 80x40, in Unicode and
 // ASCII, is as many lines at either height, the prompt on its last: full
-// sections at every height. pkg/screens/users' holds every host's.
+// sections at every height; the users' frame (DEV-077) four lines more than
+// their sections were. pkg/screens/users' holds every host's.
 func TestUsersHeights(t *testing.T) {
 	draws := map[string]struct {
 		vm    SubMenu
 		lines int
 	}{
-		"two users": {usrTestTwo.SubMenu(), 26}, "root only": {usrTestNone.SubMenu(), 15}, "select": {UsersSelect{Names: []string{"george", "alice"}}.SubMenu(), 10},
+		"two users": {usrTestTwo.SubMenu(), 30}, "root only": {usrTestNone.SubMenu(), 15}, "select": {UsersSelect{Names: []string{"george", "alice"}}.SubMenu(), 10},
 		"manage": {usrTestManage.SubMenu(), 20}, "keys": {usrTestKeys.SubMenu(), 19},
 	}
 	for name, d := range draws {

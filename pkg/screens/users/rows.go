@@ -1,7 +1,9 @@
 package users
 
 import (
+	"fmt"
 	"slices"
+	"time"
 
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
@@ -22,6 +24,7 @@ import (
 const (
 	keySudo = "Sudo" // Figma's; on doas, its name
 	keyDoas = "doas"
+	keyIDs  = "UID:GID" // the main screen's alone, after Password
 
 	enabled       = "Enabled"
 	enabledComma  = "Enabled,"
@@ -39,12 +42,19 @@ const (
 	byGroupPrefix = "group "
 )
 
+// statusLabel is the User row's label on this screen, which lists the
+// users; the main menu keeps the control's "User".
+const statusLabel = "User(s)"
+
 // statusRow is the User row of the reading, the main menu's: Check's,
-// through the main menu's own mapping, with no engine.
+// through the main menu's own mapping, with no engine, labelled User(s).
 func statusRow(r usersctl.Reading) component.StatusList {
 	c := usersctl.Admin{}
 	view := output.StatusViewOf([]engine.Report{{Control: c.ID(), Title: c.Title(), Status: r.Status, Err: r.StatusErr}}, risk.Level{}).Status
 	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != c.Title() })
+	for i := range view.Rows {
+		view.Rows[i].Label = statusLabel
+	}
 	return view
 }
 
@@ -71,17 +81,30 @@ func noPasswordToAsk(u usersctl.User) bool {
 	return u.Locked || u.Password == accounts.PasswordNone
 }
 
-// mainView is h as the users' screen draws it: a section per user, or why
+// mainView is h as the users' screen draws it: an entry per user, its last
+// login beside its badge (loginWords) and its UID:GID after its rows, or why
 // none is read.
-func mainView(h reading) screen.Users {
+func mainView(h reading, now time.Time) screen.Users {
 	v := screen.Users{Status: h.status, Tool: toolWord(h.Reading)}
 	for _, u := range h.Users {
-		v.Users = append(v.Users, screen.UsersSection{Name: u.Name, Rows: userRows(h.Reading, u)})
+		rows := append(userRows(h.Reading, u), component.KeyValue{Key: keyIDs, Value: fmt.Sprintf("%d:%d", u.UID, u.GID)})
+		v.Users = append(v.Users, screen.UsersSection{Name: u.Name, Rows: rows, Login: loginWords(h.logins, u.Name, now)})
 	}
 	if h.err != nil {
 		v.NotRead = screenkit.RefusalWords(h.err)
 	}
 	return v
+}
+
+// loginWords is what the users' screen says beside name's badge, from l,
+// the screen's one lslogins call: its last login, or "None recorded", in
+// System Details' words (output.FormatLogin); nothing where it is not known:
+// no lslogins, as on Alpine, or a record that can't be read.
+func loginWords(l accounts.LastLogins, name string, now time.Time) string {
+	if l.State != accounts.LoginsRead {
+		return ""
+	}
+	return output.FormatLogin(l.Of(name), now)
 }
 
 // userRows are u's rows: Figma's Sudo (doas on Alpine), who grants it, SSH

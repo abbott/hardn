@@ -34,10 +34,11 @@ import (
 //
 //	    > Option [0-2 or q]:
 //
-// The blocks: the TitleBar, SubjectLine, StatusList, each Section, the
-// MenuHeading, the Menu, then the PromptLine after theme.PromptGap blank
-// lines. A block that renders nothing is left out with its gap, so one
-// layout serves 01-USER (status, a section, a menu), 02-SSH_LOGIN and
+// The blocks: the TitleBar, SubjectLine, StatusList, Alert, FramedList,
+// each Section, the MenuHeading, the Menu, then the PromptLine after
+// theme.PromptGap blank lines. A block that renders nothing is left out
+// with its gap, so one layout serves 01-USER (status, its users in a
+// frame, a menu), 02-SSH_LOGIN and
 // 05-BACKUP (status rows, a section), USER-MANAGE_USER-MANAGEMENT and
 // USER-SSH_KEYS (a subject line and a menu) and
 // USER-MANAGE_USER-SELECT_USER (a menu of users under its own heading).
@@ -60,6 +61,9 @@ type SubMenu struct {
 	// sections, as the main menu does (Alert), its route to vm.Menu's
 	// item; nil for none.
 	Alert *Alert
+	// Framed is a list of entries in a frame, drawn before Sections, as
+	// 01-USER's users (DEV-077); with none it is left out.
+	Framed component.FramedList
 	// Sections are the area's details, in order.
 	Sections []Section
 	// Heading is the menu heading's title, such as "Select an option",
@@ -98,7 +102,7 @@ func (vm SubMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
 // above renders every block above the menu, the title bar with its trail
 // when withTrail is set.
 func (vm SubMenu) above(c component.Ctx, withTrail bool) string {
-	blocks := []string{titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c), vm.Status.Render(c), vm.Alert.render(c, vm.Menu)}
+	blocks := []string{titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c), vm.Status.Render(c), vm.Alert.render(c, vm.Menu), vm.Framed.Render(c)}
 	for _, s := range vm.Sections {
 		blocks = append(blocks, s.Render(c))
 	}

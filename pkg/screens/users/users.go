@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
@@ -119,11 +120,13 @@ type runner struct {
 }
 
 // reading is one reading of the host: the control's, why the accounts were
-// not read (err), and the User row.
+// not read (err), and the User row; and, read for the users' screen alone
+// (readLogins), each user's last login.
 type reading struct {
 	usersctl.Reading
 	err    error
 	status component.StatusList
+	logins accounts.LastLogins
 }
 
 // read reads the host as the control reads it (users.Read, writing nothing,
@@ -131,6 +134,27 @@ type reading struct {
 func (r *runner) read(ctx context.Context) reading {
 	rd, err := usersctl.Read(ctx, r.o.System, r.o.Facts, r.o.Getenv)
 	return reading{Reading: rd, err: err, status: statusRow(rd)}
+}
+
+// loginLimit bounds the screen's lslogins call and its blank guard: with
+// wtmp left out it answers in about 5 ms (vm-runs/s1/08-lslogins.log), but as
+// root it may wait up to 15 s for the password lock another tool holds
+// (lslogins.c v2.41:831, lckpwdf), and the screen does not wait that long.
+const loginLimit = 5 * time.Second
+
+// readLogins reads the last login of each of h's users, for the users'
+// screen: one lslogins call, wtmp left out (accounts.ReadLastLogins), so its
+// answer is lastlog's, which holds the time and host on Debian 13 and Ubuntu
+// 26.04 (vm-runs/s1/08-lslogins.log). With no user, nothing runs.
+func (r *runner) readLogins(ctx context.Context, h reading) accounts.LastLogins {
+	if len(h.Users) == 0 {
+		return accounts.LastLogins{}
+	}
+	names := make([]string, len(h.Users))
+	for i, u := range h.Users {
+		names[i] = u.Name
+	}
+	return accounts.ReadLastLogins(ctx, r.o.System, names, accounts.LastLoginOptions{NoWtmp: true, Run: loginLimit, Guard: loginLimit})
 }
 
 // user is the user named name in h, and whether it is listed.

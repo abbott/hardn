@@ -46,12 +46,13 @@ func accountsFound() screen.Accounts {
 // hardn's screen draws them on Debian 13.
 func accountsUsers(a screen.Accounts) screen.Users {
 	return screen.Users{
-		Status: component.StatusList{Rows: []component.StatusRow{{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo"}}},
+		Status: component.StatusList{Rows: []component.StatusRow{{Label: "User(s)", State: component.StatusConfigured, Detail: "non-root, sudo"}}},
 		Tool:   "sudo",
 		Users: []screen.UsersSection{
 			{Name: "george", Rows: []component.KeyValue{{Key: "Sudo", Value: "Enabled", State: component.ValueOK}, {Key: screen.UsersByKey, Value: "group sudo"},
-				screen.UsersKeysRow(2), {Key: screen.UsersPasswordKey, Value: "Set"}}},
-			{Name: "alice", Rows: []component.KeyValue{{Key: "Sudo", Value: "Disabled"}, screen.UsersKeysRow(1), {Key: screen.UsersPasswordKey, Value: "Set"}}},
+				screen.UsersKeysRow(2), {Key: screen.UsersPasswordKey, Value: "Set"}, {Key: "UID:GID", Value: "1000:1000"}}, Login: "Oct 20 08:14 from 192.0.2.10"},
+			{Name: "alice", Rows: []component.KeyValue{{Key: "Sudo", Value: "Disabled"}, screen.UsersKeysRow(1), {Key: screen.UsersPasswordKey, Value: "Set"}, {Key: "UID:GID", Value: "1001:1001"}},
+				Login: "Oct 16 17:42 on tty1"},
 		},
 		Review: &a,
 	}

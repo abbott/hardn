@@ -174,13 +174,20 @@ func TestRuleOneCell(t *testing.T) {
 		if w, ww := lipgloss.Width(g.Rule), wideWidth(g.Rule); w != 1 || ww != 1 {
 			t.Errorf("%s: Rule %q is %d cells, %d when ambiguous is wide; want 1", name, g.Rule, w, ww)
 		}
+		// A frame's glyphs are one cell each; in box drawing they are
+		// ambiguous, a cost DEV-077 accepts (TestAmbiguousGlyphs).
+		for _, c := range []string{g.FrameRule, g.Edge, g.CornerTop, g.CornerBottom} {
+			if w := lipgloss.Width(c); w != 1 {
+				t.Errorf("%s: corner %q is %d cells; want 1", name, c, w)
+			}
+		}
 	}
 }
 
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {
-	const documented = "⛛ ⭘ ⛬ – ≈ … █"
+	const documented = "⛛ ⭘ ⛬ – ≈ … █ ─ │ ┐ ┘"
 	var found []string
 	for _, glyph := range glyphFields(unicodeGlyphs) {
 		for _, r := range glyph {

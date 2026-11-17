@@ -171,6 +171,26 @@ func FigmaUser() component.BulletList {
 	}}
 }
 
+// FramedUsers is the maintainer's User Management mock of 2026-11-17: two
+// users in the frame, each with its last login (DEV-077).
+func FramedUsers() component.FramedList {
+	return component.FramedList{Entries: []component.FramedEntry{
+		{Name: "george", Aside: "Oct 20 08:14 from 192.0.2.10", Rows: component.BulletList{Items: []component.KeyValue{
+			{Key: "Sudo", Value: "Enabled,", State: component.ValueWarn, Note: "passwordless"},
+			{Key: "Granted by", Value: "/etc/sudoers.d/90-cloud-init-users"},
+			{Key: "SSH Keys", Value: "2 keys"},
+			{Key: "Password", Value: "None"},
+			{Key: "UID:GID", Value: "1000:1000"},
+		}}},
+		{Name: "alice", Aside: "None recorded", Rows: component.BulletList{Items: []component.KeyValue{
+			{Key: "Sudo", Value: "Enabled", State: component.ValueOK},
+			{Key: "SSH Keys", Value: "None", State: component.ValueWarn},
+			{Key: "Password", Value: "Set"},
+			{Key: "UID:GID", Value: "1001:1001"},
+		}}},
+	}}
+}
+
 // FigmaChecklist is the checklist under Figma's warning
 // (SSH_LOGIN-TOGGLE_CONFIRMATION).
 func FigmaChecklist() component.BulletList {
@@ -387,6 +407,18 @@ func States() []State {
 			{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
 		}}},
 		{"bulletlist/empty", component.BulletList{}},
+		{"framedlist/normal", FramedUsers()},
+		{"framedlist/no-aside", component.FramedList{Entries: []component.FramedEntry{
+			{Name: "george", Rows: FigmaUser()},
+		}}},
+		{"framedlist/long", component.FramedList{Entries: []component.FramedEntry{
+			{Name: "alice-backup-replication-service", Aside: "Oct 20 08:14 from 2001:db8:ffff:ffff:ffff:ffff:ffff:fffe", Rows: component.BulletList{Items: []component.KeyValue{
+				{Key: "Granted by", Value: "/etc/sudoers.d/90-cloud-init-users-for-the-replication-service"},
+				{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
+			}}},
+		}}},
+		{"framedlist/name-only", component.FramedList{Entries: []component.FramedEntry{{Name: "george", Aside: "None recorded"}}}},
+		{"framedlist/empty", component.FramedList{Entries: []component.FramedEntry{{}}}},
 		{"codeblock/lines", component.CodeBlock{Lines: []component.CodeLine{
 			{Text: "2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp"},
 			{Text: "2026/10/20 12:00:04 WARNING: a warning", Warn: true},

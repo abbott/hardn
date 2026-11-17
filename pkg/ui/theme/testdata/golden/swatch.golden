@@ -33,6 +33,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -96,6 +100,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -159,6 +167,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -222,6 +234,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -285,6 +301,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -348,6 +368,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -411,6 +435,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -474,6 +502,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -537,6 +569,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -600,6 +636,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -663,6 +703,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -726,6 +770,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -789,6 +837,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -852,6 +904,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -915,6 +971,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -978,6 +1038,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1041,6 +1105,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1104,6 +1172,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1167,6 +1239,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1230,6 +1306,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1293,6 +1373,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1356,6 +1440,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1419,6 +1507,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1482,6 +1574,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1545,6 +1641,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1608,6 +1708,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1671,6 +1775,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1734,6 +1842,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1797,6 +1909,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1860,6 +1976,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -1923,6 +2043,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -1986,6 +2110,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2049,6 +2177,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2112,6 +2244,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2175,6 +2311,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2238,6 +2378,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2301,6 +2445,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2364,6 +2512,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2427,6 +2579,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2490,6 +2646,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2553,6 +2713,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2616,6 +2780,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2679,6 +2847,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2742,6 +2914,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2805,6 +2981,10 @@ Glyphs$
   Bar             █$
   Shade           ░$
   Rule            ╌$
+  FrameRule       ─$
+  Edge            │$
+  CornerTop       ┐$
+  CornerBottom    ┘$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            ⭘$
@@ -2868,6 +3048,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2931,6 +3115,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$
@@ -2994,6 +3182,10 @@ Glyphs$
   Bar             #$
   Shade           #$
   Rule            -$
+  FrameRule       -$
+  Edge            |$
+  CornerTop       +$
+  CornerBottom    +$
   BadgeOpen       [$
   BadgeClose      ]$
   Warn            [ ]$

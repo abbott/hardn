@@ -22,7 +22,7 @@ package theme
 // are callouts. origin/main's ✓ ✗ ℹ and the first build's ⊘ ◦ ▸ ↺ ↷ ! are
 // gone.
 //
-// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █.
+// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─ │ ┐ ┘.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
 // characters two cells wide draws each as two. A single glyph then shifts
 // the rest of its line by one cell. term.Resolve picks the ASCII set in a
@@ -32,7 +32,12 @@ package theme
 // are neutral width, so a run keeps its width there: Shade, the bars' ░
 // U+2591 (DEV-018), and Rule, ╌ U+254C (DEV-072). Rule was ─ U+2500,
 // ambiguous, until 2026-11-06: a 64-cell rule took 128 cells there and
-// wrapped at 80 columns, a cost DEV-015 accepted.
+// wrapped at 80 columns, a cost DEV-015 accepted. A frame alone draws in
+// box drawing, as the maintainer's mock has it (2026-11-17, DEV-077): its
+// rules ─ U+2500, its edge │ U+2502 and its corners ┐ U+2510 and ┘ U+2518
+// are all ambiguous, so there a frame's rule takes two cells a glyph and
+// each line inside it a cell more, a cost DEV-077 accepts for that one
+// screen.
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
@@ -48,6 +53,10 @@ type Glyphs struct {
 	Bar           string // a callout's accent bar when there is no colour to paint it
 	Shade         string // the stub and fill of the context and title bars, in bar.shade
 	Rule          string // draws a divider or a section header's rule (DEV-072)
+	FrameRule     string // draws a frame's top and bottom rules (DEV-077)
+	Edge          string // a frame's right edge, in its rule's style (DEV-077)
+	CornerTop     string // ends a frame's top rule, over its edge (DEV-077)
+	CornerBottom  string // ends a frame's bottom rule, under its edge (DEV-077)
 	BadgeOpen     string // opens a badge when there is no colour to paint it
 	BadgeClose    string // closes a badge when there is no colour to paint it
 
@@ -76,7 +85,8 @@ type Glyphs struct {
 // unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-024,
 // DEV-031, DEV-038, DEV-039 and DEV-062 for the glyphs Figma does not
 // draw, DEV-019 for the badge brackets, DEV-018 for the bars' shade,
-// DEV-072 for the rule's ╌, the maintainer's of 2026-11-06).
+// DEV-072 for the rule's ╌, the maintainer's of 2026-11-06; DEV-077 for
+// the frame's ─ │ ┐ ┘, the maintainer's of 2026-11-17).
 // Partial, Warn, Unknown and NotApplicable are the maintainer's of
 // 2026-10-21, Inline the maintainer's of 2026-10-22.
 var unicodeGlyphs = Glyphs{
@@ -94,6 +104,10 @@ var unicodeGlyphs = Glyphs{
 	Bar:           "█",
 	Shade:         "░",
 	Rule:          "╌",
+	FrameRule:     "─",
+	Edge:          "│",
+	CornerTop:     "┐",
+	CornerBottom:  "┘",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "⭘",
@@ -125,6 +139,10 @@ var asciiGlyphs = Glyphs{
 	Bar:           "#",
 	Shade:         "#",
 	Rule:          "-",
+	FrameRule:     "-",
+	Edge:          "|",
+	CornerTop:     "+",
+	CornerBottom:  "+",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "[ ]",
