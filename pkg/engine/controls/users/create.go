@@ -24,15 +24,18 @@ import (
 // the user's password; NoPassword, with Admin, the grant asking none, the
 // opt-in (hardn.yml's adminNoPassword, or the screen's answer; the
 // maintainer, 2026-11-11); Keys, its public keys, each a pasted key or one
-// of hardn.yml's sshKeys, none for no key.
+// of hardn.yml's sshKeys, none for no key; SetPassword, a password set by
+// passwd right after Create, the screen's answer to "Set <name>'s password
+// now?", never hardn.yml's (-c and Run All set none).
 type New struct {
 	Name              string
 	Admin, NoPassword bool
 	Keys              []string
+	SetPassword       bool
 }
 
-// CodeNoKey: Create plans a user with no key, who has no password either,
-// so cannot log in.
+// CodeNoKey: Create plans a user with no key: with no password either, it
+// cannot log in; with SetPassword, it logs in with the password set next.
 const CodeNoKey = "USERS_NO_KEY"
 
 // CodePasswordNotSet: hardn's grant asks the password of a user who has
@@ -245,14 +248,20 @@ func newKeys(n New) ([]authkeys.Key, error) {
 // in place of useradd's "!", which sshd without PAM refuses a key login to
 // (decision 3 (a); run on the Alpine 3.23 VM, 2026-11-07), undone by
 // userdel --remove; then, with Admin, hardn's grant asking the user's
-// password, with a finding that none is set yet (CodePasswordNotSet), or,
-// with NoPassword, asking none; then, with Keys, every key in ~/.ssh/authorized_keys, one change (each
+// password, with a finding that none is set yet (CodePasswordNotSet) unless
+// SetPassword, or, with NoPassword, asking none; then, with Keys, every key
+// in ~/.ssh/authorized_keys, one change (each
 // authkeys.PlanAdd's line appended after the keys planned before it, a key
 // a file sshd reads holds already left out), ~/.ssh made by install with
 // the user's name, its own group (USERGROUPS_ENAB yes on all three VMs,
 // s5/00-inspect logs; CheckName refuses a group of the name already
-// there). With no key, a finding: the user cannot log in; with
-// CVE-2026-123158's fix not established, a finding too (bypassRefusal).
+// there). With no key, a finding: the user cannot log in, or with
+// SetPassword logs in with its password (sshd's password login is not read
+// for it: ssh.Bypass.Password is Alpine's alone and leaves out
+// keyboard-interactive through PAM); with CVE-2026-123158's fix not
+// established, a finding too (bypassRefusal, which SetPassword does not
+// weaken: passwd may fail, leaving "*"). SetPassword's state after is
+// "password set next" for "no password".
 func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engine.Change, error) {
 	unknownFix, err := r.checkNew(ctx, sys, n)
 	if err != nil {
@@ -263,6 +272,10 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 		shell = "/bin/ash"
 	}
 	home := homeOf(n.Name)
+	passwordAfter := "no password"
+	if n.SetPassword {
+		passwordAfter = "password set next"
+	}
 	argv := []string{"useradd", "--home-dir", home, "--create-home", "--shell", shell}
 	if r.PAM != detect.Yes {
 		argv = append(argv, "--password", "*")
@@ -270,7 +283,7 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 	argv = append(argv, n.Name)
 	undo := []string{"userdel", "--remove", n.Name}
 	add := engine.Change{ID: ChangeCreate, Summary: "Create user " + n.Name, Target: accounts.PasswdFile, Commands: []string{host.FormatArgv(argv)},
-		Stage: engine.StageAccounts, Resources: []string{"accounts"}, StateBefore: "absent", StateAfter: "no password, key login",
+		Stage: engine.StageAccounts, Resources: []string{"accounts"}, StateBefore: "absent", StateAfter: passwordAfter + ", key login",
 		Rollback: engine.Undo{Steps: []revert.Step{{Op: revert.OpRun, Argv: undo, Why: "accounts"}}},
 		// The engine keeps Rollback (userdel --remove) unless Ran's replaces
 		// it: where the name or its home has appeared since the plan
@@ -286,7 +299,11 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 			}
 			return engine.Ran{Detail: host.FormatArgv(argv)}, nil
 		}}
-	if len(n.Keys) == 0 {
+	switch {
+	case len(n.Keys) > 0:
+	case n.SetPassword:
+		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key, " + n.Name + " logs in with its password"}}
+	default:
 		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key, " + n.Name + " can't log in: there's no password"}}
 	}
 	if unknownFix != nil {
@@ -304,11 +321,11 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 		}
 		if g != nil {
 			g.Risk, g.After = engine.RiskPlain, []string{ChangeCreate}
-			if !n.NoPassword {
+			if !n.NoPassword && !n.SetPassword {
 				g.Findings = append(g.Findings, passwordNotSet(n.Name, r.toolWord()))
 			}
 			out = append(out, *g)
-		} else if !n.NoPassword {
+		} else if !n.NoPassword && !n.SetPassword {
 			// hardn's file is there already (a user removed by hand, its
 			// file left): no grant to plan, and the finding still holds.
 			out[0].Findings = append(out[0].Findings, passwordNotSet(n.Name, r.toolWord()))

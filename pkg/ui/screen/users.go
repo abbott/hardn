@@ -52,6 +52,7 @@ const (
 	usersKeysOne      = "1 key"
 	usersKeysMany     = "%d keys"
 	usersPasswordNone = "None"
+	usersPasswordNext = "Set next" // Create's, passwd run after the apply
 
 	// Install shadow first (the maintainer, 2026-11-11; proposed words,
 	// screen-users.md §5), as Firewall's Install iproute2 words its.
@@ -334,14 +335,19 @@ func UsersShadowChange() UsersChange {
 func UsersCreateStep() WorkflowStep { return usersStep(usersCreateTitle) }
 
 // UsersCreateReview is Create's review of the user answered: tool, its
-// tool's row, with a key or none, and no password; with no key, the plan's
-// finding says the user can't log in.
-func UsersCreateReview(tool component.KeyValue, key bool) flow.Review {
+// tool's row, with a key or none, and no password, or with setNext one set
+// next (passwd, after the apply); with no key, the plan's finding says how
+// the user logs in, if at all.
+func UsersCreateReview(tool component.KeyValue, key, setNext bool) flow.Review {
 	keys := UsersKeysRow(0)
 	if key {
 		keys = UsersKeysRow(1)
 	}
-	return flow.Review{Title: usersConfigSection, Items: []component.KeyValue{tool, keys, {Key: UsersPasswordKey, Value: usersPasswordNone}}}
+	pw := usersPasswordNone
+	if setNext {
+		pw = usersPasswordNext
+	}
+	return flow.Review{Title: usersConfigSection, Items: []component.KeyValue{tool, keys, {Key: UsersPasswordKey, Value: pw}}}
 }
 
 // UsersSetPasswordField is Create's question after a password is required

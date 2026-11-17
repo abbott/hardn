@@ -115,7 +115,10 @@ func TestUsersChanges(t *testing.T) {
 	if n := UsersShadowChange().Review.Notice; n == nil || n.Callout.Kind != component.MessageInfo || n.Callout.Body[0] != "hardn needs useradd, from shadow, to create users." {
 		t.Errorf("Install shadow's notice: %+v", n)
 	}
-	if rv := UsersCreateReview(sudo, false); len(rv.Items) != 3 || rv.Items[1].Value != "None" || rv.Items[2].Key != UsersPasswordKey || UsersCreateQuestion("carol") != "Create user 'carol'?" {
+	if rv := UsersCreateReview(sudo, false, false); len(rv.Items) != 3 || rv.Items[1].Value != "None" || rv.Items[2].Key != UsersPasswordKey || rv.Items[2].Value != "None" || UsersCreateQuestion("carol") != "Create user 'carol'?" {
 		t.Errorf("Create: %+v", rv)
+	}
+	if rv := UsersCreateReview(sudo, true, true); len(rv.Items) != 3 || rv.Items[1].Value != "1 key" || rv.Items[2].Key != UsersPasswordKey || rv.Items[2].Value != "Set next" {
+		t.Errorf("Create, password set next: %+v", rv)
 	}
 }
