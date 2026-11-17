@@ -587,10 +587,12 @@ func TestCreateDefaults(t *testing.T) {
 // to require a password, yes by default, no where hardn.yml's
 // adminNoPassword is true (the maintainer, 2026-11-11: admin rights
 // without a password are opt-in); after yes, whether to set it now, yes by
-// default. Applied, hardn's grant asks the password, and passwd carol is
-// run with the terminal, once, after the plan; carol reads back able to
-// become root. Answered no to setting it, declined at the plan, and under
-// plan only, passwd is not run. passwd failing is said, carol left as she
+// default. Yes, the review says Sudo Enabled and Password Set next, with no
+// finding that none is set; applied, hardn's grant asks the password, and
+// passwd carol is run with the terminal, once, after the plan; carol reads
+// back able to become root. Answered no to setting it, and under plan only,
+// the review says no password is set; declined at the plan, and under plan
+// only, passwd is not run. passwd failing is said, carol left as she
 // is. No to requiring one writes the grant asking none, and asks nothing
 // more.
 func TestCreateSetsPassword(t *testing.T) {
@@ -619,11 +621,15 @@ func TestCreateSetsPassword(t *testing.T) {
 		notSaid []string
 	}{
 		{name: "the defaults", lines: []string{"2", "carol", "y", "", "", "n", "y", "0"}, ran: 1, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordSet,
-			said:    []string{"Require password for admin rights? [Y/n", "Set carol's password now? [Y/n", "Enabled, No password set", fmt.Sprintf(wordsNotSet, "carol", "sudo", "carol"), applied, "Setting carol's password"},
-			notSaid: []string{notSet}},
-		{name: "not now", lines: []string{"2", "carol", "y", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone, said: []string{applied}, notSaid: []string{"Setting carol's password"}},
+			said: []string{"Require password for admin rights? [Y/n", "Set carol's password now? [Y/n", "[+] Sudo Enabled [ ] SSH Keys None - Password Set next",
+				"Without a key, carol logs in with its password", "+password set next, key login", applied, "Setting carol's password"},
+			notSaid: []string{notSet, "No password set", "until a password is set", "can't log in"}},
+		{name: "not now", lines: []string{"2", "carol", "y", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone,
+			said:    []string{"Enabled, No password set", "Password None", fmt.Sprintf(wordsNotSet, "carol", "sudo", "carol"), "Without a key, carol can't log in: there's no password", "+no password, key login", applied},
+			notSaid: []string{"Setting carol's password", "Set next"}},
 		{name: "declined", lines: []string{"2", "carol", "y", "y", "y", "n", "n", "0"}, pw: accounts.PasswordNotRead, notSaid: []string{applied, "Setting carol's password"}},
-		{name: "plan only", lines: []string{"2", "carol", "y", "y", "n", "0"}, dryRun: true, pw: accounts.PasswordNotRead, said: []string{planned}, notSaid: []string{"Set carol's password now?"}},
+		{name: "plan only", lines: []string{"2", "carol", "y", "y", "n", "0"}, dryRun: true, pw: accounts.PasswordNotRead,
+			said: []string{"Enabled, No password set", "Password None", fmt.Sprintf(wordsNotSet, "carol", "sudo", "carol"), "Without a key, carol can't log in: there's no password", planned}, notSaid: []string{"Set carol's password now?", "Set next"}},
 		{name: "passwd fails", lines: []string{"2", "carol", "y", "y", "y", "n", "y", "0"}, fails: true, ran: 1, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone, said: []string{applied, notSet}},
 		{name: "no password", lines: []string{"2", "carol", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) NOPASSWD: ALL", pw: accounts.PasswordNone,
 			said: []string{"Enabled, passwordless", applied}, notSaid: []string{"Set carol's password now?", "until a password is set"}},

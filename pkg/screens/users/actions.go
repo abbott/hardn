@@ -304,7 +304,8 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 // or no where hardn.yml's adminNoPassword is true (the maintainer,
 // 2026-11-11: admin rights without a password are opt-in); after yes,
 // whether to set the password now, default yes, which runs passwd once the
-// plan is applied (setPassword); each answer refused at its field by the
+// plan is applied (setPassword), the review and plan saying so
+// (usersctl.New's SetPassword); each answer refused at its field by the
 // control (CheckName, ToolRefusal, CheckNew, KeysRefusal, ParseKey); the
 // defaults hardn.yml's username and first of sshKeys (decision 7), "Grant
 // admin rights?" no as the mocks drew it; one plan for the account, the
@@ -397,30 +398,34 @@ func (r *runner) createForm(ctx context.Context, h reading) error {
 		keyField(&key, keyDef, keyAbout, func() bool { return !addKey }, parseKey),
 	}
 	tool := disabledRow(h.Reading)
+	// setNext: passwd is to run after the apply, as the question is asked.
+	setNext := func() bool { return admin && password && setNow && !r.o.DryRun }
 	err := r.change(ctx, false, func() string { return screen.UsersCreateQuestion(name) }, screenkit.Change{
 		Step: screen.UsersCreateStep(),
 		Flow: flow.Flow{
 			Form: form.Form{Fields: fields},
 			Review: func() flow.Review {
-				t := tool
+				t, next := tool, setNext()
 				switch {
+				case next:
+					t = enabledRow(h.Reading) // passwd sets it after the apply
 				case admin && password:
 					t = notSetRow(h.Reading) // a new user has no password yet
 				case admin:
 					t = nopassRow(h.Reading, true) // nor one to ask (decision 3)
 				}
-				return screen.UsersCreateReview(t, addKey)
+				return screen.UsersCreateReview(t, addKey, next)
 			},
 		},
 		Controls: func(*config.Config) []engine.Control {
-			n := usersctl.New{Name: name, Admin: admin, NoPassword: admin && !password}
+			n := usersctl.New{Name: name, Admin: admin, NoPassword: admin && !password, SetPassword: setNext()}
 			if addKey {
 				n.Keys = []string{key}
 			}
 			return []engine.Control{r.control(usersctl.Admin{Action: usersctl.ActionCreate, New: n})}
 		},
 	})
-	if err != nil || !admin || !password || !setNow || r.o.DryRun {
+	if err != nil || !setNext() {
 		return err
 	}
 	return r.setPassword(ctx, name)

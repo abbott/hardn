@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 )
@@ -485,6 +486,49 @@ func TestCreate(t *testing.T) {
 	if p.Err() != nil || len(p.Changes) != 1 || len(p.Changes[0].Findings) != 1 || p.Changes[0].Findings[0].Code != users.CodeNoKey ||
 		p.Changes[0].Findings[0].Detail != "Without a key, carol can't log in: there's no password" {
 		t.Errorf("no key: %v, %+v", p.Err(), p.Changes)
+	}
+}
+
+// TestCreateSetPassword: Create with SetPassword, the screen's yes to
+// setting the password now: no finding that none is set, on the grant or,
+// hardn's file there already, on the account; the state after "password set
+// next"; with no key, the finding that the user logs in with its password.
+// Without SetPassword, each as before.
+func TestCreateSetPassword(t *testing.T) {
+	left := keyed(sshdKeys, both())
+	left.files[grantDir+"hardn-grant-carol"] = sudoers.Header + "carol ALL=(ALL) ALL\n"
+	const noKey, noKeySet = "Without a key, carol can't log in: there's no password", "Without a key, carol logs in with its password"
+	notSet := "carol can't use sudo until a password is set: run passwd carol"
+	for _, tc := range []struct {
+		name     string
+		s        site
+		n        users.New
+		after    string
+		findings []string // every change's, in order
+	}{
+		{"set next", keyed(sshdKeys, both()), users.New{Name: "carol", Admin: true, Keys: []string{key4}, SetPassword: true}, "password set next, key login", nil},
+		{"set next, no key", keyed(sshdKeys, both()), users.New{Name: "carol", Admin: true, SetPassword: true}, "password set next, key login", []string{noKeySet}},
+		{"set next, file left", left, users.New{Name: "carol", Admin: true, Keys: []string{key4}, SetPassword: true}, "password set next, key login", nil},
+		{"not set", keyed(sshdKeys, both()), users.New{Name: "carol", Admin: true, Keys: []string{key4}}, "no password, key login", []string{notSet}},
+		{"not set, no key", keyed(sshdKeys, both()), users.New{Name: "carol", Admin: true}, "no password, key login", []string{noKey, notSet}},
+		{"not set, file left", left, users.New{Name: "carol", Admin: true, Keys: []string{key4}}, "no password, key login", []string{notSet}},
+	} {
+		_, p, _, _ := planOn(t, tc.s, users.Admin{Action: users.ActionCreate, New: tc.n})
+		if p.Err() != nil || len(p.Changes) == 0 || p.Changes[0].ID != users.ChangeCreate {
+			t.Fatalf("%s: %v, %+v", tc.name, p.Err(), p.Changes)
+		}
+		var got []string
+		for _, c := range p.Changes {
+			if _, ok := tc.s.files[grantDir+"hardn-grant-carol"]; ok && c.ID == users.ChangeGrant {
+				t.Errorf("%s: a grant planned with hardn's file there", tc.name)
+			}
+			for _, f := range c.Findings {
+				got = append(got, f.Detail)
+			}
+		}
+		if p.Changes[0].StateAfter != tc.after || !slices.Equal(got, tc.findings) {
+			t.Errorf("%s: state after %q, findings %q; want %q, %q", tc.name, p.Changes[0].StateAfter, got, tc.after, tc.findings)
+		}
 	}
 }
 
