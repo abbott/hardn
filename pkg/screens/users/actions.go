@@ -33,7 +33,8 @@ const (
 // missing (the control's UseraddRefusal, looked up live).
 func (r *runner) draw(ctx context.Context) nav.Screen {
 	h := r.read(ctx)
-	view := mainView(h)
+	h.logins = r.readLogins(ctx, h)
+	view := mainView(h, r.o.Now())
 	view.NoUseradd = errors.Is(h.UseraddRefusal(ctx, r.o.System), usersctl.ErrNoUseradd)
 	review := AccountsView(usersctl.ReadReview(ctx, r.o.System, r.o.Now()))
 	view.Review = &review

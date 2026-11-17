@@ -149,10 +149,10 @@ func TestHosts(t *testing.T) {
 			if len(r.Users) != len(wants[name]) {
 				t.Errorf("%s: %d users, want %d", name, len(r.Users), len(wants[name]))
 			}
-			sections := sectionsOf(p.out)
+			sections := entriesOf(p.out)
 			for _, u := range r.Users {
 				w := wants[name][u.Name]
-				i := slices.IndexFunc(sections, func(s string) bool { return strings.HasPrefix(s, u.Name+" -") })
+				i := slices.IndexFunc(sections, func(s string) bool { return strings.HasPrefix(s, "["+u.Name+"]") })
 				if i < 0 {
 					t.Errorf("%s: no section %s", name, u.Name)
 					continue
@@ -168,15 +168,15 @@ func TestHosts(t *testing.T) {
 	}
 }
 
-// sectionHeader is a section header as plain mode draws it
-// (component.SectionHeader): the title from column 2, a space, then a run
-// of the rule's "-".
-var sectionHeader = regexp.MustCompile(`(?m)^  (\S.*?) -+$`)
+// entryBadge is a user's badge in the users' frame as plain mode draws it
+// (component.FramedList): the name in brackets from column 2, then at
+// least two spaces, where a row's marker, such as "[+]", has one.
+var entryBadge = regexp.MustCompile(`(?m)^  \[[^\]\s]+\]  `)
 
-// sectionsOf is out cut before each section header: each piece from the
-// header's title, its lead dropped, down to the next header.
-func sectionsOf(out string) []string {
-	at := sectionHeader.FindAllStringIndex(out, -1)
+// entriesOf is out cut before each badge in the users' frame: each piece
+// from the badge, its lead dropped, down to the next badge.
+func entriesOf(out string) []string {
+	at := entryBadge.FindAllStringIndex(out, -1)
 	var got []string
 	for k, ix := range at {
 		end := len(out)
@@ -188,11 +188,11 @@ func sectionsOf(out string) []string {
 	return got
 }
 
-// rowOf is the value of the row key in s, its marker dropped; "" when it has
-// none.
+// rowOf is the value of the row key in s, its marker and a frame's edge
+// dropped; "" when it has none.
 func rowOf(s, key string) string {
 	for _, l := range strings.Split(s, "\n") {
-		t := strings.TrimSpace(l)
+		t := strings.TrimSpace(strings.TrimSuffix(l, "|"))
 		if i := strings.Index(t, "] "); strings.HasPrefix(t, "[") && i > 0 {
 			t = strings.TrimSpace(t[i+2:])
 		}
@@ -505,7 +505,7 @@ func TestCreatePassword(t *testing.T) {
 		if u, _ := userOf(t, r, "carol"); u.Admin != detect.Yes || u.Decided.Kind != users.RuleHardn || u.Locked || len(u.Keys) != 1 {
 			t.Errorf("%s: carol read back %+v", host, u)
 		}
-		if !strings.Contains(strings.Split(p.out, applied)[1], "\n  carol -") {
+		if !strings.Contains(strings.Split(p.out, applied)[1], "\n  [carol]") {
 			t.Errorf("%s: carol not drawn after:\n%s", host, p.out)
 		}
 	}
@@ -854,12 +854,14 @@ func (h *hooked) Read(b []byte) (int, error) {
 
 // TestHeights: each host's screen at 80x24 and 80x40, in Unicode and ASCII,
 // is as many lines at either height, the prompt on its last (the gallery's
-// TestUsersHeights, its counts gallery-users.md §4's, and a line each for
-// Account Review's item).
+// TestUsersHeights, its counts gallery-users.md §4's, a line each for
+// Account Review's item, and the users' frame, DEV-077: its rules, the blank
+// lines that open and close it and those after each badge, where a section
+// had its header and a gap, and a UID:GID row each).
 func TestHeights(t *testing.T) {
-	want := map[string]int{"debian13": 27, "ubuntu2604": 27, "alpine323": 27, "legacy": 20, "hardn": 20, "second-admin": 27, "one-key": 27,
-		"sudo-password": 20, "alpine-no-rule": 19, "alpine-locked": 34, "yml-missing": 27, "not-read": 25, "pve9": 16, "no-sudo": 19,
-		"root-login": 20, "debian-nopam": 27, "alpine-stray": 27, "group-home": 27}
+	want := map[string]int{"debian13": 33, "ubuntu2604": 33, "alpine323": 33, "legacy": 25, "hardn": 25, "second-admin": 33, "one-key": 33,
+		"sudo-password": 25, "alpine-no-rule": 24, "alpine-locked": 41, "yml-missing": 33, "not-read": 31, "pve9": 16, "no-sudo": 24,
+		"root-login": 25, "debian-nopam": 33, "alpine-stray": 33, "group-home": 33}
 	// The user list, george's screen and george's keys, drawn second,
 	// third and fourth.
 	draws := map[string][]string{"select": {"1", "0", "0"}, "manage": {"1", "1", "0", "0", "0"}, "keys": {"1", "1", "3", "0", "0", "0", "0"}}
@@ -1043,5 +1045,104 @@ func TestAlpineLocked(t *testing.T) {
 	fi, serr := h.Stat(ctx, "/home/alice")
 	if err != nil || u.UID != 1002 || serr != nil || fi.Mode().Perm() != 0o755 {
 		t.Errorf("alice: %+v, %v; home %v, %v", u, err, fi, serr)
+	}
+}
+
+// badgeLine is the first line of an entry of the users' frame (entriesOf):
+// its badge and what is said beside it, the frame's edge dropped.
+func badgeLine(entry string) string {
+	first, _, _ := strings.Cut(entry, "\n")
+	return strings.Join(strings.Fields(strings.TrimSuffix(first, "|")), " ")
+}
+
+// TestLogins: the users' screen says each user's last login beside its
+// badge, from one lslogins call for all of them, wtmp left out, in System
+// Details' words: from a host, at a terminal alone, another year's with its
+// year, and "None recorded" where the record is readable and holds none.
+// Nothing is said where it is not known: a blank with no record to hold a
+// login, no lslogins (Alpine), or an answer not in its form.
+func TestLogins(t *testing.T) {
+	logins := func(h *usrHost) []string {
+		var out []string
+		for _, e := range entriesOf(play(h, false, "0").out) {
+			out = append(out, badgeLine(e))
+		}
+		return out
+	}
+	h := newHost(t, "debian13")
+	if got := logins(h); !slices.Equal(got, []string{"[george] Nov 2 21:14 from 192.0.2.10", "[alice]"}) {
+		t.Errorf("debian13: %q", got)
+	}
+	var calls int
+	for _, r := range h.Runs() {
+		if r[0] == "lslogins" {
+			calls++
+			if want := append(append([]string{"lslogins"}, lastLoginArgv...), "george,alice"); !slices.Equal(r, want) {
+				t.Errorf("ran %q, want %q", r, want)
+			}
+		}
+	}
+	if calls != 1 {
+		t.Errorf("%d lslogins calls for one draw", calls)
+	}
+	h = newHost(t, "debian13")
+	h.AddFile(accounts.LastlogFile, []byte("\x07\x00george"), 0o644, 0, 0)
+	h.logins = reviewLogins // Account Review reads the record too
+	h.lastLogins["george"] = "2025-12-30T08:00:00+00:00 tty1 "
+	if got := logins(h); !slices.Equal(got, []string{"[george] Dec 30 2025 on tty1", "[alice] None recorded"}) {
+		t.Errorf("a record: %q", got)
+	}
+	checkHost(t, "a record", h)
+	h = newHost(t, "debian13")
+	h.lastLogins["george"] = "Nov2 pts/0 192.0.2.10"
+	if got := logins(h); !slices.Equal(got, []string{"[george]", "[alice]"}) {
+		t.Errorf("not in its form: %q", got)
+	}
+	if got := logins(newHost(t, "alpine323")); !slices.Equal(got, []string{"[alpine]", "[george]"}) {
+		t.Errorf("alpine323: %q", got)
+	}
+}
+
+// TestUsersFrame: the users' screen at 80 columns draws its users in the
+// frame on the grid (DEV-077): the rules from column 2, the edge and the
+// corners in column 63, the badge's name at column 3, the login and the
+// values at column 27, unstacked, with a UID:GID row after Password and the
+// User row labelled User(s); Manage User keeps its rows, no UID:GID among
+// them, in no frame.
+func TestUsersFrame(t *testing.T) {
+	out := play(newHost(t, "debian13"), false, "1", "1", "0", "0", "0").out
+	main, manage, _ := strings.Cut(out, "Managing:")
+	manage, _, _ = strings.Cut(manage, "Select an option")
+	lines := strings.Split(main, "\n")
+	top := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  ---") })
+	if top < 0 {
+		t.Fatalf("no frame:\n%s", main)
+	}
+	var frame []string
+	for _, l := range lines[top:] {
+		frame = append(frame, l)
+		if strings.HasSuffix(l, "+") && len(frame) > 1 {
+			break
+		}
+	}
+	for i, l := range frame {
+		want := "|"
+		if i == 0 || i == len(frame)-1 {
+			want = "+"
+		}
+		if len(l) != 64 || l[63:] != want {
+			t.Errorf("line %d, %q: %d cells, want %q in column 63", i, l, len(l), want)
+		}
+	}
+	if r := frame[0]; strings.TrimLeft(r, " ") != strings.Repeat("-", 61)+"+" || !strings.HasPrefix(r, "  -") {
+		t.Errorf("top rule %q", r)
+	}
+	for _, w := range []string{"  [george]                 Nov 2 21:14 from 192.0.2.10", "   -  UID:GID              1000:1000", "   -  UID:GID              1001:1001", "[+] User(s)              + non-root, sudo"} {
+		if !strings.Contains(main, w) {
+			t.Errorf("no %q in:\n%s", w, main)
+		}
+	}
+	if strings.Contains(manage, "UID:GID") || strings.Contains(manage, "|\n") || !strings.Contains(manage, "Granted by") {
+		t.Errorf("Manage User:\n%s", manage)
 	}
 }

@@ -94,10 +94,12 @@ const (
 	UsersRemoveKeyItem = "2" // Remove SSH key, with any
 )
 
-// UsersSection is one user's section: its name, the header, and its rows.
+// UsersSection is one user's entry in the users' frame: its name, the
+// badge; its last login, beside the badge, "" for none known; and its rows.
 type UsersSection struct {
-	Name string
-	Rows []component.KeyValue
+	Name  string
+	Rows  []component.KeyValue
+	Login string
 }
 
 // Users is the users' screen's reading of the host, which pkg/screens/users
@@ -107,7 +109,7 @@ type Users struct {
 	Status component.StatusList
 	// Tool is the tool Manage User's detail names: sudo, or doas.
 	Tool string
-	// Users are the sections, one per user besides root.
+	// Users are the entries, one per user besides root.
 	Users []UsersSection
 	// NotRead, with no user, is why none is read, in the control's words;
 	// "" with none says there is no user besides root.
@@ -121,14 +123,16 @@ type Users struct {
 }
 
 // SubMenu returns the users' screen (01-USER): the title bar; the User row;
-// a section per user, or the line that there is none; Manage User with a
+// the users in a frame, each its badge, its
+// last login beside it, and its rows (the maintainer's mock of 2026-11-17,
+// DEV-077), or the line that there is none, in no frame; Manage User with a
 // user to manage, Create User, which says it installs shadow first where
 // useradd is missing; Return; "Select an option"; "Option".
-// Every section at every height (Firewall's decision 9).
+// Every user at every height (Firewall's decision 9).
 func (u Users) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(usersTitle), Status: u.Status, Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range u.Users {
-		vm.Sections = append(vm.Sections, usersRows(s.Name, s.Rows))
+		vm.Framed.Entries = append(vm.Framed.Entries, component.FramedEntry{Name: s.Name, Aside: s.Login, Rows: component.BulletList{Items: s.Rows}})
 	}
 	if len(u.Users) == 0 {
 		vm.Sections = []Section{usersRows(usersSection, []component.KeyValue{usersNone(u.NotRead, usersNoOtherUser)})}

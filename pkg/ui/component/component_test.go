@@ -121,6 +121,13 @@ func empty(vm renderer) bool {
 		return v == KeyValue{}
 	case BulletList:
 		return len(v.Items) == 0
+	case FramedList:
+		for _, e := range v.Entries {
+			if strings.TrimSpace(e.Name) != "" || len(e.Rows.Items) > 0 {
+				return false
+			}
+		}
+		return true
 	case CodeBlock:
 		return len(v.Lines) == 0
 	case Message:
@@ -1518,5 +1525,52 @@ func TestStatusSignStyles(t *testing.T) {
 	}
 	if ConfiguredSign != "+" || LineMark != "~" || LineIndent != 2 {
 		t.Errorf("the sign %q, the mark %q, the indent %d", ConfiguredSign, LineMark, LineIndent)
+	}
+}
+
+// TestFramedLayout checks FramedList's grid in plain mode (DEV-077): the
+// rules from column 2 and the corners and edge in the last content column;
+// inside, the rows on the grid, cut one cell before the edge, stacked only
+// below theme.StackBelow, as the terminal's width alone decides; no frame
+// under frameMin columns.
+func TestFramedLayout(t *testing.T) {
+	plain := func(w int, vm FramedList) []string {
+		return strings.Split(ansi.Strip(vm.Render(NewCtx(term.Fixed(w, colorprofile.NoTTY, false, true)))), "\n")
+	}
+	vm := fixture.FramedUsers()
+	for _, w := range []int{80, 64, 60, 20, 4} {
+		lines := plain(w, vm)
+		edge := min(w, theme.ContentWidth) - 1
+		for i, l := range lines {
+			want := "|"
+			if i == 0 || i == len(lines)-1 {
+				want = "+"
+			}
+			if len(l) != edge+1 || l[edge:] != want {
+				t.Errorf("width %d, line %d %q: want %q in column %d", w, i, l, want, edge)
+			}
+			if i > 0 && i < len(lines)-1 && len(l) > edge && l[edge-1] != ' ' {
+				t.Errorf("width %d, line %d %q: no space before the edge", w, i, l)
+			}
+		}
+		if r := lines[0]; r[:FrameColumn] != "  " || r[FrameColumn] != '-' {
+			t.Errorf("width %d: top rule %q", w, r)
+		}
+	}
+	at80 := plain(80, vm)
+	for _, want := range []string{"  [george]                 Oct 20 08:14 from 192.0.2.10        |", "   -  UID:GID              1000:1000                           |"} {
+		if !slices.Contains(at80, want) {
+			t.Errorf("80 columns: no %q in\n%s", want, strings.Join(at80, "\n"))
+		}
+	}
+	long := FramedList{Entries: []FramedEntry{{Name: "george", Rows: BulletList{Items: []KeyValue{{Key: "Granted by", Value: strings.Repeat("x", 40)}}}}}}
+	if l := plain(80, long)[4]; l != "   -  Granted by           "+strings.Repeat("x", 32)+"... |" {
+		t.Errorf("a long value at 80 columns: %q", l)
+	}
+	if at60 := plain(60, vm); at60[2] != "  [george]"+strings.Repeat(" ", 49)+"|" || at60[3] != "      Oct 20 08:14 from 192.0.2.10"+strings.Repeat(" ", 25)+"|" {
+		t.Errorf("60 columns, stacked:\n%s", strings.Join(at60, "\n"))
+	}
+	if at3 := plain(3, vm); strings.Contains(strings.Join(at3, "\n"), "|") || strings.Contains(strings.Join(at3, "\n"), "+") {
+		t.Errorf("3 columns: a frame:\n%s", strings.Join(at3, "\n"))
 	}
 }

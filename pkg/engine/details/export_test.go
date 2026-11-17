@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 )
 
@@ -22,15 +23,15 @@ func RunBounded(ctx context.Context, sys host.System, command, grace time.Durati
 }
 
 // ReadSource gives the tests the blank guard's read of a source.
-var ReadSource = readSource
+var ReadSource = accounts.ReadLoginSource
 
 // GuardState gives the tests what the blank guard found.
-type GuardState = guardState
+type GuardState = accounts.SourceState
 
 // The states, for the tests.
 const (
-	GuardUnread    = guardUnread
-	GuardMissing   = guardMissing
-	GuardNoRecords = guardNoRecords
-	GuardRecords   = guardRecords
+	GuardUnread    = accounts.SourceUnread
+	GuardMissing   = accounts.SourceMissing
+	GuardNoRecords = accounts.SourceNoRecords
+	GuardRecords   = accounts.SourceRecords
 )

@@ -119,6 +119,11 @@ type usrHost struct {
 	// logins is lslogins' answer (Account Review, review_test.go); nil
 	// leaves lslogins unanswered, as on a host that never runs it.
 	logins *hostfake.Response
+	// lastLogins answer the screen's own lslogins call (lastLoginArgv): a
+	// name's login fields after the name; any other name answers blanks,
+	// lslogins' line for an account with none (vm-runs/s1/02-login.log). On
+	// Alpine lslogins is not installed (vm-runs/s1/01-tools.log).
+	lastLogins map[string]string
 
 	mu         sync.Mutex
 	unexpected []string // the commands the fake does not answer
@@ -222,6 +227,10 @@ func usersOn(p platform, cloud bool, us ...simUser) *usrHost {
 	if cloud && len(us) > 0 {
 		h.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte("# Created by cloud-init v. 25.1\n\n# User rules for "+us[0].name+"\n"+us[0].name+" ALL=(ALL) NOPASSWD:ALL\n"), 0o440, 0, 0)
 	}
+	// george logged in over SSH the evening before the clock (helpers_test.go);
+	// alice answers blanks, and with no login record on the host to hold one,
+	// her login is not known.
+	h.lastLogins = map[string]string{"george": "2026-11-02T21:14:09+00:00 pts/0 192.0.2.10"}
 	h.Handler = h.answer
 	return h
 }
@@ -268,6 +277,9 @@ func (h *usrHost) answer(argv []string, _ []byte) hostfake.Response {
 			return h.sshdT()
 		}
 	case "lslogins":
+		if len(argv) == len(lastLoginArgv)+2 && slices.Equal(argv[1:len(argv)-1], lastLoginArgv) {
+			return h.lastLogin(argv[len(argv)-1])
+		}
 		if h.logins != nil {
 			return *h.logins
 		}
@@ -295,6 +307,28 @@ func (h *usrHost) answer(argv []string, _ []byte) hostfake.Response {
 	h.unexpected = append(h.unexpected, cmd)
 	h.mu.Unlock()
 	return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
+}
+
+// lastLoginArgv is how the screen asks lslogins about its users, whose
+// names follow -l, joined by commas: wtmp left out, a raw line each, each
+// blank field empty (vm-runs/s1/08-lslogins.log).
+var lastLoginArgv = []string{"--time-format=iso", "--noheadings", "--raw", "--output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME", "--wtmp-file=/dev/null", "-l"}
+
+// lastLogin is lslogins' answer for names (lastLogins), or that it is not
+// installed, on Alpine.
+func (h *usrHost) lastLogin(names string) hostfake.Response {
+	if h.plat.alpine {
+		return hostfake.Response{Err: fmt.Errorf("host: %q: %w", "lslogins", host.ErrNotFound)}
+	}
+	var b strings.Builder
+	for _, n := range strings.Split(names, ",") {
+		if l, ok := h.lastLogins[n]; ok {
+			b.WriteString(n + " " + l + "\n")
+		} else {
+			b.WriteString(n + "   \n")
+		}
+	}
+	return hostfake.Response{Stdout: b.String()}
 }
 
 // unanswered returns the commands the fake did not answer.

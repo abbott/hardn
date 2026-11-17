@@ -80,15 +80,16 @@ func TestReviewScreen(t *testing.T) {
 }
 
 // TestReviewNoRecord: a host with no login record says so, lists no one
-// under it, never says an account never logged in, and runs no lslogins.
+// under it, never says an account never logged in, and runs no lslogins for
+// it: the screen's own call alone, for the last logins.
 func TestReviewNoRecord(t *testing.T) {
 	h := reviewed(nil)
 	p := play(h, false, "3", "0", "0")
 	if p.err != nil || !shows(p.out, "This host keeps no login record") || !shows(p.out, "3 accounts to review") || shows(p.out, "Never,") || shows(p.out, "usermod") {
 		t.Errorf("%v:\n%s", p.err, p.out)
 	}
-	if ran(h, 0, "lslogins") {
-		t.Error("ran lslogins")
+	if ran(h, 0, "lslogins --export") {
+		t.Error("ran lslogins --export")
 	}
 }
 

@@ -58,7 +58,7 @@ func usrHosts() []usrHost {
 	viaDoas := map[string]string{"DOAS_USER": "george"}
 	return []usrHost{
 		{name: "debian13", label: "Debian 13 cloud", about: "cloud-init's rule, a second user", host: usrDebian13, env: viaSudo,
-			note: deb + "As the VM: george, uid 1000, no password (!), in sudo and adm, two keys, NOPASSWD by cloud-init's 90-cloud-init-users; alice, uid 1001, a password, in sudo, no key. hardn runs through george's sudo."},
+			note: deb + "As the VM: george, uid 1000, no password (!), in sudo and adm, two keys, NOPASSWD by cloud-init's 90-cloud-init-users; alice, uid 1001, a password, in sudo, no key. hardn runs through george's sudo. george last logged in over SSH, alice at the console."},
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "sudo-rs, %admin too", host: usrUbuntu, env: viaSudo,
 			note: hostFQDN + " runs Ubuntu 26.04 with sudo-rs 0.2.13, as the VM: debian13's accounts, /etc/sudoers with %admin as well as %sudo, HOME_MODE 0750."},
 		{name: "alpine323", label: "Alpine 3.23", about: "doas through wheel", host: usrAlpine, env: viaDoas,
