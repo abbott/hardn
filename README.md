@@ -1,11 +1,17 @@
+<img width="2300" height="520" alt="hardn banner" src="https://github.com/user-attachments/assets/2de09464-c96b-4a74-a0b6-ca64454d2de0" />
+
 # Hardn
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](docs/verify.md#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](docs/verify.md#verify-a-release) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
 Simple, precise hardening for Linux servers.
-> For Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma, RHEL, CentOS Stream and Oracle Linux. See each change before it happens. Revert if needed.
+> For Debian, Ubuntu, Alpine, RHEL, Rocky, Alma, CentOS Stream, Oracle Linux, and Proxmox.
 
 For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organizations such as schools, clinics and nonprofits.
+
+[Install](#install) •
+[Quick Start](#quick-start) •
+[Documentation](#documentation)
 
 <img width="1328" height="1678" alt="hardn menu" src="https://github.com/user-attachments/assets/46b65159-b49e-43ea-a64e-fdb0ac53566e" />
 
@@ -26,20 +32,19 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 9 | System Details | Display: host details |
 | 10 | Logs | Display: `/var/log/hardn.log` |
 
-
-AppArmor is displayed, not configured. What each option shows and changes: [docs/usage.md](docs/usage.md#the-menu).
+AppArmor is displayed, not configured. What each option shows and changes: [usage.md](docs/usage.md#the-menu).
 
 > [!IMPORTANT]
 > `hardn` should be part of a broader security strategy, not a _"set it and forget it"_ solution — regular security audits, updates, and monitoring are still required.
 
 ## How It Works
 
-1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [safeguards](docs/safeguards.md)).
+1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [safeguards.md](docs/safeguards.md)).
 2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH, enabling the firewall, some user changes, Run All) asks you to type the hostname.
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
-`sudo hardn -n` is a dry run: it shows each plan and changes nothing. What hardn refuses, the revert timer and backups: [docs/safeguards.md](docs/safeguards.md).
+`sudo hardn -n` is a dry run: it shows each plan and changes nothing. What hardn refuses, the revert timer and backups: [safeguards.md](docs/safeguards.md).
 
 ## Install
 
@@ -52,8 +57,8 @@ The script installs the latest release as `/usr/local/bin/hardn`, after checking
 
 > [!NOTE]
 > - To update, run it again.
-> - Pinning a version, installing by hand, building from source and troubleshooting: [docs/install.md](docs/install.md). With a pinned version, the script also asks GitHub whether a newer release is out.
-> - Checking a release yourself, offline too: [docs/verify.md](docs/verify.md).
+> - Pinning a version, installing by hand, building from source and troubleshooting: [install.md](docs/install.md). With a pinned version, the script also asks GitHub whether a newer release is out.
+> - Checking a release yourself, offline too: [verify.md](docs/verify.md).
 
 ## Quick Start
 
@@ -132,10 +137,10 @@ Use "hardn [command] --help" for more information about a command.
 </details>
 
 > [!TIP]
-> See [docs/usage.md](docs/usage.md) for every flag and command, scripts and cron, exit statuses, JSON and logs. 
+> See [usage.md](docs/usage.md) for every flag and command, scripts and cron, exit statuses, JSON and logs. 
 
 ### hardn.yml
-See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
+See [configuration.md](docs/configuration.md) for every `hardn.yml` key.
 
 ## Supported Distributions
 
@@ -144,46 +149,44 @@ See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 | Debian | `13`, `12` | | `13`: 2030-06-30, `12`: 2028-06-30 (the end of LTS) |
 | Ubuntu | `26.04`, `24.04` | `22.04` | `26.04`: May 2031, `24.04`: May 2029, `22.04`: May 2027 (without Ubuntu Pro) |
 | Alpine | `3.24`, `3.23` | `3.22` | `3.24`: 2028-06-01, `3.23`: 2027-11-01, `3.22`: 2027-05-01, `3.21`: 2026-11-01 |
-| Proxmox | `9` | | `9`: not announced, so no warning; `8`: August 2026 |
-| TrueNAS | Refused: make changes in its web UI | | |
-| Raspberry Pi OS | 64-bit, as Debian; 32-bit: hardn doesn't start | | as Debian |
-| Rocky, Alma, RHEL | `10`, `9` | | `10`: 2035-05-31, `9`: 2032-05-31 (RHEL without the paid add-on) |
+| RHEL, Rocky, Alma | `10`, `9` | | `10`: 2035-05-31, `9`: 2032-05-31 (RHEL without the paid add-on) |
 | CentOS Stream | `10`, `9` | | `10`: 2030-05-31, `9`: 2027-05-31 |
 | Oracle | `10`, `9` | | `10`: June 2035, `9`: June 2032 (the end of Premier Support) |
+| Proxmox | `9` | | `9`: not announced, so no warning; `8`: August 2026 |
 
-- **Supported**: hardn changes it.
+> [!NOTE]
+> Raspberry Pi OS 64-bit is supported as Debian, 32-bit is not.
+
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
-- **End of life schedule**: when each release's free security updates end, as hardn knows them.
 - **Out of scope**: Alpine 3.21 and 3.20, Proxmox 8, Ubuntu's interim releases, and any version not in the table. hardn shows the screens and refuses every change.
 - **Custom distributions**: on Proxmox and Raspberry Pi OS, every plan warns that a change safe on Debian can break them (`PLATFORM_CUSTOM`). TrueNAS manages its own system, so hardn shows the screens and refuses every change.
-- **Any other distribution**: hardn doesn't start.
+- **End of life schedule**: when each release's free security updates end, as hardn knows them.
 - **End of support**: from 90 days before a release's vendor support ends, the main menu says so.
 - **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, CentOS Stream, Oracle, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. Since v0.6.0, the release notes name the real hosts a release was tested on, or say that it changed only wording.
 
-What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, on Proxmox, TrueNAS and Raspberry Pi OS: [docs/platforms.md](docs/platforms.md).
+What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, on Proxmox, TrueNAS and Raspberry Pi OS: [platforms.md](docs/platforms.md).
 
 ## Security
 
 - **No telemetry.** `hardn` makes no network request but the release check, which it asks about, yes by default, or which `checkReleases` sets. It asks GitHub for the latest release's tag once a day and sends nothing about the host. No account or cloud service required.
-- **Releases.** Each binary has [SLSA](https://slsa.dev) Build Level 3 provenance and a [Sigstore](https://www.sigstore.dev/) signature, and a rebuild of a tag is byte-identical: [docs/verify.md](docs/verify.md).
-- **CVEs.** hardn checks for the vendor's fix to a CVE that makes one of its changes unsafe, today one on Alpine: [docs/cve.md](docs/cve.md).
-- **Reporting.** Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**.
+- **Releases.** Each binary has [SLSA](https://slsa.dev) Build Level 3 provenance and a [Sigstore](https://www.sigstore.dev/) signature, and a rebuild of a tag is byte-identical: [verify.md](docs/verify.md).
+- **CVEs.** hardn checks for the vendor's fix to a CVE that makes one of its changes unsafe, today one on Alpine: [cve.md](docs/cve.md).
+- **Reporting.** Report security problems as [SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**.
 - **Other bugs.** Use the [bug report form](https://github.com/abbott/hardn/issues/new?template=bug_report.yml): your OS and version, and the steps to reproduce.
 
 ## Documentation
 
 | Page | What it covers |
 |---|---|
-| [docs/usage.md](docs/usage.md) | the menu, flags, commands, exit statuses, output, logs |
-| [docs/configuration.md](docs/configuration.md) | `hardn.yml` and `HARDN_CONFIG` |
-| [docs/safeguards.md](docs/safeguards.md) | refusals, the revert timer, backups |
-| [docs/install.md](docs/install.md) | install by hand, build from source, troubleshooting |
-| [docs/verify.md](docs/verify.md) | release provenance and how to check it |
-| [docs/platforms.md](docs/platforms.md) | Alpine, Rocky, Alma, RHEL, CentOS Stream, Oracle and Proxmox |
-| [docs/cve.md](docs/cve.md) | the CVEs hardn checks for |
-| [docs/reference/output.md](docs/reference/output.md) | the JSON document and its codes |
-| [docs/roadmap.md](docs/roadmap.md) | planned features |
-| [docs/releases/v0.11.1.md](docs/releases/v0.11.1.md) | the release notes |
+| [usage.md](docs/usage.md) | the menu, flags, commands, exit statuses, output, logs |
+| [configuration.md](docs/configuration.md) | `hardn.yml` and `HARDN_CONFIG` |
+| [safeguards.md](docs/safeguards.md) | refusals, the revert timer, backups |
+| [install.md](docs/install.md) | install by hand, build from source, troubleshooting |
+| [verify.md](docs/verify.md) | release provenance and how to check it |
+| [platforms.md](docs/platforms.md) | Alpine, Rocky, Alma, RHEL, CentOS Stream, Oracle and Proxmox |
+| [cve.md](docs/cve.md) | the CVEs hardn checks for |
+| [output.md](docs/reference/output.md) | the JSON document and its codes |
+| [roadmap.md](docs/roadmap.md) | planned features |
 
 ## How to Help
 
@@ -192,19 +195,21 @@ I provide `hardn`, and my commitment to it, as a public service. Code isn't expe
 1. **Star** [the repository](https://github.com/abbott/hardn), so others find it.
 2. **Share** it with anyone who runs a Linux server.
 3. **Request a feature** with the [feature request form](https://github.com/abbott/hardn/issues/new?template=feature_request.yml). Requests shape what's prioritized and built in future releases. Found a bug? Use the [bug report form](https://github.com/abbott/hardn/issues/new?template=bug_report.yml).
-4. **Sponsor** through [GitHub Sponsors](https://github.com/sponsors/abbott), to fund continued development and maintenance, and the direct help that schools, clinics and nonprofits receive: [.github/SUPPORT.md](.github/SUPPORT.md#help-for-schools-clinics-and-nonprofits).
-5. **Contribute** code: read [docs/contributing.md](docs/contributing.md) before opening a pull request, and [.github/GOVERNANCE.md](.github/GOVERNANCE.md) for the project's mission.
+4. **Sponsor** through [GitHub Sponsors](https://github.com/sponsors/abbott), to fund continued development and maintenance, and the direct help that schools, clinics and nonprofits receive: [SUPPORT.md](.github/SUPPORT.md#help-for-schools-clinics-and-nonprofits).
+5. **Contribute** code: read [contributing.md](docs/contributing.md) before opening a pull request, and [GOVERNANCE.md](.github/GOVERNANCE.md) for the project's mission.
 
 ## Origin
 
 After hardening containers and VMs by hand for years, I wrote a script, `hardn.sh`, to automate the essentials from a config file and command-line arguments. The code needed a rewrite to stay maintainable, so I adopted Go and published `hardn`. Enjoy! :tumbler_glass:
 
-Built with the libraries in [docs/acknowledgments.md](docs/acknowledgments.md).
+Built with the libraries in [acknowledgments.md](docs/acknowledgments.md).
 
-## License
+## [License](LICENSE)
 
-Copyright © 2025-2026 Bruce Abbott. GNU AGPL v3: see [LICENSE](LICENSE).
+GNU AGPL v3
 
 hardn comes with no warranty, and its authors accept no liability for its use: see sections 15 and 16 of the license.
 
 As an end-user, you can use hardn freely. The license’s terms apply when you pass hardn on to others, modified or otherwise, or offer a modified version as a service.
+
+Copyright © 2025-2026 Bruce Abbott
